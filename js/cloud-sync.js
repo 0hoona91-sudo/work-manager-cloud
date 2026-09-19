@@ -32,7 +32,19 @@ import {
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { appConfig, firebaseConfig } from "./firebase-config.js?v=20260919-rc2";
+import { appConfig } from "./firebase-config.js?v=20260919-final-rc3";
+import {
+  initBuildingIdentity,
+  signInBuildingGoogle,
+  signOutBuilding,
+  loadWorkspaceProfile,
+  connectPrivateWorkspace,
+  ensureBuildingDriveAccess,
+  getBuildingDriveAccessToken,
+  getBuildingUser,
+  hasBuildingDriveToken,
+  checkBuildingAuthorization,
+} from "./workspace-profile.js?v=20260919-final-rc3";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -70,6 +82,8 @@ let firebaseApp;
 let auth;
 let db;
 let currentUser;
+let buildingUser;
+let workspaceProfile;
 let driveAccessToken = "";
 let driveFolderId = "";
 let stateRef;
@@ -146,14 +160,7 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value ?? null));
 }
 
-function validFirebaseConfig() {
-  return Boolean(
-    firebaseConfig?.apiKey &&
-      firebaseConfig?.projectId &&
-      !String(firebaseConfig.apiKey).startsWith("__") &&
-      !String(firebaseConfig.projectId).startsWith("__"),
-  );
-}
+function validFirebaseConfig() { return true; }
 
 function docId(...parts) {
   return parts.map((part) => encodeURIComponent(String(part ?? ""))).join("~");
@@ -429,6 +436,7 @@ function ensureShell() {
       <div><span class="sync-dot" id="syncDot"></span><span id="syncText">연결 중</span></div>
       <div class="cloud-user" id="cloudUser"></div>
       <button class="cloud-signout" id="cloudSignOut" type="button">로그아웃</button>
+      <a href="./privacy.html" target="_blank" rel="noopener" style="display:block;margin-top:7px;font-size:11px;color:#718078;text-decoration:none">개인정보처리방침</a>
     </div>`,
   );
 }
@@ -465,10 +473,7 @@ function showLoggedOutGateV2() {
     button.disabled = true;
     document.getElementById("cloudGateError").textContent = "";
     try {
-      const result = await signInWithPopup(auth, makeGoogleProvider(true));
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (credential?.accessToken) rememberDriveAccessToken(credential.accessToken, result.user);
-      currentUser = result.user;
+      await signInBuildingGoogle({ selectAccount: true });
       location.reload();
     } catch (error) {
       button.disabled = false;
@@ -480,58 +485,88 @@ function showLoggedOutGateV2() {
   };
 }
 
-function waitForAuthState(authInstance) {
-  return new Promise((resolve, reject) => {
-    const off = onAuthStateChanged(authInstance, (user) => {
-      off();
-      resolve(user);
-    }, reject);
-  });
-}
-
-async function authenticate() {
-  let user = auth.currentUser || (await waitForAuthState(auth));
-  if (user) return user;
-
-  gate(
-    "내 Google 계정으로 로그인하면 모든 기기에서 같은 업무를 실시간으로 사용할 수 있습니다.",
-    `<button class="cloud-google-btn" id="cloudGoogleLogin" type="button"><span>G</span> Google로 로그인</button>`,
-  );
-  return new Promise((resolve, reject) => {
-    document.getElementById("cloudGoogleLogin").onclick = async () => {
-      const button = document.getElementById("cloudGoogleLogin");
-      button.disabled = true;
-      document.getElementById("cloudGateError").textContent = "";
-      const provider = makeGoogleProvider(true);
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        if (credential?.accessToken) rememberDriveAccessToken(credential.accessToken, result.user);
-        resolve(result.user);
-      } catch (error) {
-        button.disabled = false;
-        if (error?.code === "auth/popup-closed-by-user") {
-          document.getElementById("cloudGateError").textContent = "로그인 창이 닫혔습니다. 다시 눌러 로그인해 주세요.";
-          return;
+async function authenticateBuildingAndWorkspace() {
+  const identity = await initBuildingIdentity();
+  buildingUser = identity.user || null;
+  if (!buildingUser) {
+    gate(
+      "Google 계정으로 로그인하면 어느 기기에서든 내 개인 업무공간을 자동으로 찾습니다.",
+      `<button class="cloud-google-btn" id="cloudGoogleLogin" type="button"><span>G</span> Google로 로그인</button>`,
+    );
+    await new Promise((resolve) => {
+      document.getElementById("cloudGoogleLogin").onclick = async () => {
+        const button = document.getElementById("cloudGoogleLogin");
+        button.disabled = true;
+        document.getElementById("cloudGateError").textContent = "";
+        try {
+          buildingUser = await signInBuildingGoogle({ selectAccount: true });
+          resolve();
+        } catch (error) {
+          button.disabled = false;
+          document.getElementById("cloudGateError").textContent = `로그인하지 못했습니다. ${friendlyError(error)}`;
         }
-        document.getElementById("cloudGateError").textContent = `로그인하지 못했습니다. ${friendlyError(error)}`;
-      }
-    };
-  });
-}
+      };
+    });
+  }
 
-function makeGoogleProvider(selectAccount = false) {
-  const provider = new GoogleAuthProvider();
-  provider.addScope("https://www.googleapis.com/auth/drive.file");
-  if (selectAccount) provider.setCustomParameters({ prompt: "select_account" });
-  return provider;
+  gate("사용 권한을 확인하는 중입니다.");
+  const authorization = await checkBuildingAuthorization(buildingUser);
+  if (!authorization.allowed) {
+    gate(
+      "이 Google 계정은 업무관리시스템 사용 승인을 받지 않았습니다.",
+      `<button class="cloud-secondary-btn" id="cloudUnauthorizedLogout" type="button">다른 Google 계정 사용</button>`,
+      "관리자가 허용한 계정만 사용할 수 있습니다.",
+    );
+    document.getElementById("cloudUnauthorizedLogout").onclick = async () => {
+      await signOutBuilding();
+      location.reload();
+    };
+    const error = new Error("Access denied by allowlist.");
+    error.code = "app/access-denied";
+    throw error;
+  }
+
+  gate("내 개인 업무공간을 찾는 중입니다.");
+  try {
+    await ensureBuildingDriveAccess();
+  } catch (error) {
+    throw new Error(`Google Drive 연결을 확인하지 못했습니다. ${friendlyError(error)}`);
+  }
+
+  const loaded = await loadWorkspaceProfile();
+  if (!loaded) {
+    gate(
+      "이 Google 계정에 연결된 개인 업무공간이 아직 없습니다.",
+      `<a class="cloud-google-btn" href="./setup.html" style="display:block;text-decoration:none;line-height:26px">내 업무공간 만들기</a>
+       <button class="cloud-secondary-btn" id="cloudWorkspaceLogout" type="button">다른 Google 계정 사용</button>`,
+      "처음 한 번만 개인 Firebase를 연결하면 이후에는 어느 기기에서든 자동으로 찾습니다.",
+    );
+    document.getElementById("cloudWorkspaceLogout").onclick = async () => {
+      await signOutBuilding();
+      location.reload();
+    };
+    throw new Error("Workspace profile not found.");
+  }
+
+  workspaceProfile = loaded.profile;
+  const connection = await connectPrivateWorkspace(workspaceProfile);
+  firebaseApp = connection.app;
+  auth = connection.auth;
+  db = connection.db;
+  currentUser = connection.user;
+  buildingUser = getBuildingUser() || buildingUser;
+  const token = getBuildingDriveAccessToken();
+  if (token) rememberDriveAccessToken(token, buildingUser);
+  return connection;
 }
 
 function friendlyError(error) {
   const code = error?.code || "";
   if (code.includes("unauthorized-domain")) return "이 주소가 Firebase 승인 도메인에 아직 등록되지 않았습니다.";
   if (code.includes("network")) return "인터넷 연결을 확인해 주세요.";
+  if (code.includes("app/access-denied")) return "관리자가 허용한 계정만 사용할 수 있습니다.";
   if (code.includes("permission-denied")) return "이 계정에는 데이터 접근 권한이 없습니다.";
+  if (code.includes("invalid-credential") || code.includes("invalid-login-credentials")) return "개인 업무공간 자동 로그인 정보가 올바르지 않습니다. setup.html에서 업무공간 연결을 다시 확인해 주세요.";
   if (code.includes("popup-blocked")) return "브라우저가 Google 로그인 창을 막았습니다. 이 사이트의 팝업을 허용한 뒤 Google로 로그인을 다시 눌러 주세요.";
   if (code.includes("popup-closed-by-user")) return "Google 권한 창이 닫혔습니다. 다시 눌러 권한 승인을 완료해 주세요.";
   if (code.includes("web-storage-unsupported")) return "브라우저 저장공간이 제한되어 있습니다. 시크릿 탭이 아닌 일반 탭에서 열고 쿠키와 사이트 데이터를 허용한 뒤 다시 시도해 주세요.";
@@ -588,58 +623,20 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     setSyncStatus("offline", "로컬 미리보기");
     return controller();
   }
-  if (!validFirebaseConfig()) {
-    gate("클라우드 설정값이 아직 연결되지 않았습니다.", "", "배포 설정을 완료한 뒤 다시 접속해 주세요.");
-    throw new Error("Firebase configuration is incomplete.");
-  }
-
-  firebaseApp = initializeApp(firebaseConfig);
-  auth = getAuth(firebaseApp);
-  await configureAuthPersistence(auth);
-  db = initializeFirestore(firebaseApp, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-  });
-  currentUser = await authenticate();
-  restoreDriveAccessToken(currentUser);
-  const configuredUid = String(appConfig.ownerUid || "");
-  document.getElementById("cloudUser").textContent = currentUser.email || currentUser.displayName || "Google 계정";
-  if (!configuredUid || configuredUid.startsWith("__")) {
-    gate(
-      "최초 보안 설정을 마치려면 이 계정의 Firebase UID를 앱 설정과 보안규칙에 한 번 등록해야 합니다.",
-      `<div style="display:grid;gap:9px;text-align:left">
-        <label for="cloudOwnerUid" style="font-size:12px;font-weight:800;color:#526158">내 Firebase UID</label>
-        <input id="cloudOwnerUid" readonly style="width:100%;box-sizing:border-box;border:1px solid #cddbd1;border-radius:12px;padding:12px;background:#f7faf8;font:600 13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace">
-        <button class="cloud-secondary-btn" id="cloudCopyOwnerUid" type="button">UID 복사</button>
-      </div>`,
-      "UID는 비밀번호나 인증코드가 아닌 계정 식별값입니다.",
-    );
-    const field = document.getElementById("cloudOwnerUid");
-    const copyButton = document.getElementById("cloudCopyOwnerUid");
-    field.value = currentUser.uid;
-    copyButton.onclick = async () => {
-      field.select();
-      try {
-        await navigator.clipboard.writeText(currentUser.uid);
-      } catch {
-        document.execCommand("copy");
-      }
-      copyButton.textContent = "복사됨";
-    };
-    throw new Error("Firebase owner UID is not configured.");
-  }
-  if (configuredUid && !configuredUid.startsWith("__") && currentUser.uid !== configuredUid) {
-    await signOut(auth);
-    gate("이 업무관리시스템에 등록된 Google 계정이 아닙니다.", "", "다른 계정으로 로그인해 주세요.");
-    throw new Error("Unauthorized account.");
-  }
+  gate("건물 입구와 개인 업무공간을 연결하는 중입니다.");
+  await authenticateBuildingAndWorkspace();
+  document.getElementById("cloudUser").textContent = buildingUser?.email || buildingUser?.displayName || "Google 계정";
   document.getElementById("cloudSignOut").onclick = async () => {
     const signOutButton = document.getElementById("cloudSignOut");
     if (signOutButton) signOutButton.disabled = true;
     clearDriveAccessToken();
     stopRealtime();
     try {
-      await signOut(auth);
+      if (auth?.currentUser) await signOut(auth);
+      await signOutBuilding();
       currentUser = null;
+      buildingUser = null;
+      workspaceProfile = null;
       document.getElementById("cloudUser").textContent = "";
       setSyncStatus("offline", "로그아웃됨");
       showLoggedOutGateV2();
@@ -659,7 +656,7 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     gate("오프라인 캐시에 업무 데이터가 없습니다.", "", "인터넷 연결 후 다시 열어 주세요. 기존 클라우드 데이터는 변경되지 않습니다.");
     throw new Error("Cloud data is unavailable while offline.");
   } else {
-    const initial = await chooseInitialState(legacyState, currentUser);
+    const initial = await chooseInitialState(legacyState, buildingUser || currentUser);
     replaceState(stateRef, initial);
     needsInitialUpload = true;
   }
@@ -672,9 +669,11 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
 
 function controller() {
   return {
-    get user() { return currentUser; },
+    get user() { return buildingUser || currentUser; },
+    get workspaceUser() { return currentUser; },
+    get workspaceKey() { return workspaceProfile?.workspace?.firebaseConfig?.projectId || (localOnly ? "local-preview" : "workspace"); },
     get mode() { return localOnly ? "local" : "cloud"; },
-    hasDriveAccess() { return localOnly || Boolean(restoreDriveAccessToken()); },
+    hasDriveAccess() { return localOnly || hasBuildingDriveToken() || Boolean(driveAccessToken); },
     stableTaskId: stableKeyId,
     activate,
     save,
@@ -1167,7 +1166,7 @@ function makeLog(changes, metadata = {}) {
   }));
   return {
     actorUid: currentUser?.uid || "offline",
-    actorEmail: currentUser?.email || "",
+    actorEmail: buildingUser?.email || currentUser?.email || "",
     clientTime: new Date().toISOString(),
     serverTime: serverTimestamp(),
     reason: metadata.reason || inferReason(summaries),
@@ -1209,19 +1208,12 @@ function mergeById(current, incoming) {
 }
 
 async function ensureDriveAccess() {
-  const restored = restoreDriveAccessToken();
-  if (restored) return restored;
-  if (!currentUser) throw new Error("Google 로그인이 필요합니다.");
-  let result;
-  try {
-    result = await reauthenticateWithPopup(currentUser, makeGoogleProvider());
-  } catch (error) {
-    throw new Error(friendlyError(error), { cause: error });
-  }
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  const token = credential?.accessToken || "";
+  if (localOnly) return "";
+  await ensureBuildingDriveAccess();
+  buildingUser = getBuildingUser() || buildingUser;
+  const token = getBuildingDriveAccessToken();
   if (!token) throw new Error("Google Drive 권한을 확인하지 못했습니다.");
-  return rememberDriveAccessToken(token);
+  return rememberDriveAccessToken(token, buildingUser);
 }
 
 async function ensureDriveFolder() {
