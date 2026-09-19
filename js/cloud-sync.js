@@ -914,10 +914,19 @@ function stopRealtime() {
   historyReadyPromise = null;
 }
 
+function appModalOpenForRemoteApply() {
+  // 폼/체크리스트 모달이 열려 있는 동안 state 전체를 원격 스냅샷으로 교체하면
+  // 모달 이벤트 핸들러가 들고 있던 task 객체 참조가 끊어진다.
+  // 그 상태에서 체크리스트를 연속 클릭하거나 업무를 수정하면 첫 변경만 저장되고
+  // 다음 변경이 오래된 객체에 적용되는 경쟁 상태가 생길 수 있으므로,
+  // 모달이 닫힐 때까지 원격 UI 반영만 잠시 미룬다. Firestore 수신 자체는 계속된다.
+  return Boolean(document.querySelector('#modalRoot .modal'));
+}
+
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
-    if (saving || queuedState) return scheduleRemoteApply();
+    if (saving || queuedState || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
     renderRemote?.();
