@@ -453,6 +453,33 @@ function setSyncStatus(kind, text) {
   if (label) label.textContent = text;
 }
 
+function showLoggedOutGateV2() {
+  ensureShell();
+  gate(
+    "로그아웃되었습니다. 다시 사용하려면 Google 계정으로 로그인해 주세요.",
+    `<button class="cloud-google-btn" id="cloudGoogleLoginAfterLogout" type="button"><span>G</span> Google로 로그인</button>`,
+  );
+  const button = document.getElementById("cloudGoogleLoginAfterLogout");
+  if (!button) return;
+  button.onclick = async () => {
+    button.disabled = true;
+    document.getElementById("cloudGateError").textContent = "";
+    try {
+      const result = await signInWithPopup(auth, makeGoogleProvider(true));
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) rememberDriveAccessToken(credential.accessToken, result.user);
+      currentUser = result.user;
+      location.reload();
+    } catch (error) {
+      button.disabled = false;
+      document.getElementById("cloudGateError").textContent =
+        error?.code === "auth/popup-closed-by-user"
+          ? "로그인 창이 닫혔습니다. 다시 눌러 로그인해 주세요."
+          : `로그인하지 못했습니다. ${friendlyError(error)}`;
+    }
+  };
+}
+
 function waitForAuthState(authInstance) {
   return new Promise((resolve, reject) => {
     const off = onAuthStateChanged(authInstance, (user) => {
@@ -606,11 +633,21 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     throw new Error("Unauthorized account.");
   }
   document.getElementById("cloudSignOut").onclick = async () => {
+    const signOutButton = document.getElementById("cloudSignOut");
+    if (signOutButton) signOutButton.disabled = true;
     clearDriveAccessToken();
     stopRealtime();
-    await signOut(auth);
-    currentUser = null;
-    location.reload();
+    try {
+      await signOut(auth);
+      currentUser = null;
+      document.getElementById("cloudUser").textContent = "";
+      setSyncStatus("offline", "로그아웃됨");
+      showLoggedOutGateV2();
+    } catch (error) {
+      if (signOutButton) signOutButton.disabled = false;
+      setSyncStatus("error", "로그아웃 실패");
+      gate("로그아웃하지 못했습니다.", "", friendlyError(error));
+    }
   };
   gate("클라우드 데이터를 불러오는 중입니다.");
   recordMaps = makeRecordMaps();
