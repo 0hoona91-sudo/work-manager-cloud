@@ -15,6 +15,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
@@ -40,7 +41,9 @@ const DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
 
 let buildingApp = null;
 let buildingAuth = null;
+let buildingDb = null;
 let buildingUser = null;
+let buildingAuthorization = null;
 let driveAccessToken = "";
 
 function clone(value) {
@@ -107,10 +110,12 @@ function clearDriveToken() {
   try { sessionStorage.removeItem(DRIVE_TOKEN_KEY); } catch {}
 }
 
-function googleProvider(selectAccount = false) {
+function googleProvider(selectAccount = false, includeDrive = false) {
   const provider = new GoogleAuthProvider();
-  provider.addScope("https://www.googleapis.com/auth/drive.file");
-  provider.addScope("https://www.googleapis.com/auth/drive.appdata");
+  if (includeDrive) {
+    provider.addScope("https://www.googleapis.com/auth/drive.file");
+    provider.addScope("https://www.googleapis.com/auth/drive.appdata");
+  }
   if (selectAccount) provider.setCustomParameters({ prompt: "select_account" });
   return provider;
 }
@@ -128,6 +133,7 @@ export async function initBuildingIdentity() {
   if (!buildingApp) {
     buildingApp = initializeApp(buildingFirebaseConfig, "work-manager-building-v1");
     buildingAuth = getAuth(buildingApp);
+    buildingDb = getFirestore(buildingApp);
     await setPersistence(buildingAuth, browserLocalPersistence);
   }
   buildingUser = buildingAuth.currentUser || await waitForAuthState(buildingAuth);
@@ -137,18 +143,42 @@ export async function initBuildingIdentity() {
 
 export async function signInBuildingGoogle({ selectAccount = true } = {}) {
   await initBuildingIdentity();
-  const result = await signInWithPopup(buildingAuth, googleProvider(selectAccount));
-  const credential = GoogleAuthProvider.credentialFromResult(result);
+  const result = await signInWithPopup(buildingAuth, googleProvider(selectAccount, false));
   buildingUser = result.user;
-  rememberDriveToken(credential?.accessToken || "", buildingUser);
+  buildingAuthorization = null;
+  clearDriveToken();
   return buildingUser;
+}
+
+export async function checkBuildingAuthorization(user = buildingUser) {
+  await initBuildingIdentity();
+  const target = user || buildingUser;
+  const email = String(target?.email || "").trim().toLowerCase();
+  if (!target || !email) return { allowed: false, email, reason: "missing-email" };
+  if (buildingAuthorization?.email === email) return buildingAuthorization;
+  const snapshot = await getDoc(doc(buildingDb, "allowedUsers", email));
+  const data = snapshot.exists() ? snapshot.data() : null;
+  buildingAuthorization = {
+    allowed: Boolean(snapshot.exists() && data?.enabled === true),
+    email,
+    data: data || null,
+  };
+  return buildingAuthorization;
 }
 
 export async function ensureBuildingDriveAccess() {
   await initBuildingIdentity();
-  if (!buildingUser) return signInBuildingGoogle({ selectAccount: true });
+  if (!buildingUser) {
+    await signInBuildingGoogle({ selectAccount: true });
+  }
+  const authorization = await checkBuildingAuthorization(buildingUser);
+  if (!authorization.allowed) {
+    const error = new Error("이 Google 계정은 업무관리시스템 사용 승인을 받지 않았습니다.");
+    error.code = "app/access-denied";
+    throw error;
+  }
   if (restoreDriveToken(buildingUser)) return buildingUser;
-  const result = await reauthenticateWithPopup(buildingUser, googleProvider(false));
+  const result = await reauthenticateWithPopup(buildingUser, googleProvider(false, true));
   const credential = GoogleAuthProvider.credentialFromResult(result);
   rememberDriveToken(credential?.accessToken || "", buildingUser);
   return buildingUser;
@@ -159,6 +189,7 @@ export async function signOutBuilding() {
   clearDriveToken();
   if (buildingAuth.currentUser) await signOut(buildingAuth);
   buildingUser = null;
+  buildingAuthorization = null;
 }
 
 async function listProfileFiles() {
@@ -250,6 +281,19 @@ export async function saveWorkspaceProfile(profile) {
   const files = await listProfileFiles();
   if (files[0]?.id) return updateProfileFile(files[0].id, profile);
   return createProfileFile(profile);
+}
+
+export async function deleteWorkspaceProfile() {
+  await ensureBuildingDriveAccess();
+  const files = await listProfileFiles();
+  for (const file of files) {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(file.id)}`, {
+      method: "DELETE",
+      headers: driveHeaders(),
+    });
+    if (!response.ok && response.status !== 404) throw new Error(`업무공간 설정 삭제 실패 (${response.status})`);
+  }
+  return files.length;
 }
 
 export function parseFirebaseConfigText(text) {
