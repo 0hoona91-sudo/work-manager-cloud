@@ -1564,7 +1564,7 @@ body.local-nav-booting-v121 .side .navbtn[data-page="historyPage"]{display:none!
           </div>
         </div>
       </div>
-      <div class="card toolbar home-toolbar-v3">
+      <div class="card toolbar home-toolbar-v3 hidden" aria-hidden="true">
         <div class="legacy-home-period-v20" hidden><select id="homeYear" aria-hidden="true"></select><select id="homePeriod" aria-hidden="true"></select></div>
         <div class="field"><label>간트·달력 대분류</label><div class="multi"><button class="multi-btn" id="catMultiBtn">전체</button><div id="catMultiMenu" class="multi-menu hidden"></div></div></div>
         <div class="field"><label>완료</label><select id="homeDone"><option value="hide">완료 숨김</option><option value="show">완료 포함</option></select></div>
@@ -1720,10 +1720,17 @@ async function loadState(){
   window.__LOCAL_STATE_READY_V121__=true;
   return state;
 }
+let localSaveTailV33=Promise.resolve();
 async function saveState(meta={}){
   const snapshot=clone(state);
-  await writeLocalState(snapshot);
-  if(window.cloudSync)await window.cloudSync.save(snapshot,meta);
+  // IndexedDB 저장은 호출 순서대로 직렬화한다. 빠른 연속 변경에서 오래된 스냅샷이
+  // 나중에 저장되어 최신 체크 상태를 덮어쓰는 경쟁 상태를 막는다.
+  const localJob=localSaveTailV33.then(()=>writeLocalState(snapshot));
+  localSaveTailV33=localJob.catch(()=>{});
+
+  // 클라우드 큐에는 즉시 최신 스냅샷을 넘겨 cloud-sync.js의 병합 저장을 유지한다.
+  const cloudJob=window.cloudSync?window.cloudSync.save(snapshot,meta):Promise.resolve();
+  await Promise.all([localJob,cloudJob]);
 }
 function seed(){state.categories=['시설','안전','행정','기타'];state.owners=['담당자'];state.holidays=clone(holidaySeed);state.templates=[];state.tasks=[];state.selectedCategories=[];state.changeLogs=[];state.settings={homeView:'gantt',localBeta:true}}
 
@@ -4516,6 +4523,21 @@ renderHome=function(){
   return result;
 };
 
+function refreshChecklistUiV33(task){
+  const dialog=$('#modalRoot .checklist-task-modal-v18');if(!dialog)return;
+  const checks=task.checklist||[],doneCount=checks.filter(item=>item.done).length,allDone=canCompleteTaskV18(task),alreadyDone=effectiveStatus(task)==='done';
+  const note=$('.completion-note',dialog);
+  if(note){
+    note.textContent=checklistMessageV18(task,checks,doneCount,allDone);
+    note.classList.toggle('complete-ready',allDone);
+  }
+  const complete=$('#completeTask',dialog);
+  if(complete){
+    complete.disabled=alreadyDone||!allDone;
+    if(!alreadyDone&&complete.textContent!=='저장 중…')complete.textContent='업무 완료';
+  }
+}
+
 openChecklist=function(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   const checks=t.checklist||[],doneCount=checks.filter(c=>c.done).length,allDone=canCompleteTaskV18(t),alreadyDone=effectiveStatus(t)==='done';
@@ -4525,22 +4547,26 @@ openChecklist=function(id){
     <div class="muted checklist-schedule-v18">일정 ${fmtDate(t.start)} ~ ${fmtDate(t.end||t.start)}${t.actualComplete?` · 완료 ${fmtDate(t.actualComplete)}`:''}</div>`;
   const completeLabel=alreadyDone?'완료됨':'업무 완료';
   modal(`${t.urgent?'● ':''}${esc(t.name)}`,body,`<button class="btn" data-edit-task="${id}">내용 수정</button><button class="btn primary" id="completeTask" ${(allDone&&!alreadyDone)?'':'disabled'}>${completeLabel}</button>`,'small checklist-task-modal-v18');
-  const docInput=$('#relatedDocumentTitleV15');
+  const dialog=$('#modalRoot .checklist-task-modal-v18');
+  const docInput=$('#relatedDocumentTitleV15',dialog||document);
   if(docInput){
     docInput.oninput=()=>{t.relatedDocumentTitle=docInput.value;scheduleRelatedDocumentSaveV15()};
-    docInput.onchange=()=>{captureRelatedDocumentV15(t);clearTimeout(relatedDocumentSaveTimerV15);relatedDocumentSaveTimerV15=null;saveState({reason:'관련 공문 제목 변경'})};
+    docInput.onchange=()=>{captureRelatedDocumentV15(t);clearTimeout(relatedDocumentSaveTimerV15);relatedDocumentSaveTimerV15=null;void saveState({reason:'관련 공문 제목 변경'})};
   }
-  $$('[data-check]').forEach(input=>input.onchange=async()=>{
+  $$('[data-check]',dialog||document).forEach(input=>input.onchange=()=>{
     captureRelatedDocumentV15(t);clearTimeout(relatedDocumentSaveTimerV15);relatedDocumentSaveTimerV15=null;
     const item=t.checklist.find(value=>value.id===input.dataset.check);if(!item)return;
-    const previous=item.done;item.done=input.checked;
-    openChecklist(id);
-    try{await saveState({reason:'체크리스트 변경'})}
-    catch(error){item.done=previous;openChecklist(id);toast('체크 상태를 저장하지 못했습니다. 다시 시도해 주세요.')}
+    // 상태는 즉시 메모리에 반영하고 팝업 DOM은 유지한다. 여러 체크를 빠르게 눌러도
+    // 첫 클릭이 다음 체크박스를 없애 버리지 않도록 하는 핵심 수정이다.
+    item.done=input.checked;
+    refreshChecklistUiV33(t);
+    void saveState({reason:'체크리스트 변경'}).catch(()=>toast('체크 상태 저장 중 오류가 발생했습니다. 동기화 상태를 확인해 주세요.'));
   });
-  $('[data-edit-task]').onclick=()=>{captureRelatedDocumentV15(t);scheduleRelatedDocumentSaveV15();openTaskForm(id)};
-  const complete=$('#completeTask');
-  if(complete&&!complete.disabled)complete.onclick=async()=>{
+  const edit=$('[data-edit-task]',dialog||document);
+  if(edit)edit.onclick=()=>{captureRelatedDocumentV15(t);scheduleRelatedDocumentSaveV15();openTaskForm(id)};
+  const complete=$('#completeTask',dialog||document);
+  if(complete)complete.onclick=async()=>{
+    if(complete.disabled)return;
     captureRelatedDocumentV15(t);clearTimeout(relatedDocumentSaveTimerV15);relatedDocumentSaveTimerV15=null;
     complete.disabled=true;complete.textContent='저장 중…';
     await persistTaskStatusV18(t,'done',{closeAfter:true});
