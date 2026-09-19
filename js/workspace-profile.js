@@ -1,4 +1,4 @@
-import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { initializeApp, deleteApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   GoogleAuthProvider,
   browserLocalPersistence,
@@ -45,6 +45,34 @@ let buildingDb = null;
 let buildingUser = null;
 let buildingAuthorization = null;
 let driveAccessToken = "";
+
+// Firebase Firestore는 같은 app 인스턴스에 서로 다른 옵션으로 initializeFirestore()를
+// 두 번 호출할 수 없습니다. 설정 화면에서 연결 확인을 재시도해도 같은 인스턴스를
+// 재사용하도록 캐시합니다.
+const firestoreByApp = new WeakMap();
+
+function getOrInitFirestore(app, { persistent = false } = {}) {
+  const cached = firestoreByApp.get(app);
+  if (cached) return cached;
+
+  let db;
+  if (persistent) {
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      });
+    } catch (error) {
+      // 이미 같은 app에서 Firestore가 초기화된 경우 기존 인스턴스를 그대로 사용합니다.
+      if (!String(error?.message || "").includes("already been called")) throw error;
+      db = getFirestore(app);
+    }
+  } else {
+    db = getFirestore(app);
+  }
+
+  firestoreByApp.set(app, db);
+  return db;
+}
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -357,9 +385,9 @@ export function firestoreRulesForWorkspaceUid(uid, extraUids = []) {
 export async function testPrivateFirestore(provisioned) {
   const { app, user } = provisioned || {};
   if (!app || !user) throw new Error("개인 업무공간 연결 정보가 없습니다.");
-  const privateDb = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-  });
+  // 설정 단계에서는 기본 Firestore 인스턴스로 연결만 검증합니다.
+  // 이렇게 해야 규칙 전파 대기 후 버튼을 다시 눌러도 재초기화 오류가 나지 않습니다.
+  const privateDb = getOrInitFirestore(app);
   const markerRef = doc(privateDb, "meta", "workspaceSetup");
   await setDoc(markerRef, {
     app: APP_ID,
@@ -398,25 +426,22 @@ export async function finalizeWorkspaceProvision(provisioned) {
 export async function connectPrivateWorkspace(profile) {
   if (!validateWorkspaceProfile(profile)) throw new Error("업무공간 설정이 올바르지 않습니다.");
   const appName = `wm-private-${profile.workspace.firebaseConfig.projectId}`;
-  let privateApp;
-  try {
-    privateApp = initializeApp(profile.workspace.firebaseConfig, appName);
-  } catch (error) {
-    if (!String(error?.message || "").includes("already exists")) throw error;
-    throw new Error("동일한 개인 Firebase가 이미 연결되어 있습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.");
-  }
+  let privateApp = getApps().find((candidate) => candidate.name === appName);
+  if (!privateApp) privateApp = initializeApp(profile.workspace.firebaseConfig, appName);
   const privateAuth = getAuth(privateApp);
   await setPersistence(privateAuth, browserLocalPersistence);
-  const signedIn = await signInWithEmailAndPassword(
-    privateAuth,
-    profile.workspace.auth.email,
-    profile.workspace.auth.password,
-  );
-  if (signedIn.user.uid !== profile.workspace.auth.uid) throw new Error("개인 업무공간 UID가 일치하지 않습니다.");
-  const privateDb = initializeFirestore(privateApp, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-  });
-  return { app: privateApp, auth: privateAuth, db: privateDb, user: signedIn.user };
+  let privateUser = privateAuth.currentUser;
+  if (!privateUser || privateUser.uid !== profile.workspace.auth.uid) {
+    const signedIn = await signInWithEmailAndPassword(
+      privateAuth,
+      profile.workspace.auth.email,
+      profile.workspace.auth.password,
+    );
+    privateUser = signedIn.user;
+  }
+  if (privateUser.uid !== profile.workspace.auth.uid) throw new Error("개인 업무공간 UID가 일치하지 않습니다.");
+  const privateDb = getOrInitFirestore(privateApp, { persistent: true });
+  return { app: privateApp, auth: privateAuth, db: privateDb, user: privateUser };
 }
 
 export async function verifyExistingWorkspace() {
