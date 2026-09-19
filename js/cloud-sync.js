@@ -388,7 +388,7 @@ function ensureCloudStylesV2() {
   const style = document.createElement("style");
   style.id = "cloud-v2-auth-style";
   style.textContent = `
-.cloud-gate{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#f4f8ff,#e8f0fb);color:#1f2f46}
+.cloud-gate{position:fixed;inset:0;z-index:10000;display:grid!important;place-items:center;padding:22px;background:linear-gradient(145deg,#f4f8ff,#e8f0fb);color:#1f2f46}
 .cloud-gate.hidden{display:none!important}
 .cloud-gate-card{width:min(430px,100%);padding:34px 30px;border:1px solid rgba(35,63,99,.12);border-radius:24px;background:rgba(255,255,255,.98);box-shadow:0 24px 70px rgba(25,54,93,.18);text-align:center}
 .cloud-gate-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:#2f75b5;color:#fff;font-size:34px;font-weight:900}
