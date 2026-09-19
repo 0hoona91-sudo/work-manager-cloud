@@ -1688,17 +1688,17 @@ const holidaySeed=[
 const sampleTemplates=[];
 const sampleTasks=[];
 
-const DBNAME='TaskManagerLocalBeta_v1';
+const DBNAME='TaskManagerCloud_v1';
 const DBVERSION=2;
 const localObjectUrls=new Map();
 function openDb(){return new Promise((res,rej)=>{const r=indexedDB.open(DBNAME,DBVERSION);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('data'))db.createObjectStore('data');if(!db.objectStoreNames.contains('files'))db.createObjectStore('files')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-const LOCAL_FALLBACK_PREFIX='TaskManagerLocalBeta_v1:';
+const LOCAL_FALLBACK_PREFIX='TaskManagerCloud_v1:';
 function fallbackLocalRead(key,fallback=null){try{const raw=localStorage.getItem(LOCAL_FALLBACK_PREFIX+key);return raw===null?fallback:JSON.parse(raw)}catch{return fallback}}
 function fallbackLocalWrite(key,value){try{localStorage.setItem(LOCAL_FALLBACK_PREFIX+key,JSON.stringify(value));return true}catch{return false}}
 async function readLocalMeta(key,fallback=null){try{const db=await openDb();const tx=db.transaction('data','readonly');const req=tx.objectStore('data').get(key);const saved=await new Promise((res,rej)=>{req.onsuccess=()=>res(req.result===undefined?fallback:req.result);req.onerror=()=>rej(req.error)});db.close();return saved}catch(e){console.warn(`IndexedDB 확인 실패, 구조화 데이터는 localStorage 보조저장소를 확인합니다: ${key}`,e);return fallbackLocalRead(key,fallback)}}
 async function writeLocalMeta(key,value){try{const db=await openDb();const tx=db.transaction('data','readwrite');tx.objectStore('data').put(clone(value),key);await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();return value}catch(e){console.warn(`IndexedDB 저장 실패, 구조화 데이터는 localStorage 보조저장소를 사용합니다: ${key}`,e);if(fallbackLocalWrite(key,value))return value;throw new Error('브라우저 로컬 저장소를 사용할 수 없습니다. Edge 또는 Chrome에서 파일을 다시 열어 주세요.')}}
-async function readLocalState(){return readLocalMeta('state',null)}
-async function writeLocalState(snapshot){return writeLocalMeta('state',snapshot)}
+async function readLocalState(){return readLocalMeta(window.__workspaceLocalStateKey||'state:unbound',null)}
+async function writeLocalState(snapshot){return writeLocalMeta(window.__workspaceLocalStateKey||'state:unbound',snapshot)}
 async function storeLocalFile(file,id=uid('lf')){if(!file)throw new Error('파일을 선택하세요.');if(Number(file.size||0)>50*1024*1024)throw new Error('파일은 50MB 이하만 저장할 수 있습니다.');try{const db=await openDb();const tx=db.transaction('files','readwrite');tx.objectStore('files').put({id,blob:file,name:file.name||'첨부파일',mimeType:file.type||'application/octet-stream',size:Number(file.size||0),updatedAt:new Date().toISOString()},id);await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();return{id,name:file.name||'첨부파일',mimeType:file.type||'application/octet-stream',size:Number(file.size||0)}}catch(error){console.error('로컬 첨부파일 저장 실패',error);throw new Error('이 브라우저에서 로컬 첨부파일 저장소를 사용할 수 없습니다. Edge 또는 Chrome에서 다시 열어 주세요.')}}
 async function readLocalFile(id){if(!id)return null;try{const db=await openDb();const tx=db.transaction('files','readonly');const req=tx.objectStore('files').get(id);const result=await new Promise((res,rej)=>{req.onsuccess=()=>res(req.result||null);req.onerror=()=>rej(req.error)});db.close();return result}catch(error){console.warn('로컬 파일 읽기 실패',error);return null}}
 async function localFileObjectUrl(id){const record=await readLocalFile(id);if(!record?.blob)return'';const old=localObjectUrls.get(id);if(old)URL.revokeObjectURL(old);const url=URL.createObjectURL(record.blob);localObjectUrls.set(id,url);return url}
@@ -1713,10 +1713,13 @@ async function localSaveTemplateVersion(templateId,snapshot,metadata={}){if(!tem
 async function localListTemplateVersions(templateId){if(!templateId)return[];const list=await readLocalMeta('templateVersions',[]);return (Array.isArray(list)?list:[]).filter(item=>item?.versionTemplateId===templateId).sort((a,b)=>String(b.clientTime||'').localeCompare(String(a.clientTime||''))).slice(0,10).map(clone)}
 function localCloudShim(){return{mode:'local',save:async()=>{},activate:async()=>{},loadChangeLogs:async()=>state.changeLogs||[],hydrateImages:hydrateLocalImages,stableTaskId:localStableTaskId,saveTrashEntry:localSaveTrashEntry,listTrashEntries:localListTrashEntries,removeTrashEntry:localRemoveTrashEntry,saveTemplateVersion:localSaveTemplateVersion,listTemplateVersions:localListTemplateVersions,hasDriveAccess:()=>false,ensureDriveAccess:async()=>{throw new Error('LOCAL DEV에서는 Google Drive를 사용하지 않습니다.')},downloadDriveFile:async()=>{throw new Error('이 항목은 Cloud에서 연결된 파일입니다. Local Beta에는 파일 원본이 없습니다.')},openDriveFile:async()=>{throw new Error('이 항목은 Cloud에서 연결된 파일입니다. Local Beta에는 파일 원본이 없습니다.')},importState:async data=>{Object.assign(state,clone(data||{}));await writeLocalState(state)}}}
 async function loadState(){
-  const saved=await readLocalState();
-  window.__legacyStateSnapshot=saved?clone(saved):null;
-  const cloud=await import('./js/cloud-sync.js?v=20260919-rc2');
-  window.cloudSync=await cloud.bootstrapCloud({state,legacyState:saved});
+  // 멀티사용자 개발판은 계정이 확인되기 전 공용 로컬 상태를 읽지 않는다.
+  // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
+  // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
+  window.__legacyStateSnapshot=null;
+  const cloud=await import('./js/cloud-sync.js?v=20260919-final-rc3');
+  window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
+  window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
   return state;
 }
@@ -8980,7 +8983,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   bindHandoverGeneratorV110();
 });
 </script>
@@ -9281,7 +9284,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   bindHandoverZipV120();
 });
 </script>
@@ -9543,7 +9546,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncShinchanThemeLoca
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncShinchanThemeLocalV121));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   syncShinchanThemeLocalV121();
 });
 </script>
@@ -9671,7 +9674,7 @@ body[data-v7-theme="shinchan"] .theme-preview{height:34px!important}
 <script id="local-v122-shinchan-artwork-script">
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   if(typeof syncShinchanThemeLocalV121==='function')syncShinchanThemeLocalV121();
 });
 </script>
@@ -9703,7 +9706,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncTaskMenuLabelsFin
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncTaskMenuLabelsFinalLocalV111));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   syncTaskMenuLabelsFinalLocalV111();
 });
 </script>
@@ -10024,7 +10027,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncHomeLayoutForView
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncHomeLayoutForViewportV113));
 requestAnimationFrame(()=>{
   ensureHomeWidgetLayoutStateV113();ensureHomeWidgetEditorDomV113();applyHomeWidgetLayoutV113();
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · RC2';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -10366,7 +10369,7 @@ requestAnimationFrame(()=>{
   applyHomeWidgetLayoutV113();
   disableLegacyHomeFoldsV114();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -10635,7 +10638,7 @@ requestAnimationFrame(()=>{
   bindWidgetResizeObserverV115();
   syncAllWidgetResponsiveSizesV115();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -10806,7 +10809,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   rebindHomeWidgetPaletteV116();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -10941,7 +10944,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   syncHomeWidgetPaletteV117();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -11108,7 +11111,7 @@ renderSettings=function(){
 requestAnimationFrame(()=>{
   organizeSettingsV118();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -11386,7 +11389,7 @@ requestAnimationFrame(()=>{
   ensureQuickTaskButtonV119();
   syncStandardWorkTerminologyV119();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -11485,7 +11488,7 @@ requestAnimationFrame(()=>{
   const title=document.querySelector('#dbPage .pagehead h2');
   if(title)title.textContent='반복/표준 업무 설정';
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · RC2';
+  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
 });
 </script>
 
@@ -11568,7 +11571,7 @@ window.handoverCloudFileProviderV120={
 };
 
 function finalizeCloudV2Identity(){
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · RC2';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
   const sub=document.querySelector('.local-beta-sub');if(sub)sub.textContent='Google 계정 · Firestore 실시간 동기화 · Drive 첨부자료';
   document.title='업무관리시스템 · CLOUD v2';
 }

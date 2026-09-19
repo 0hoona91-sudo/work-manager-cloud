@@ -45,8 +45,8 @@
 
   <section class="card hidden" id="newCard">
     <div class="step">STEP 2 · 개인 오피스 만들기</div>
-    <h2>새 개인 Firebase를 준비해 주세요</h2>
-    <p class="muted">프로그램은 공용이지만 업무 데이터와 무료 사용량은 이 개인 Firebase에서만 사용합니다. 이 단계는 최초 입주 때 한 번만 합니다.</p>
+    <h2>개인 Firebase를 연결해 주세요</h2>
+    <p class="muted">프로그램은 공용이지만 업무 데이터와 무료 사용량은 각 사용자의 개인 Firebase에서만 사용합니다. 신규 사용자는 새 프로젝트를 만들고, 기존 사용자는 기존 프로젝트를 그대로 연결하면 됩니다. 이 단계는 최초 입주 때 한 번만 합니다.</p>
     <div class="checklist">
       <div class="check"><b>①</b><span>Firebase에서 <b>새 프로젝트</b>를 하나 만듭니다.</span></div>
       <div class="check"><b>②</b><span>Authentication에서 <b>이메일/비밀번호</b> 로그인을 사용 설정합니다.</span></div>
@@ -92,8 +92,8 @@ import {
   signOutBuilding,
   testPrivateFirestore,
   verifyExistingWorkspace,
-} from './js/workspace-profile.js?v=20260919-prod-rc2';
-import { firebaseConfig as legacyFirebaseConfig, appConfig } from './js/firebase-config.js?v=20260919-prod-rc2';
+} from './js/workspace-profile.js?v=20260919-final-rc3';
+import { firebaseConfig as legacyFirebaseConfig, appConfig } from './js/firebase-config.js?v=20260919-final-rc3';
 
 const $ = (s) => document.querySelector(s);
 let provisioned = null;
