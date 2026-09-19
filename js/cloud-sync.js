@@ -32,7 +32,7 @@ import {
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { appConfig } from "./firebase-config.js?v=20260919-v11";
+import { appConfig } from "./firebase-config.js?v=20260919-v12";
 import {
   initBuildingIdentity,
   signInBuildingGoogle,
@@ -45,7 +45,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20260919-v11";
+} from "./workspace-profile.js?v=20260919-v12";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -188,6 +188,18 @@ function mapClone(maps) {
     for (const [id, value] of maps[name] || []) next[name].set(id, clone(value));
   }
   return next;
+}
+
+function recordMapsEqual(a, b) {
+  for (const name of DATA_COLLECTIONS) {
+    const left = a?.[name] || new Map();
+    const right = b?.[name] || new Map();
+    if (left.size !== right.size) return false;
+    for (const [id, value] of left) {
+      if (!right.has(id) || JSON.stringify(value) !== JSON.stringify(right.get(id))) return false;
+    }
+  }
+  return true;
 }
 
 function replaceState(target, source) {
@@ -718,6 +730,16 @@ async function activate({ onRemote } = {}) {
   active = true;
   if (localOnly) return;
   await subscribeRealtime();
+
+  // bootstrapCloud가 로컬 캐시로 먼저 열린 직후 서버 스냅샷이 도착했지만
+  // activate() 전에 도착한 경우를 놓치지 않는다. 캐시와 현재 recordMaps가
+  // 달라졌을 때만 한 번 최신 서버 상태를 화면에 반영한다.
+  if (!needsInitialUpload && cloudHasData(recordMaps) && !recordMapsEqual(recordMaps, shadowMaps)) {
+    shadowMaps = mapClone(recordMaps);
+    replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
+    renderRemote?.();
+  }
+
   if (needsInitialUpload || queuedState) {
     const snapshot = queuedState || clone(stateRef);
     queuedState = null;
@@ -763,10 +785,16 @@ function subscribeRealtime() {
   });
   const resolveWhenReady = () => {
     const serverConfirmed = serverReady.size === DATA_COLLECTIONS.length;
-    const cachedOffline = firstSnapshot.size === DATA_COLLECTIONS.length && navigator.onLine === false;
-    if (settled || (!serverConfirmed && !cachedOffline)) return;
+    const firstPassReady = firstSnapshot.size === DATA_COLLECTIONS.length;
+    const cachedOffline = firstPassReady && navigator.onLine === false;
+    // 재방문 기기에서는 Firestore의 영구 로컬 캐시에 실제 업무 데이터가 있으면
+    // 서버 왕복을 기다리지 않고 먼저 화면을 연다. 서버 스냅샷은 기존 listener가
+    // 뒤에서 계속 받아 최신 상태로 교체한다. 빈 캐시는 신규 사용자로 오인하지
+    // 않도록 온라인일 때 반드시 서버 확인까지 기다린다.
+    const cachedOnline = firstPassReady && navigator.onLine !== false && cloudHasData(recordMaps);
+    if (settled || (!serverConfirmed && !cachedOffline && !cachedOnline)) return;
     settled = true;
-    resolveReady({ serverConfirmed });
+    resolveReady({ serverConfirmed, cacheReady: cachedOffline || cachedOnline });
   };
   for (const name of DATA_COLLECTIONS) {
     // meta에는 필요 시에만 읽는 휴지통/버전 문서도 저장한다. 핵심 listener는
