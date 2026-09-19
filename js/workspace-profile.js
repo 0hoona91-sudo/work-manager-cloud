@@ -389,3 +389,7 @@ export function getBuildingUser() {
 export function hasBuildingDriveToken() {
   return Boolean(restoreDriveToken(buildingUser));
 }
+
+export function getBuildingDriveAccessToken() {
+  return restoreDriveToken(buildingUser) || "";
+}
