@@ -21,7 +21,16 @@ import {
   serverTimestamp,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { firebaseConfig as buildingFirebaseConfig } from "./firebase-config.js?v=20260919-rc2";
+// 공용 건물 입구(로비) 전용 Firebase.
+// 실제 업무 데이터는 이 프로젝트에 저장하지 않습니다.
+const buildingFirebaseConfig = {
+  apiKey: "AIzaSyDwb-_i23oDgM-E7055xSCL0L1P5VreAA8",
+  authDomain: "work-manager-cloud-lobby.firebaseapp.com",
+  projectId: "work-manager-cloud-lobby",
+  storageBucket: "work-manager-cloud-lobby.firebasestorage.app",
+  messagingSenderId: "928594815811",
+  appId: "1:928594815811:web:361a139863c392786b5df6",
+};
 
 const PROFILE_FILE_NAME = "work-manager-workspace-v1.json";
 const PROFILE_SCHEMA_VERSION = 1;
