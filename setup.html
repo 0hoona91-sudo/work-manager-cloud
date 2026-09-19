@@ -15,10 +15,10 @@
 <div class="wrap">
   <div class="brand">
     <div class="mark">WM</div>
-    <div><h1>업무관리시스템</h1><p>개인 업무공간 설정 도우미 · MULTIUSER DEV v0.3</p></div>
+    <div><h1>업무관리시스템</h1><p>개인 업무공간 설정 도우미 · 관리자 보조용</p></div>
   </div>
 
-  <div class="banner"><b>개발용 1단계입니다.</b> 기존 실사용 Firebase에는 아직 적용하지 마세요. 새 테스트용 Firebase 프로젝트로만 입주 과정을 확인합니다.</div>
+  <div class="banner"><b>관리자 보조용 화면입니다.</b> 승인된 신규 사용자의 최초 개인 Firebase 연결 또는 기존 운영자 업무공간 이전에만 사용합니다.</div>
 
   <div class="progress"><div class="dot on" id="p1"></div><div class="dot" id="p2"></div><div class="dot" id="p3"></div><div class="dot" id="p4"></div></div>
 
@@ -72,8 +72,8 @@
     <h2>개인 업무공간 등록 완료</h2>
     <div class="status ok" id="completeStatus"></div>
     <p class="muted">업무공간 위치와 자동 연결용 자격정보는 이 Google 계정의 Drive <b>appDataFolder</b>에 숨겨 저장했습니다. 일반 내 드라이브 화면에는 보이지 않습니다.</p>
-    <p class="help">개인 업무공간 연결이 끝났습니다. 아래 개발판에서 실제 업무 화면 자동 연결을 확인할 수 있습니다.</p>
-    <p><a href="./multiuser.html" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#286f50;color:#fff;text-decoration:none;font-weight:800">멀티사용자 업무화면 테스트</a></p>
+    <p class="help">개인 업무공간 연결이 끝났습니다. 이제 업무관리시스템으로 돌아가 사용할 수 있습니다.</p>
+    <p><a href="./" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#286f50;color:#fff;text-decoration:none;font-weight:800">업무관리시스템 열기</a></p>
   </section>
 </div>
 
@@ -84,6 +84,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   initBuildingIdentity,
+  checkBuildingAuthorization,
   loadWorkspaceProfile,
   parseFirebaseConfigText,
   provisionPrivateWorkspace,
@@ -91,7 +92,8 @@ import {
   signOutBuilding,
   testPrivateFirestore,
   verifyExistingWorkspace,
-} from './js/workspace-profile.js?v=20260919-multiuser02';
+} from './js/workspace-profile.js?v=20260919-prod-rc1';
+import { firebaseConfig as legacyFirebaseConfig, appConfig } from './js/firebase-config.js?v=20260919-rc2';
 
 const $ = (s) => document.querySelector(s);
 let provisioned = null;
@@ -115,7 +117,13 @@ async function inspectWorkspace(){
     show('#googleLogin',true); show('#refreshWorkspace',false); show('#logoutBtn',false);
     show('#foundCard',false); show('#newCard',false); setProgress(1); return;
   }
-  status('#loginStatus',`${user.email||user.displayName||'Google 계정'} 로그인됨${hasBuildingDriveToken()?' · Drive 확인 가능':' · Drive 권한 확인 필요'}`,'ok');
+  const authorization=await checkBuildingAuthorization(user);
+  if(!authorization.allowed){
+    status('#loginStatus',`${user.email||user.displayName||'Google 계정'} · 사용 승인되지 않은 계정입니다.`,'err');
+    show('#googleLogin',false); show('#refreshWorkspace',false); show('#logoutBtn',true);
+    show('#foundCard',false); show('#newCard',false); show('#rulesCard',false); show('#completeCard',false); setProgress(1); return;
+  }
+  status('#loginStatus',`${user.email||user.displayName||'Google 계정'} · 사용 승인됨${hasBuildingDriveToken()?' · Drive 확인 가능':' · Drive 권한 확인 필요'}`,'ok');
   show('#googleLogin',!hasBuildingDriveToken()); show('#refreshWorkspace',true); show('#logoutBtn',true);
   try{
     const found=await loadWorkspaceProfile();
@@ -146,7 +154,8 @@ $('#prepareWorkspace').onclick=async()=>{
     status('#prepareStatus','Firebase 설정을 확인하고 개인용 자동 연결 계정을 만드는 중입니다.');
     const config=parseFirebaseConfigText($('#firebaseConfigText').value);
     provisioned=await provisionPrivateWorkspace(config);
-    const rules=firestoreRulesForWorkspaceUid(provisioned.credentials.uid);
+    const preserveLegacyOwner = config.projectId===legacyFirebaseConfig.projectId ? [appConfig.ownerUid] : [];
+    const rules=firestoreRulesForWorkspaceUid(provisioned.credentials.uid,preserveLegacyOwner);
     $('#rulesCode').textContent=rules;
     status('#prepareStatus',`개인 Firebase 연결 준비 완료 · 프로젝트 ${config.projectId} · 전용 UID ${provisioned.credentials.uid}`,'ok');
     show('#rulesCard',true); setProgress(3); $('#rulesCard').scrollIntoView({behavior:'smooth',block:'start'});
