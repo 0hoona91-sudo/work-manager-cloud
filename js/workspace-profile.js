@@ -38,6 +38,8 @@ const PROFILE_SCHEMA_VERSION = 1;
 const APP_ID = "work-manager-cloud";
 const DRIVE_TOKEN_KEY = "workManagerBuildingDriveTokenV1";
 const DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
+const PROFILE_CACHE_KEY = "workManagerWorkspaceProfileCacheV2";
+const BUILDING_EMAIL_HINT_KEY = "workManagerBuildingEmailHintV1";
 
 let buildingApp = null;
 let buildingAuth = null;
@@ -138,13 +140,63 @@ function clearDriveToken() {
   try { sessionStorage.removeItem(DRIVE_TOKEN_KEY); } catch {}
 }
 
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function rememberBuildingEmail(email) {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return "";
+  try { localStorage.setItem(BUILDING_EMAIL_HINT_KEY, normalized); } catch {}
+  return normalized;
+}
+
+function getRememberedBuildingEmail() {
+  const direct = normalizeEmail(buildingUser?.email || "");
+  if (direct) return direct;
+  try { return normalizeEmail(localStorage.getItem(BUILDING_EMAIL_HINT_KEY) || ""); } catch { return ""; }
+}
+
+function rememberWorkspaceProfileCache(profile) {
+  if (!validateWorkspaceProfile(profile)) return null;
+  const snapshot = clone(profile);
+  try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(snapshot)); } catch {}
+  rememberBuildingEmail(snapshot?.google?.email || "");
+  return snapshot;
+}
+
+function readWorkspaceProfileCache(user = buildingUser) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || "null");
+    if (!validateWorkspaceProfile(cached)) return null;
+    const cachedUid = String(cached?.google?.uid || "");
+    const cachedEmail = normalizeEmail(cached?.google?.email || "");
+    const userUid = String(user?.uid || "");
+    const userEmail = normalizeEmail(user?.email || "");
+    if (cachedUid && userUid && cachedUid != userUid) return null;
+    if (cachedEmail && userEmail && cachedEmail != userEmail) return null;
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+function clearWorkspaceProfileCache() {
+  try { localStorage.removeItem(PROFILE_CACHE_KEY); } catch {}
+}
+
 function googleProvider(selectAccount = false, includeDrive = false) {
   const provider = new GoogleAuthProvider();
   if (includeDrive) {
     provider.addScope("https://www.googleapis.com/auth/drive.file");
     provider.addScope("https://www.googleapis.com/auth/drive.appdata");
   }
-  if (selectAccount) provider.setCustomParameters({ prompt: "select_account" });
+  const hint = getRememberedBuildingEmail();
+  const params = {};
+  if (selectAccount) params.prompt = "select_account";
+  if (hint) params.login_hint = hint;
+  if (Object.keys(params).length) provider.setCustomParameters(params);
   return provider;
 }
 
@@ -165,6 +217,7 @@ export async function initBuildingIdentity() {
     await setPersistence(buildingAuth, browserLocalPersistence);
   }
   buildingUser = buildingAuth.currentUser || await waitForAuthState(buildingAuth);
+  if (buildingUser?.email) rememberBuildingEmail(buildingUser.email);
   restoreDriveToken(buildingUser);
   return { user: buildingUser, hasDriveToken: Boolean(driveAccessToken) };
 }
@@ -173,6 +226,7 @@ export async function signInBuildingGoogle({ selectAccount = true } = {}) {
   await initBuildingIdentity();
   const result = await signInWithPopup(buildingAuth, googleProvider(selectAccount, false));
   buildingUser = result.user;
+  if (buildingUser?.email) rememberBuildingEmail(buildingUser.email);
   buildingAuthorization = null;
   clearDriveToken();
   return buildingUser;
@@ -262,6 +316,7 @@ export async function loadWorkspaceProfile() {
       const profile = await readProfileFile(file.id);
       if (!validateWorkspaceProfile(profile)) continue;
       if (profile.google?.uid && buildingUser?.uid && profile.google.uid !== buildingUser.uid) continue;
+      rememberWorkspaceProfileCache(profile);
       return { profile, file };
     } catch (error) {
       console.warn("업무공간 설정 파일을 읽지 못했습니다.", file?.id, error);
@@ -307,12 +362,14 @@ export async function saveWorkspaceProfile(profile) {
   await ensureBuildingDriveAccess();
   if (!validateWorkspaceProfile(profile)) throw new Error("저장할 업무공간 설정이 올바르지 않습니다.");
   const files = await listProfileFiles();
-  if (files[0]?.id) return updateProfileFile(files[0].id, profile);
-  return createProfileFile(profile);
+  const saved = files[0]?.id ? await updateProfileFile(files[0].id, profile) : await createProfileFile(profile);
+  rememberWorkspaceProfileCache(profile);
+  return saved;
 }
 
 export async function deleteWorkspaceProfile() {
   await ensureBuildingDriveAccess();
+  clearWorkspaceProfileCache();
   const files = await listProfileFiles();
   for (const file of files) {
     const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(file.id)}`, {
@@ -420,6 +477,7 @@ export async function finalizeWorkspaceProvision(provisioned) {
     },
   };
   await saveWorkspaceProfile(profile);
+  rememberWorkspaceProfileCache(profile);
   return profile;
 }
 
@@ -441,7 +499,13 @@ export async function connectPrivateWorkspace(profile) {
   }
   if (privateUser.uid !== profile.workspace.auth.uid) throw new Error("개인 업무공간 UID가 일치하지 않습니다.");
   const privateDb = getOrInitFirestore(privateApp, { persistent: true });
+  rememberWorkspaceProfileCache(profile);
   return { app: privateApp, auth: privateAuth, db: privateDb, user: privateUser };
+}
+
+export function loadCachedWorkspaceProfile(user = buildingUser) {
+  const profile = readWorkspaceProfileCache(user);
+  return profile ? { profile, file: null, source: "cache" } : null;
 }
 
 export async function verifyExistingWorkspace() {

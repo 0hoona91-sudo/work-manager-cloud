@@ -32,19 +32,20 @@ import {
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { appConfig } from "./firebase-config.js?v=20260919-final-rc3";
+import { appConfig } from "./firebase-config.js?v=20260919-v11";
 import {
   initBuildingIdentity,
   signInBuildingGoogle,
   signOutBuilding,
   loadWorkspaceProfile,
+  loadCachedWorkspaceProfile,
   connectPrivateWorkspace,
   ensureBuildingDriveAccess,
   getBuildingDriveAccessToken,
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20260919-final-rc3";
+} from "./workspace-profile.js?v=20260919-v11";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -398,7 +399,7 @@ function ensureCloudStylesV2() {
 .cloud-gate{position:fixed;inset:0;z-index:10000;display:grid!important;place-items:center;padding:22px;background:linear-gradient(145deg,#f4f8ff,#e8f0fb);color:#1f2f46}
 .cloud-gate.hidden{display:none!important}
 .cloud-gate-card{width:min(430px,100%);padding:34px 30px;border:1px solid rgba(35,63,99,.12);border-radius:24px;background:rgba(255,255,255,.98);box-shadow:0 24px 70px rgba(25,54,93,.18);text-align:center}
-.cloud-gate-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:#2f75b5;color:#fff;font-size:34px;font-weight:900}
+.cloud-gate-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:#2f75b5;color:#fff;font-size:34px;font-weight:900}.cloud-gate-mark img{width:36px;height:36px;display:block}
 .cloud-gate-card h1{margin:0 0 9px;font-size:25px}.cloud-gate-card p{margin:0 0 22px;color:#66768a;line-height:1.6}
 #cloudGateActions{display:flex;flex-direction:column;gap:9px}.cloud-google-btn,.cloud-secondary-btn{min-height:48px;border:0;border-radius:14px;padding:11px 15px;font-weight:800;cursor:pointer}
 .cloud-google-btn{background:#244f82;color:#fff}.cloud-google-btn span{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:8px;border-radius:50%;background:#fff;color:#244f82}
@@ -421,7 +422,7 @@ function ensureShell() {
     "afterbegin",
     `<div class="cloud-gate" id="cloudGate" role="dialog" aria-modal="true" aria-labelledby="cloudGateTitle">
       <div class="cloud-gate-card">
-        <div class="cloud-gate-mark">✓</div>
+        <div class="cloud-gate-mark"><img src="./icon.svg" alt=""></div>
         <h1 id="cloudGateTitle">업무관리시스템</h1>
         <p id="cloudGateText">클라우드 연결을 준비하고 있습니다.</p>
         <div id="cloudGateActions"></div>
@@ -526,7 +527,25 @@ async function authenticateBuildingAndWorkspace() {
     throw error;
   }
 
-  gate("내 개인 업무공간을 찾는 중입니다.");
+  gate("이 기기에 저장된 내 업무공간 정보를 확인하는 중입니다.");
+  const cached = loadCachedWorkspaceProfile(buildingUser);
+  if (cached?.profile) {
+    try {
+      workspaceProfile = cached.profile;
+      const cachedConnection = await connectPrivateWorkspace(workspaceProfile);
+      firebaseApp = cachedConnection.app;
+      auth = cachedConnection.auth;
+      db = cachedConnection.db;
+      currentUser = cachedConnection.user;
+      buildingUser = getBuildingUser() || buildingUser;
+      return cachedConnection;
+    } catch (error) {
+      console.warn("기기 캐시 업무공간 연결에 실패해 Drive에서 다시 확인합니다.", error);
+      workspaceProfile = null;
+    }
+  }
+
+  gate("내 개인 업무공간을 Google Drive에서 찾는 중입니다.");
   try {
     await ensureBuildingDriveAccess();
   } catch (error) {
