@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>업무관리시스템 개인정보처리방침</title>
+<style>
+:root{
+  font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:#20352b;background:#f5f8f6;
+}
+*{box-sizing:border-box}
+body{margin:0;line-height:1.72}
+.wrap{width:min(860px,calc(100% - 28px));margin:0 auto;padding:38px 0 64px}
+.card{background:#fff;border:1px solid #dce7e0;border-radius:22px;padding:34px;box-shadow:0 12px 32px rgba(31,72,52,.07)}
+h1{font-size:30px;margin:0 0 8px}
+h2{font-size:19px;margin:30px 0 10px;color:#245b42}
+p,li{font-size:14px}
+.muted{color:#68786f}
+.notice{background:#eef7f1;border:1px solid #cfe2d5;border-radius:14px;padding:14px 16px;margin:20px 0}
+code{background:#f1f4f2;padding:2px 5px;border-radius:5px}
+a{color:#236b4a}
+.footer{margin-top:30px;padding-top:20px;border-top:1px solid #e5ece8;color:#6e7c74;font-size:13px}
+@media(max-width:600px){.card{padding:22px}.wrap{padding-top:18px}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <article class="card">
+    <h1>업무관리시스템 개인정보처리방침</h1>
+    <p class="muted">시행일: 2026년 9월 19일</p>
+
+    <div class="notice">
+      업무관리시스템은 하나의 공용 웹 프로그램을 제공하되, 각 사용자의 실제 업무 데이터는
+      사용자가 직접 연결한 개인 Firebase/Firestore 및 Google Drive에 분리 저장되도록 설계하고 있습니다.
+    </div>
+
+    <h2>1. 처리하는 정보</h2>
+    <p>서비스는 기능 제공을 위해 다음 정보를 처리할 수 있습니다.</p>
+    <ul>
+      <li>Google 로그인 정보: Google 계정 식별자(UID), 이메일 주소, 표시 이름, 프로필 사진</li>
+      <li>Google Drive 권한을 통해 앱이 생성하거나 사용하는 파일 및 앱 전용 설정 데이터</li>
+      <li>개인 업무공간 연결정보: 개인 Firebase 프로젝트 설정, 전용 사용자 UID, 자동 연결을 위해 생성된 전용 계정 자격정보</li>
+      <li>사용자가 입력한 업무, 체크리스트, 반복업무, 메모, 설정 등은 사용자가 연결한 개인 Firestore에 저장됩니다.</li>
+      <li>사용자가 첨부한 문서·사진 등은 사용자의 Google Drive에 저장됩니다.</li>
+    </ul>
+
+    <h2>2. Google Drive 접근 범위</h2>
+    <p>서비스는 필요한 기능만 제공하기 위해 다음 Google Drive 권한을 사용할 수 있습니다.</p>
+    <ul>
+      <li><code>drive.appdata</code>: 사용자가 직접 관리할 필요가 없는 앱 전용 설정파일을 Google Drive의 숨겨진 앱 데이터 영역에 저장하고 읽기 위해 사용합니다.</li>
+      <li><code>drive.file</code>: 서비스가 생성하거나 사용자가 서비스에서 선택·생성한 Drive 파일을 처리하기 위해 사용합니다.</li>
+    </ul>
+    <p>서비스는 사용자의 전체 Google Drive를 임의로 탐색하거나, 업무관리 기능과 관계없는 파일을 수집하는 것을 목적으로 하지 않습니다.</p>
+
+    <h2>3. 이용 목적</h2>
+    <ul>
+      <li>Google 계정을 이용한 사용자 본인 확인</li>
+      <li>어느 기기에서 접속하더라도 동일한 개인 업무공간을 찾고 연결</li>
+      <li>업무 데이터의 저장·동기화·복원</li>
+      <li>첨부파일의 업로드 및 연결</li>
+      <li>서비스 보안 유지 및 오류 진단</li>
+    </ul>
+
+    <h2>4. 저장 위치 및 분리</h2>
+    <p>
+      공용 GitHub Pages는 프로그램 코드를 제공하는 역할을 합니다.
+      실제 업무 데이터는 각 사용자가 직접 만든 개인 Firebase/Firestore에 저장되며,
+      첨부파일과 앱 전용 연결정보는 각 사용자의 Google Drive에 저장됩니다.
+    </p>
+    <p>
+      건물 입구 역할의 공용 Firebase Authentication은 Google 로그인 처리를 위해 계정 식별 정보를
+      Google/Firebase에서 처리할 수 있으나, 공용 Firestore에 사용자의 업무내용을 저장하는 용도로 사용하지 않습니다.
+    </p>
+
+    <h2>5. 제3자 제공 및 판매</h2>
+    <p>
+      운영자는 사용자의 Google 사용자 데이터 또는 업무 데이터를 광고 타기팅, 데이터 판매,
+      신용평가 등 업무관리 기능과 무관한 목적으로 판매하거나 제공하지 않습니다.
+      법령상 의무가 있는 경우를 제외하고, 사용자 동의 없이 제3자에게 업무 데이터를 제공하지 않습니다.
+    </p>
+
+    <h2>6. Google API 사용자 데이터의 제한적 사용</h2>
+    <p>
+      Google API를 통해 받은 사용자 데이터는 사용자가 요청한 업무관리 기능을 제공하고 개선하는 데 필요한 범위에서만 사용합니다.
+      Google 사용자 데이터를 광고, 독립적인 사용자 프로파일링, 판매 또는 업무관리 기능과 무관한 목적으로 사용하지 않습니다.
+      본 서비스의 Google 사용자 데이터 사용은 Google API Services User Data Policy의 Limited Use 요구사항을 준수하는 것을 원칙으로 합니다.
+    </p>
+
+    <h2>7. 보관 및 삭제</h2>
+    <p>
+      업무 데이터의 주 저장소는 사용자가 소유·관리하는 개인 Firebase/Firestore 및 Google Drive입니다.
+      사용자는 해당 서비스에서 데이터를 삭제하거나 프로젝트를 삭제하여 자신의 업무 데이터를 제거할 수 있습니다.
+      Google 계정에서 앱 접근 권한을 해제하면 이후 Google API 접근이 제한됩니다.
+    </p>
+    <p>
+      Google Drive의 앱 전용 설정 데이터는 사용자가 앱 연결을 해제하거나 Google Drive에서 해당 앱 데이터를 삭제하는 경우 제거될 수 있습니다.
+    </p>
+
+    <h2>8. 보안</h2>
+    <p>
+      서비스는 HTTPS 기반 GitHub Pages, Firebase Authentication, Firestore 보안규칙 및 Google OAuth를 이용하여
+      사용자 간 데이터가 섞이지 않도록 분리하는 것을 목표로 합니다.
+      사용자는 자신의 Google 계정과 Firebase 프로젝트의 보안 설정을 안전하게 관리해야 합니다.
+    </p>
+
+    <h2>9. 이용자의 권리</h2>
+    <p>
+      이용자는 Google 계정의 보안/연결 설정에서 본 서비스의 접근 권한을 취소할 수 있으며,
+      개인 Firebase 또는 Google Drive에서 자신이 보유한 데이터를 직접 확인·수정·삭제할 수 있습니다.
+    </p>
+
+    <h2>10. 방침 변경</h2>
+    <p>
+      서비스 구조나 데이터 처리 방식이 변경되는 경우 이 개인정보처리방침을 함께 업데이트합니다.
+      중요한 변경이 있는 경우 서비스 화면 또는 배포 페이지를 통해 알릴 수 있습니다.
+    </p>
+
+    <h2>11. 문의</h2>
+    <p>서비스 및 개인정보 관련 문의: <a href="mailto:o.hoona91@gmail.com">o.hoona91@gmail.com</a></p>
+
+    <div class="footer">
+      업무관리시스템 · GitHub Pages 기반 개인 업무관리 웹앱
+    </div>
+  </article>
+</main>
+</body>
+</html>
