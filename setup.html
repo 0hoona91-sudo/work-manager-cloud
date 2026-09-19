@@ -92,8 +92,8 @@ import {
   signOutBuilding,
   testPrivateFirestore,
   verifyExistingWorkspace,
-} from './js/workspace-profile.js?v=20260919-prod-rc1';
-import { firebaseConfig as legacyFirebaseConfig, appConfig } from './js/firebase-config.js?v=20260919-rc2';
+} from './js/workspace-profile.js?v=20260919-prod-rc2';
+import { firebaseConfig as legacyFirebaseConfig, appConfig } from './js/firebase-config.js?v=20260919-prod-rc2';
 
 const $ = (s) => document.querySelector(s);
 let provisioned = null;
@@ -154,7 +154,9 @@ $('#prepareWorkspace').onclick=async()=>{
     status('#prepareStatus','Firebase 설정을 확인하고 개인용 자동 연결 계정을 만드는 중입니다.');
     const config=parseFirebaseConfigText($('#firebaseConfigText').value);
     provisioned=await provisionPrivateWorkspace(config);
-    const preserveLegacyOwner = config.projectId===legacyFirebaseConfig.projectId ? [appConfig.ownerUid] : [];
+    const isLegacyOwnerWorkspace = config.projectId === legacyFirebaseConfig.projectId || config.projectId === "work-management-nh-260905";
+    const legacyOwnerUid = isLegacyOwnerWorkspace ? (appConfig.ownerUid || "gj0UktB96BOo5UWO9Q4pZopSS6w1") : "";
+    const preserveLegacyOwner = legacyOwnerUid ? [legacyOwnerUid] : [];
     const rules=firestoreRulesForWorkspaceUid(provisioned.credentials.uid,preserveLegacyOwner);
     $('#rulesCode').textContent=rules;
     status('#prepareStatus',`개인 Firebase 연결 준비 완료 · 프로젝트 ${config.projectId} · 전용 UID ${provisioned.credentials.uid}`,'ok');
