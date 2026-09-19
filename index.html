@@ -4,9 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" content="#172d51" />
-<meta name="description" content="Google 로그인으로 여러 기기에서 실시간 동기화하는 업무관리시스템 Cloud v2" />
+<meta name="description" content="Google 로그인으로 여러 기기에서 실시간 동기화하는 업무관리시스템" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
-<title>업무관리시스템 · CLOUD v2</title>
+<title>업무관리시스템</title>
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="shortcut icon" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest">
 <style>
 :root{
   --bg:#f3f6fb; --panel:#ffffff; --navy:#18365d; --blue:#2f75b5; --blue2:#4d7dcc;
@@ -465,6 +469,7 @@ body[data-v7-theme] .home-layout-control button.active{color:var(--accent-deep)!
 .cloud-gate{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#f7fcf8,#edf6f0);color:#202421}
 .cloud-gate-card{width:min(430px,100%);padding:34px 30px;border:1px solid rgba(50,75,58,.12);border-radius:26px;background:rgba(255,255,255,.96);box-shadow:0 24px 70px rgba(44,73,54,.14);text-align:center}
 .cloud-gate-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:20px;background:#5f9275;color:#fff;font-size:34px;font-weight:900}
+.cloud-gate-mark img{width:36px;height:36px;display:block}
 .cloud-gate-card h1{margin:0 0 9px;font-size:25px}.cloud-gate-card p{margin:0 0 22px;color:#657169;line-height:1.6}
 #cloudGateActions{display:flex;flex-direction:column;gap:9px}.cloud-google-btn,.cloud-secondary-btn{min-height:48px;border:0;border-radius:14px;padding:11px 15px;font-weight:800}
 .cloud-google-btn{background:#315a45;color:#fff}.cloud-google-btn span{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:8px;border-radius:50%;background:#fff;color:#315a45}
@@ -1075,6 +1080,7 @@ body.app-v21:not(.mobile-ui-v17)[data-v7-theme] .side{
 .v21-side-brand:hover{background:rgba(255,255,255,.07)}
 .v21-side-brand:focus-visible{outline:2px solid #91bdf0;outline-offset:3px}
 .v21-side-brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#4b84cd;color:#fff;font-size:20px;font-weight:900;box-shadow:0 8px 18px rgba(5,22,48,.24)}
+.v21-side-brand-mark img{width:24px;height:24px;display:block}
 .v21-side-brand strong{display:block;font-size:16px;line-height:1.25;letter-spacing:-.025em}.v21-side-brand small{display:block;margin-top:2px;color:#9eb4d2;font-size:9px;font-weight:800;letter-spacing:.14em}
 .v21-side-section{margin:0 10px 5px;color:#819abb;font-size:10px;font-weight:850;letter-spacing:.13em}
 body.app-v21:not(.mobile-ui-v17) .navbtn,
@@ -1717,7 +1723,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20260919-final-rc3');
+  const cloud=await import('./js/cloud-sync.js?v=20260919-v11');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -4725,14 +4731,14 @@ function ensureV21Ui(){
   const side=$('.side');
   if(side&&!$('#v21SideBrand')){
     side.insertAdjacentHTML('afterbegin',`<button type="button" class="v21-side-brand" id="v21SideBrand" aria-label="HOME으로 이동" title="HOME으로 이동">
-      <span class="v21-side-brand-mark" aria-hidden="true">✓</span>
-      <span><strong>업무관리</strong><small>WORKSPACE</small></span>
+      <span class="v21-side-brand-mark" aria-hidden="true"><img src="./icon.svg" alt=""></span>
+      <span><strong>업무관리시스템</strong><small>WORKSPACE</small></span>
     </button><div class="v21-side-section">MAIN MENU</div>`);
   }
   const sideBrand=$('#v21SideBrand');if(sideBrand)sideBrand.onclick=()=>showPage('homePage');
 
   const homeTitle=$('#homePage .home-heading-copy-v12 .brand');
-  if(homeTitle)homeTitle.textContent='업무 대시보드';
+  if(homeTitle)homeTitle.textContent='업무관리시스템';
   const heading=$('#homePage .home-heading-v12');
   if(heading&&!$('#homeHeroV21')){
     heading.insertAdjacentHTML('afterend',`<section class="card home-hero-v21" id="homeHeroV21" aria-labelledby="homeHeroTitleV21">
@@ -8612,6 +8618,10 @@ function buildHandoverHtmlV110(data){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>업무 인수인계서</title>
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="shortcut icon" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest">
 <style>
 :root{--navy:#17314f;--blue:#315f8e;--soft:#eef4fa;--line:#dce5ee;--text:#17212b;--muted:#687787;--danger:#a64040}
 *{box-sizing:border-box}html,body{margin:0;padding:0;background:#f4f7fa;color:var(--text);font-family:Arial,"Noto Sans KR","Apple SD Gothic Neo",sans-serif}
@@ -8983,7 +8993,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
   bindHandoverGeneratorV110();
 });
 </script>
@@ -9284,7 +9294,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
   bindHandoverZipV120();
 });
 </script>
@@ -9546,7 +9556,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncShinchanThemeLoca
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncShinchanThemeLocalV121));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
   syncShinchanThemeLocalV121();
 });
 </script>
@@ -9674,7 +9684,7 @@ body[data-v7-theme="shinchan"] .theme-preview{height:34px!important}
 <script id="local-v122-shinchan-artwork-script">
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
   if(typeof syncShinchanThemeLocalV121==='function')syncShinchanThemeLocalV121();
 });
 </script>
@@ -9706,7 +9716,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncTaskMenuLabelsFin
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncTaskMenuLabelsFinalLocalV111));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
   syncTaskMenuLabelsFinalLocalV111();
 });
 </script>
@@ -10027,7 +10037,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncHomeLayoutForView
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncHomeLayoutForViewportV113));
 requestAnimationFrame(()=>{
   ensureHomeWidgetLayoutStateV113();ensureHomeWidgetEditorDomV113();applyHomeWidgetLayoutV113();
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -10369,7 +10379,7 @@ requestAnimationFrame(()=>{
   applyHomeWidgetLayoutV113();
   disableLegacyHomeFoldsV114();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -10638,7 +10648,7 @@ requestAnimationFrame(()=>{
   bindWidgetResizeObserverV115();
   syncAllWidgetResponsiveSizesV115();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -10809,7 +10819,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   rebindHomeWidgetPaletteV116();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -10944,7 +10954,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   syncHomeWidgetPaletteV117();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -11111,7 +11121,7 @@ renderSettings=function(){
 requestAnimationFrame(()=>{
   organizeSettingsV118();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -11389,7 +11399,7 @@ requestAnimationFrame(()=>{
   ensureQuickTaskButtonV119();
   syncStandardWorkTerminologyV119();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -11488,7 +11498,7 @@ requestAnimationFrame(()=>{
   const title=document.querySelector('#dbPage .pagehead h2');
   if(title)title.textContent='반복/표준 업무 설정';
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  if(badge)badge.textContent='v1.1';
 });
 </script>
 
@@ -11571,9 +11581,9 @@ window.handoverCloudFileProviderV120={
 };
 
 function finalizeCloudV2Identity(){
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='CLOUD v2 · v1.0 RC';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.1';
   const sub=document.querySelector('.local-beta-sub');if(sub)sub.textContent='Google 계정 · Firestore 실시간 동기화 · Drive 첨부자료';
-  document.title='업무관리시스템 · CLOUD v2';
+  document.title='업무관리시스템';
 }
 window.addEventListener('online',()=>requestAnimationFrame(()=>renderSettings()));
 window.addEventListener('offline',()=>requestAnimationFrame(()=>renderSettings()));
