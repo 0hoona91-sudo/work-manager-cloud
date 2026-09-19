@@ -1081,6 +1081,9 @@ body.app-v21:not(.mobile-ui-v17)[data-v7-theme] .side{
 .v21-side-brand:focus-visible{outline:2px solid #91bdf0;outline-offset:3px}
 .v21-side-brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#4b84cd;color:#fff;font-size:20px;font-weight:900;box-shadow:0 8px 18px rgba(5,22,48,.24)}
 .v21-side-brand-mark img{width:24px;height:24px;display:block}
+/* 브랜드 테마는 자체 캐릭터 마크를 사용하므로 기본 문서 아이콘을 숨깁니다. */
+body.app-v21[data-v7-theme="hellokitty"] .v21-side-brand-mark>img,
+body.app-v21[data-v7-theme="shinchan"] .v21-side-brand-mark>img{display:none!important}
 .v21-side-brand strong{display:block;font-size:16px;line-height:1.25;letter-spacing:-.025em}.v21-side-brand small{display:block;margin-top:2px;color:#9eb4d2;font-size:9px;font-weight:800;letter-spacing:.14em}
 .v21-side-section{margin:0 10px 5px;color:#819abb;font-size:10px;font-weight:850;letter-spacing:.13em}
 body.app-v21:not(.mobile-ui-v17) .navbtn,
