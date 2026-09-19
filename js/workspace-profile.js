@@ -24,7 +24,7 @@ import {
 // 공용 건물 입구(로비) 전용 Firebase.
 // 실제 업무 데이터는 이 프로젝트에 저장하지 않습니다.
 const buildingFirebaseConfig = {
-  apiKey: "AIzaSyDwb-_i23oDgM-E7055xSCL0L1P5VreAA8",
+  apiKey: "AIzaSyDwh-_j23oDqM-E7Q55xSCLoL1P5VreAA8",
   authDomain: "work-manager-cloud-lobby.firebaseapp.com",
   projectId: "work-manager-cloud-lobby",
   storageBucket: "work-manager-cloud-lobby.firebasestorage.app",
