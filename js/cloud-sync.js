@@ -383,7 +383,32 @@ function cloudHasData(maps) {
   return ["tasks", "templates", "categories", "owners", "holidays"].some((name) => maps[name].size > 0);
 }
 
+function ensureCloudStylesV2() {
+  if (document.getElementById("cloud-v2-auth-style")) return;
+  const style = document.createElement("style");
+  style.id = "cloud-v2-auth-style";
+  style.textContent = `
+.cloud-gate{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#f4f8ff,#e8f0fb);color:#1f2f46}
+.cloud-gate.hidden{display:none!important}
+.cloud-gate-card{width:min(430px,100%);padding:34px 30px;border:1px solid rgba(35,63,99,.12);border-radius:24px;background:rgba(255,255,255,.98);box-shadow:0 24px 70px rgba(25,54,93,.18);text-align:center}
+.cloud-gate-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:#2f75b5;color:#fff;font-size:34px;font-weight:900}
+.cloud-gate-card h1{margin:0 0 9px;font-size:25px}.cloud-gate-card p{margin:0 0 22px;color:#66768a;line-height:1.6}
+#cloudGateActions{display:flex;flex-direction:column;gap:9px}.cloud-google-btn,.cloud-secondary-btn{min-height:48px;border:0;border-radius:14px;padding:11px 15px;font-weight:800;cursor:pointer}
+.cloud-google-btn{background:#244f82;color:#fff}.cloud-google-btn span{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:8px;border-radius:50%;background:#fff;color:#244f82}
+.cloud-secondary-btn{background:#edf3fa;color:#36506f}.cloud-gate-error{min-height:20px;margin-top:12px;color:#c43f39;font-size:12px;line-height:1.45}
+.cloud-account{margin:10px 12px 0;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.08);color:#dbe7f5;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.cloud-account>div:first-child{display:flex;align-items:center;gap:6px;font-weight:750}.cloud-user{margin-top:5px}.cloud-signout{width:100%;margin-top:8px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(255,255,255,.96);color:#38516f;padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9ba39d;box-shadow:0 0 0 3px rgba(155,163,157,.12)}
+.sync-dot[data-state="online"]{background:#62c989}.sync-dot[data-state="syncing"]{background:#e1a34b;animation:cloudSyncPulse 1s infinite alternate}.sync-dot[data-state="offline"]{background:#98a0ad}.sync-dot[data-state="error"]{background:#e15a54}
+@keyframes cloudSyncPulse{to{opacity:.35}}
+.drive-image-pending{cursor:pointer}.drive-image-loading{opacity:.55}
+@media(max-width:720px){.cloud-gate-card{padding:28px 21px}}
+`;
+  document.head.appendChild(style);
+}
+
 function ensureShell() {
+  ensureCloudStylesV2();
   if (document.getElementById("cloudGate")) return;
   document.body.insertAdjacentHTML(
     "afterbegin",
@@ -584,6 +609,7 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     clearDriveAccessToken();
     stopRealtime();
     await signOut(auth);
+    currentUser = null;
     location.reload();
   };
   gate("클라우드 데이터를 불러오는 중입니다.");
