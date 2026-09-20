@@ -1726,7 +1726,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20260919-v12');
+  const cloud=await import('./js/cloud-sync.js?v=20260920-v122');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -5699,7 +5699,7 @@ function cleanTemplateAttachmentV30(file){
 function templateAttachmentIconV30(file){const ext=templateAttachmentExtensionV30(file?.name);if(ext==='pdf')return'📕';if(['xls','xlsx','csv'].includes(ext))return'📊';if(['ppt','pptx'].includes(ext))return'📙';return'📄'}
 function templateAttachmentRowHtmlV30(file,index=-1,editable=false){
   const name=file?.name||'첨부파일',meta=[templateAttachmentExtensionV30(name).toUpperCase(),fileSizeLabelV23(file?.size)].filter(Boolean).join(' · ');
-  const actions=file?.localFileId?`<button type="button" class="btn small local-file-open" data-local-open-v30="${esc(file.localFileId)}" data-local-name-v30="${esc(name)}" data-local-mime-v30="${esc(file.mimeType||'')}">열기 / 받기</button>`:file?.driveFileId?'<span class="local-file-missing">Cloud 파일 · 로컬 원본 없음</span>':'<span class="local-file-missing">로컬 원본 없음</span>';
+  const actions=file?.localFileId?`<button type="button" class="btn small local-file-open" data-local-open-v30="${esc(file.localFileId)}" data-local-name-v30="${esc(name)}" data-local-mime-v30="${esc(file.mimeType||'')}">열기 / 받기</button>`:file?.driveFileId?`<button type="button" class="btn small" data-drive-open-v30="${esc(file.driveFileId)}" data-drive-name-v30="${esc(name)}" data-drive-mime-v30="${esc(file.mimeType||'')}">열기 / 받기</button>`:'<span class="local-file-missing">원본 없음</span>';
   return`<div class="template-attachment-row-v30"><span class="template-attachment-icon-v30" aria-hidden="true">${templateAttachmentIconV30(file)}</span><span class="template-attachment-name-v30">${esc(name)}</span><span class="template-attachment-meta-v30">${esc(meta||'로컬 자료')}</span><span class="template-attachment-actions-v30">${actions}${editable?`<button type="button" class="btn small danger" data-template-attachment-remove-v30="${index}">연결 제거</button>`:''}</span></div>`;
 }
 function renderTemplateAttachmentsV30(template){const files=template?.attachments||[];return`<div class="template-attachment-list-v30">${files.length?files.map(file=>templateAttachmentRowHtmlV30(file)).join(''):'<div class="template-attachment-empty-v30">연결된 관련 양식이나 참고자료가 없습니다.</div>'}</div>`}
@@ -5711,7 +5711,7 @@ function bindTemplateAttachmentOpenV30(){
   if(window.v30TemplateAttachmentOpenBound)return;window.v30TemplateAttachmentOpenBound=true;
   document.addEventListener('click',async event=>{
     const local=event.target.closest?.('[data-local-open-v30]');if(local){event.preventDefault();event.stopPropagation();if(local.disabled)return;const old=local.textContent;local.disabled=true;local.textContent='여는 중…';try{await openOrDownloadLocalFile(local.dataset.localOpenV30,local.dataset.localNameV30||'첨부파일',local.dataset.localMimeV30||'')}catch(error){toast(error?.message||'로컬 자료를 열지 못했습니다.')}finally{local.disabled=false;local.textContent=old}return}
-    const cloud=event.target.closest?.('[data-drive-open-v30]');if(cloud){event.preventDefault();event.stopPropagation();toast('Cloud에서 연결된 자료입니다. Local Beta에는 파일 원본이 포함되지 않습니다.')}
+    const cloud=event.target.closest?.('[data-drive-open-v30]');if(cloud){event.preventDefault();event.stopPropagation();if(cloud.disabled)return;const old=cloud.textContent;cloud.disabled=true;cloud.textContent='여는 중…';try{await window.cloudSync?.openDriveFile(cloud.dataset.driveOpenV30,cloud.dataset.driveNameV30||'첨부파일',cloud.dataset.driveMimeV30||'')}catch(error){toast(error?.message||'Google Drive 자료를 열지 못했습니다.')}finally{cloud.disabled=false;cloud.textContent=old}}
   });
 }
 
@@ -8996,7 +8996,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
   bindHandoverGeneratorV110();
 });
 </script>
@@ -9297,7 +9297,7 @@ if(typeof renderSettings==='function'){
 }
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
   bindHandoverZipV120();
 });
 </script>
@@ -9559,7 +9559,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncShinchanThemeLoca
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncShinchanThemeLocalV121));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
   syncShinchanThemeLocalV121();
 });
 </script>
@@ -9687,7 +9687,7 @@ body[data-v7-theme="shinchan"] .theme-preview{height:34px!important}
 <script id="local-v122-shinchan-artwork-script">
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
   if(typeof syncShinchanThemeLocalV121==='function')syncShinchanThemeLocalV121();
 });
 </script>
@@ -9719,7 +9719,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncTaskMenuLabelsFin
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncTaskMenuLabelsFinalLocalV111));
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
   syncTaskMenuLabelsFinalLocalV111();
 });
 </script>
@@ -10040,7 +10040,7 @@ window.addEventListener('resize',()=>requestAnimationFrame(syncHomeLayoutForView
 window.addEventListener('orientationchange',()=>requestAnimationFrame(syncHomeLayoutForViewportV113));
 requestAnimationFrame(()=>{
   ensureHomeWidgetLayoutStateV113();ensureHomeWidgetEditorDomV113();applyHomeWidgetLayoutV113();
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.2.1';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -10382,7 +10382,7 @@ requestAnimationFrame(()=>{
   applyHomeWidgetLayoutV113();
   disableLegacyHomeFoldsV114();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -10651,7 +10651,7 @@ requestAnimationFrame(()=>{
   bindWidgetResizeObserverV115();
   syncAllWidgetResponsiveSizesV115();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -10822,7 +10822,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   rebindHomeWidgetPaletteV116();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -10957,7 +10957,7 @@ requestAnimationFrame(()=>{
   ensureHomeWidgetEditorDomV113();
   syncHomeWidgetPaletteV117();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -11124,7 +11124,7 @@ renderSettings=function(){
 requestAnimationFrame(()=>{
   organizeSettingsV118();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -11402,7 +11402,7 @@ requestAnimationFrame(()=>{
   ensureQuickTaskButtonV119();
   syncStandardWorkTerminologyV119();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -11501,7 +11501,7 @@ requestAnimationFrame(()=>{
   const title=document.querySelector('#dbPage .pagehead h2');
   if(title)title.textContent='반복/표준 업무 설정';
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -11568,6 +11568,9 @@ async function driveTokenForHandoverCloudV2(){
 window.handoverCloudFileProviderV120={
   async readDriveFile(fileId,item={}){
     if(!fileId)throw new Error('Drive 파일 ID가 없습니다.');
+    if(window.cloudSync?.readDriveFile){
+      return window.cloudSync.readDriveFile(fileId,item,{allowLegacyPrompt:true});
+    }
     let token=await driveTokenForHandoverCloudV2();
     const request=()=>fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}});
     let response=await request();
@@ -11584,7 +11587,7 @@ window.handoverCloudFileProviderV120={
 };
 
 function finalizeCloudV2Identity(){
-  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.2.1';
+  const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.2.2';
   const sub=document.querySelector('.local-beta-sub');if(sub)sub.textContent='Google 계정 · Firestore 실시간 동기화 · Drive 첨부자료';
   document.title='업무관리시스템';
 }
@@ -11659,7 +11662,7 @@ if(typeof renderHome==='function'){
 requestAnimationFrame(()=>{
   renderMonthlyAllTasksV12();
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
@@ -11726,8 +11729,45 @@ body.app-v21[data-v7-theme="shinchan"] #homeHeroV21.monthly-progress-hidden-loca
 <script id="cloud-v121-mobile-theme-calendar-fix-script">
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
-  if(badge)badge.textContent='v1.2.1';
+  if(badge)badge.textContent='v1.2.2';
 });
 </script>
 
+
+<script id="cloud-v122-legacy-drive-repair">
+(function(){
+  function installLegacyRepair(){
+    if(document.querySelector('#legacyDriveRepairV122'))return;
+    const card=document.querySelector('#cloudToolsCard');
+    if(!card||window.cloudSync?.mode!=='cloud')return;
+    const box=document.createElement('div');
+    box.id='legacyDriveRepairV122';
+    box.style.marginTop='14px';
+    box.style.paddingTop='14px';
+    box.style.borderTop='1px solid rgba(70,90,110,.14)';
+    box.innerHTML=`<h4 style="margin:0 0 6px">이전 Cloud 첨부자료</h4>
+      <p class="muted" style="margin:0 0 10px">단일 업무공간 전환 전에 올린 Google Drive 사진·파일이 열리지 않을 때 한 번만 복구합니다. 기존 원본을 새 Cloud 권한으로 다시 연결하며 업무 내용은 바꾸지 않습니다.</p>
+      <button type="button" class="btn" id="legacyDriveRepairButtonV122">이전 첨부자료 연결 복구</button>
+      <div class="muted" id="legacyDriveRepairStatusV122" style="margin-top:8px"></div>`;
+    card.appendChild(box);
+    const button=box.querySelector('#legacyDriveRepairButtonV122');
+    const status=box.querySelector('#legacyDriveRepairStatusV122');
+    button.onclick=async()=>{
+      if(!confirm('이전 Cloud에서 올린 사진·파일의 Google Drive 연결을 복구할까요?\n\nGoogle 계정 권한 창이 한 번 나타날 수 있습니다.'))return;
+      button.disabled=true;status.textContent='이전 첨부자료를 확인하고 있습니다…';
+      try{
+        const result=await window.cloudSync?.repairLegacyDriveAttachments?.();
+        if(!result){throw new Error('복구 기능을 불러오지 못했습니다.');}
+        if(result.notNeeded){status.textContent='이 업무공간에는 이전 Cloud 복구가 필요하지 않습니다.';return;}
+        status.textContent=`확인 ${result.scanned}개 · 복구 ${result.repaired}개 · 이미 정상 ${result.alreadyAccessible}개${result.failed?` · 실패 ${result.failed}개`:''}`;
+        if(result.repaired){toast(`이전 첨부자료 ${result.repaired}개를 복구했습니다.`);setTimeout(()=>location.reload(),900)}
+      }catch(error){status.textContent=error?.message||'이전 첨부자료 복구에 실패했습니다.';toast(status.textContent)}
+      finally{button.disabled=false}
+    };
+  }
+  const base=window.renderSettings;
+  if(typeof base==='function')window.renderSettings=function(...args){const result=base.apply(this,args);queueMicrotask(installLegacyRepair);return result};
+  window.addEventListener('load',()=>setTimeout(installLegacyRepair,800));
+})();
+</script>
 </body></html>
