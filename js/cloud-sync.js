@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   GoogleAuthProvider,
   browserLocalPersistence,
@@ -32,7 +32,7 @@ import {
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { appConfig } from "./firebase-config.js?v=20260919-v12";
+import { firebaseConfig as legacyFirebaseConfig, appConfig } from "./firebase-config.js?v=20260920-v122";
 import {
   initBuildingIdentity,
   signInBuildingGoogle,
@@ -45,7 +45,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20260919-v12";
+} from "./workspace-profile.js?v=20260920-v122";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -112,6 +112,10 @@ const STAGE7_LOCAL_KEY = "workManagerStage7AuxV29";
 const STAGE7_TRASH_TYPE = "stage7Trash";
 const STAGE7_VERSION_TYPE = "stage7TemplateVersion";
 const TEMPLATE_VERSION_LIMIT = 10;
+const LEGACY_DRIVE_TOKEN_SESSION_KEY = "workManagerLegacyDriveSessionV122";
+const LEGACY_DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
+let legacyDriveAccessToken = "";
+let legacyDriveAuth = null;
 
 function rememberDriveAccessToken(token, user = currentUser) {
   driveAccessToken = String(token || "");
@@ -147,6 +151,109 @@ function restoreDriveAccessToken(user = currentUser) {
     return "";
   }
   return driveAccessToken;
+}
+
+function legacyWorkspaceEligible() {
+  const currentProject = workspaceProfile?.workspace?.firebaseConfig?.projectId || "";
+  return Boolean(currentProject && legacyFirebaseConfig?.projectId && currentProject === legacyFirebaseConfig.projectId);
+}
+
+function rememberLegacyDriveToken(token) {
+  legacyDriveAccessToken = String(token || "");
+  if (!legacyDriveAccessToken) return "";
+  try {
+    sessionStorage.setItem(LEGACY_DRIVE_TOKEN_SESSION_KEY, JSON.stringify({
+      token: legacyDriveAccessToken,
+      email: String(buildingUser?.email || "").toLowerCase(),
+      expiresAt: Date.now() + LEGACY_DRIVE_TOKEN_LIFETIME_MS,
+    }));
+  } catch {}
+  return legacyDriveAccessToken;
+}
+
+function restoreLegacyDriveToken() {
+  if (legacyDriveAccessToken) return legacyDriveAccessToken;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LEGACY_DRIVE_TOKEN_SESSION_KEY) || "null");
+    const email = String(buildingUser?.email || "").toLowerCase();
+    if (!saved?.token || Number(saved.expiresAt || 0) <= Date.now() || (saved.email && email && saved.email !== email)) {
+      sessionStorage.removeItem(LEGACY_DRIVE_TOKEN_SESSION_KEY);
+      return "";
+    }
+    legacyDriveAccessToken = saved.token;
+  } catch {
+    return "";
+  }
+  return legacyDriveAccessToken;
+}
+
+async function ensureLegacyDriveAccess() {
+  const restored = restoreLegacyDriveToken();
+  if (restored) return restored;
+  if (!legacyWorkspaceEligible()) throw new Error("이 업무공간에는 이전 Cloud Drive 복구가 필요하지 않습니다.");
+  const appName = "work-manager-legacy-drive-v122";
+  let legacyApp = getApps().find((candidate) => candidate.name === appName);
+  if (!legacyApp) legacyApp = initializeApp(legacyFirebaseConfig, appName);
+  legacyDriveAuth = getAuth(legacyApp);
+  await setPersistence(legacyDriveAuth, browserLocalPersistence);
+  const provider = new GoogleAuthProvider();
+  provider.addScope("https://www.googleapis.com/auth/drive.file");
+  const hint = String(buildingUser?.email || "").trim();
+  if (hint) provider.setCustomParameters({ login_hint: hint });
+  let result;
+  try {
+    const existing = legacyDriveAuth.currentUser;
+    if (existing && (!hint || String(existing.email || "").toLowerCase() === hint.toLowerCase())) {
+      result = await reauthenticateWithPopup(existing, provider);
+    } else {
+      result = await signInWithPopup(legacyDriveAuth, provider);
+    }
+  } catch (error) {
+    throw new Error(`이전 Cloud의 Google Drive 권한을 확인하지 못했습니다. ${friendlyError(error)}`);
+  }
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  const token = credential?.accessToken || "";
+  if (!token) throw new Error("이전 Cloud의 Google Drive 권한 토큰을 받지 못했습니다.");
+  return rememberLegacyDriveToken(token);
+}
+
+async function driveFileResponse(fileId, token, fields = "") {
+  const suffix = fields
+    ? `?fields=${encodeURIComponent(fields)}`
+    : "?alt=media";
+  return fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}${suffix}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+async function readDriveFileBlob(fileId, { allowLegacyPrompt = false } = {}) {
+  if (!fileId) throw new Error("Drive 파일 ID가 없습니다.");
+  const currentToken = await ensureDriveAccess();
+  let response = await driveFileResponse(fileId, currentToken);
+  if (response.ok) return { blob: await response.blob(), source: "current" };
+  if (![403, 404].includes(response.status) || !legacyWorkspaceEligible()) {
+    throw new Error(`Google Drive 원본 읽기 실패 (${response.status})`);
+  }
+  let legacyToken = restoreLegacyDriveToken();
+  if (!legacyToken && allowLegacyPrompt) legacyToken = await ensureLegacyDriveAccess();
+  if (!legacyToken) {
+    const error = new Error("이전 Cloud에서 올린 자료입니다. 자료를 눌러 이전 Drive 권한을 한 번 연결해 주세요.");
+    error.code = "app/legacy-drive-auth-required";
+    throw error;
+  }
+  response = await driveFileResponse(fileId, legacyToken);
+  if (!response.ok) throw new Error(`이전 Cloud Google Drive 원본 읽기 실패 (${response.status})`);
+  return { blob: await response.blob(), source: "legacy" };
+}
+
+async function readDriveFile(fileId, item = {}, { allowLegacyPrompt = true } = {}) {
+  const result = await readDriveFileBlob(fileId, { allowLegacyPrompt });
+  return {
+    blob: result.blob,
+    name: item?.name || "첨부파일",
+    mimeType: item?.mimeType || result.blob.type || "application/octet-stream",
+    source: result.source,
+  };
 }
 
 function makeRecordMaps() {
@@ -713,6 +820,8 @@ function controller() {
     createFileBlock,
     openDriveFile,
     downloadDriveFile,
+    readDriveFile,
+    repairLegacyDriveAttachments,
     hydrateImages,
     ensureDriveAccess,
     loadChangeLogs,
@@ -1365,12 +1474,13 @@ async function hydrateImages(root = document) {
       image.classList.remove("drive-image-pending");
       continue;
     }
-    const load = async () => {
+    const load = async (allowLegacyPrompt = false) => {
       image.classList.add("drive-image-loading");
       try {
-        const objectUrl = await getDriveObjectUrl(fileId);
+        const objectUrl = await getDriveObjectUrl(fileId, { allowLegacyPrompt });
         image.src = objectUrl;
         image.classList.remove("drive-image-pending");
+        image.title = "";
       } catch (error) {
         image.title = friendlyError(error);
         image.classList.add("drive-image-pending");
@@ -1378,28 +1488,25 @@ async function hydrateImages(root = document) {
         image.classList.remove("drive-image-loading");
       }
     };
-    image.onclick = load;
+    image.onclick = () => void load(true);
     image.onkeydown = (event) => {
-      if (event.key === "Enter" || event.key === " ") void load();
+      if (event.key === "Enter" || event.key === " ") void load(true);
     };
-    if (driveAccessToken) void load();
+    if (driveAccessToken) void load(false);
   }
 }
 
-async function getDriveObjectUrl(fileId) {
+async function getDriveObjectUrl(fileId, { allowLegacyPrompt = false } = {}) {
   if (driveObjectUrls.has(fileId)) return driveObjectUrls.get(fileId);
-  const token = await ensureDriveAccess();
-  const response = await driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const objectUrl = URL.createObjectURL(await response.blob());
+  const result = await readDriveFileBlob(fileId, { allowLegacyPrompt });
+  const objectUrl = URL.createObjectURL(result.blob);
   driveObjectUrls.set(fileId, objectUrl);
   return objectUrl;
 }
 
 async function downloadDriveFile(fileId, fileName = "첨부파일") {
   if (!fileId) throw new Error("다운로드할 Drive 파일 정보가 없습니다.");
-  const objectUrl = await getDriveObjectUrl(fileId);
+  const objectUrl = await getDriveObjectUrl(fileId, { allowLegacyPrompt: true });
   const anchor = document.createElement("a");
   anchor.href = objectUrl;
   anchor.download = String(fileName || "첨부파일");
@@ -1416,7 +1523,7 @@ async function openDriveFile(fileId, fileName = "첨부파일", mimeType = "") {
   if (!previewable) return downloadDriveFile(fileId, fileName);
   const preview = window.open("", "_blank");
   try {
-    const objectUrl = await getDriveObjectUrl(fileId);
+    const objectUrl = await getDriveObjectUrl(fileId, { allowLegacyPrompt: true });
     if (!preview) return downloadDriveFile(fileId, fileName);
     preview.opener = null;
     preview.location.replace(objectUrl);
@@ -1424,6 +1531,77 @@ async function openDriveFile(fileId, fileName = "첨부파일", mimeType = "") {
     preview?.close();
     throw error;
   }
+}
+
+async function repairLegacyDriveAttachments() {
+  if (!legacyWorkspaceEligible()) return { scanned: 0, repaired: 0, alreadyAccessible: 0, failed: 0, notNeeded: true };
+  if (!stateRef) throw new Error("업무 데이터를 아직 불러오지 못했습니다.");
+  await ensureDriveAccess();
+  await ensureLegacyDriveAccess();
+
+  const refsByFile = new Map();
+  const collect = (item, kind = "file") => {
+    const id = String(item?.driveFileId || "");
+    if (!id) return;
+    if (!refsByFile.has(id)) refsByFile.set(id, []);
+    refsByFile.get(id).push({ item, kind });
+  };
+  for (const template of stateRef.templates || []) {
+    for (const block of template.methodBlocks || []) collect(block, block?.type === "image" ? "image" : "file");
+    for (const file of template.attachments || []) collect(file, "file");
+    for (const step of template.linkedSteps || []) {
+      for (const block of step.methodBlocks || []) collect(block, block?.type === "image" ? "image" : "file");
+    }
+  }
+
+  let repaired = 0, alreadyAccessible = 0, failed = 0;
+  const currentToken = await ensureDriveAccess();
+  const legacyToken = await ensureLegacyDriveAccess();
+  for (const [oldId, refs] of refsByFile) {
+    try {
+      const currentMeta = await driveFileResponse(oldId, currentToken, "id,name,mimeType,size");
+      if (currentMeta.ok) {
+        alreadyAccessible++;
+        continue;
+      }
+      if (![403, 404].includes(currentMeta.status)) {
+        failed++;
+        continue;
+      }
+      const legacyMetaResponse = await driveFileResponse(oldId, legacyToken, "id,name,mimeType,size");
+      if (!legacyMetaResponse.ok) {
+        failed++;
+        continue;
+      }
+      const legacyMeta = await legacyMetaResponse.json();
+      const legacyDataResponse = await driveFileResponse(oldId, legacyToken);
+      if (!legacyDataResponse.ok) {
+        failed++;
+        continue;
+      }
+      const blob = await legacyDataResponse.blob();
+      const first = refs[0]?.item || {};
+      const fileName = String(first.name || legacyMeta.name || `legacy-${oldId}`);
+      const mimeType = String(first.mimeType || legacyMeta.mimeType || blob.type || "application/octet-stream");
+      const file = new File([blob], fileName, { type: mimeType });
+      const kind = refs.some((ref) => ref.kind === "image") ? "manual-photo" : "template-attachment";
+      const uploaded = await createDriveBlock(file, { id: String(first.id || `legacy-${Date.now()}`), type: refs.some((ref) => ref.kind === "image") ? "image" : "file", kind });
+      for (const ref of refs) {
+        ref.item.driveFileId = uploaded.driveFileId;
+        ref.item.mimeType = ref.item.mimeType || uploaded.mimeType;
+        ref.item.size = Number(ref.item.size || uploaded.size || 0);
+        ref.item.name = ref.item.name || uploaded.name;
+        if (ref.kind === "image") delete ref.item.data;
+        ref.item.localFileMissing = false;
+      }
+      repaired++;
+    } catch (error) {
+      console.warn("이전 Cloud 첨부 복구 실패", oldId, error);
+      failed++;
+    }
+  }
+  if (repaired) await save(stateRef, { reason: "이전 Cloud 첨부자료 Drive 연결 복구" });
+  return { scanned: refsByFile.size, repaired, alreadyAccessible, failed, notNeeded: false };
 }
 
 async function driveFetch(url, options = {}) {
