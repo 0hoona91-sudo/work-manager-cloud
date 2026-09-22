@@ -41,11 +41,12 @@ import {
   loadCachedWorkspaceProfile,
   connectPrivateWorkspace,
   ensureBuildingDriveAccess,
+  invalidateBuildingDriveAccessToken,
   getBuildingDriveAccessToken,
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20260920-v122";
+} from "./workspace-profile.js?v=20260922-v124";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -86,6 +87,8 @@ let currentUser;
 let buildingUser;
 let workspaceProfile;
 let driveAccessToken = "";
+let driveAccessTokenExpiresAt = 0;
+let driveAccessTokenUid = "";
 let driveFolderId = "";
 let stateRef;
 let recordMaps = makeRecordMaps();
@@ -106,7 +109,7 @@ let needsInitialUpload = false;
 let lastSyncAt = null;
 const driveObjectUrls = new Map();
 const DRIVE_TOKEN_SESSION_KEY = "workManagerDriveSessionV23";
-const DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
+const DRIVE_TOKEN_LIFETIME_MS = 45 * 60 * 1000;
 const MAX_DRIVE_FILE_BYTES = 50 * 1024 * 1024;
 const STAGE7_LOCAL_KEY = "workManagerStage7AuxV29";
 const STAGE7_TRASH_TYPE = "stage7Trash";
@@ -120,11 +123,13 @@ let legacyDriveAuth = null;
 function rememberDriveAccessToken(token, user = currentUser) {
   driveAccessToken = String(token || "");
   if (!driveAccessToken) return "";
+  driveAccessTokenExpiresAt = Date.now() + DRIVE_TOKEN_LIFETIME_MS;
+  driveAccessTokenUid = user?.uid || "";
   try {
     sessionStorage.setItem(DRIVE_TOKEN_SESSION_KEY, JSON.stringify({
       token: driveAccessToken,
-      uid: user?.uid || "",
-      expiresAt: Date.now() + DRIVE_TOKEN_LIFETIME_MS,
+      uid: driveAccessTokenUid,
+      expiresAt: driveAccessTokenExpiresAt,
     }));
   } catch {
     // iPad의 저장공간 제한 환경에서는 메모리 토큰만 사용한다.
@@ -134,19 +139,30 @@ function rememberDriveAccessToken(token, user = currentUser) {
 
 function clearDriveAccessToken() {
   driveAccessToken = "";
+  driveAccessTokenExpiresAt = 0;
+  driveAccessTokenUid = "";
   driveFolderId = "";
   try { sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY); } catch {}
 }
 
 function restoreDriveAccessToken(user = currentUser) {
-  if (driveAccessToken) return driveAccessToken;
+  const now = Date.now();
+  const userUid = user?.uid || "";
+  if (driveAccessToken) {
+    const validTime = driveAccessTokenExpiresAt > now;
+    const validUser = !driveAccessTokenUid || !userUid || driveAccessTokenUid === userUid;
+    if (validTime && validUser) return driveAccessToken;
+    clearDriveAccessToken();
+  }
   try {
     const saved = JSON.parse(sessionStorage.getItem(DRIVE_TOKEN_SESSION_KEY) || "null");
-    if (!saved?.token || Number(saved.expiresAt || 0) <= Date.now() || (saved.uid && user?.uid && saved.uid !== user.uid)) {
+    if (!saved?.token || Number(saved.expiresAt || 0) <= now || (saved.uid && userUid && saved.uid !== userUid)) {
       sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY);
       return "";
     }
     driveAccessToken = saved.token;
+    driveAccessTokenExpiresAt = Number(saved.expiresAt || 0);
+    driveAccessTokenUid = saved.uid || "";
   } catch {
     return "";
   }
@@ -228,8 +244,12 @@ async function driveFileResponse(fileId, token, fields = "") {
 
 async function readDriveFileBlob(fileId, { allowLegacyPrompt = false } = {}) {
   if (!fileId) throw new Error("Drive 파일 ID가 없습니다.");
-  const currentToken = await ensureDriveAccess();
+  let currentToken = await ensureDriveAccess();
   let response = await driveFileResponse(fileId, currentToken);
+  if (response.status === 401) {
+    currentToken = await currentDriveToken({ forceRefresh: true });
+    response = await driveFileResponse(fileId, currentToken);
+  }
   if (response.ok) return { blob: await response.blob(), source: "current" };
   if (![403, 404].includes(response.status) || !legacyWorkspaceEligible()) {
     throw new Error(`Google Drive 원본 읽기 실패 (${response.status})`);
@@ -1398,38 +1418,145 @@ async function ensureDriveFolder() {
   return driveFolderId;
 }
 
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableDriveStatus(status) {
+  return status === 408 || status === 429 || (status >= 500 && status <= 599);
+}
+
+function isNetworkFetchError(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return error instanceof TypeError || message.includes("failed to fetch") || message.includes("networkerror") || message.includes("network request failed");
+}
+
+async function currentDriveToken({ forceRefresh = false } = {}) {
+  if (forceRefresh) {
+    clearDriveAccessToken();
+    invalidateBuildingDriveAccessToken?.();
+    await ensureBuildingDriveAccess({ forceRefresh: true });
+  } else {
+    await ensureBuildingDriveAccess();
+  }
+  buildingUser = getBuildingUser() || buildingUser;
+  const token = getBuildingDriveAccessToken();
+  if (!token) throw new Error("Google Drive 권한을 확인하지 못했습니다.");
+  return rememberDriveAccessToken(token, buildingUser);
+}
+
+async function uploadDriveMediaWithRetry(fileId, file, mimeType, { attempts = 3 } = {}) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    let token = await currentDriveToken();
+    try {
+      let response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,mimeType,size`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
+        body: file,
+      });
+      if (response.status === 401 && attempt < attempts) {
+        token = await currentDriveToken({ forceRefresh: true });
+        response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,mimeType,size`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
+          body: file,
+        });
+      }
+      if (response.ok) return response;
+      if (!isRetryableDriveStatus(response.status) || attempt >= attempts) {
+        let message = `Google Drive 업로드 실패 (${response.status})`;
+        try {
+          const body = await response.json();
+          message = body?.error?.message || message;
+        } catch {}
+        throw new Error(message);
+      }
+      lastError = new Error(`Google Drive 업로드 일시 오류 (${response.status})`);
+    } catch (error) {
+      lastError = error;
+      if (!isNetworkFetchError(error) || attempt >= attempts) throw error;
+    }
+    await sleepMs(attempt === 1 ? 450 : 1100);
+  }
+  throw lastError || new Error("Google Drive 업로드에 실패했습니다.");
+}
+
+async function verifyDriveUpload(fileId, expectedSize) {
+  const token = await currentDriveToken();
+  const response = await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,name,mimeType,size,trashed`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`Google Drive 업로드 확인 실패 (${response.status})`);
+  const meta = await response.json();
+  const uploadedSize = Number(meta?.size || 0);
+  if (meta?.trashed) throw new Error("Google Drive 업로드 확인 중 파일이 휴지통 상태입니다.");
+  if (Number(expectedSize || 0) > 0 && uploadedSize !== Number(expectedSize)) {
+    throw new Error(`Google Drive 업로드 크기 확인 실패 (${uploadedSize}/${Number(expectedSize)} bytes)`);
+  }
+  return meta;
+}
+
+async function cleanupFailedDriveFile(fileId) {
+  if (!fileId) return;
+  try {
+    const token = await currentDriveToken();
+    const response = await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok && response.status !== 404) throw new Error(`Google Drive 임시 파일 정리 실패 (${response.status})`);
+  } catch (error) {
+    console.warn("실패한 Drive 임시 파일 정리 실패", fileId, error);
+  }
+}
+
 async function createDriveBlock(file, { id, type, kind }) {
   if (!file?.name) throw new Error("첨부할 파일을 확인하지 못했습니다.");
+  if (Number(file.size || 0) <= 0) throw new Error("빈 파일은 첨부할 수 없습니다.");
   if (Number(file.size || 0) > MAX_DRIVE_FILE_BYTES) throw new Error("첨부파일은 한 개당 50MB 이하만 업로드할 수 있습니다.");
   const folderId = await ensureDriveFolder();
-  const token = await ensureDriveAccess();
+  const token = await currentDriveToken();
   const mimeType = file.type || "application/octet-stream";
+  const uniqueSuffix = Math.random().toString(36).slice(2, 8);
+  const driveName = `${new Date().toISOString().replaceAll(":", "-")}_${uniqueSuffix}_${file.name}`;
   const metadataResponse = await driveFetch("https://www.googleapis.com/drive/v3/files?fields=id,name,mimeType,size", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: `${new Date().toISOString().replaceAll(":", "-")}_${file.name}`,
+      name: driveName,
       mimeType,
       parents: [folderId],
       appProperties: { workManagerApp: appConfig.driveAppMarker || "work-manager-v10", kind },
     }),
   });
   const metadata = await metadataResponse.json();
+  if (!metadata?.id) throw new Error("Google Drive 임시 파일 ID를 받지 못했습니다.");
   try {
-    await driveFetch(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(metadata.id)}?uploadType=media`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
-      body: file,
-    });
+    await uploadDriveMediaWithRetry(metadata.id, file, mimeType, { attempts: 3 });
+    const verified = await verifyDriveUpload(metadata.id, Number(file.size || 0));
+    const objectUrl = URL.createObjectURL(file);
+    const previous = driveObjectUrls.get(metadata.id);
+    if (previous) try { URL.revokeObjectURL(previous); } catch {}
+    driveObjectUrls.set(metadata.id, objectUrl);
+    return {
+      id,
+      type,
+      driveFileId: metadata.id,
+      name: file.name,
+      mimeType: verified?.mimeType || mimeType,
+      size: Number(verified?.size || file.size || 0),
+      caption: "",
+      ...(type === "image" ? { data: objectUrl } : {}),
+    };
   } catch (error) {
-    try {
-      await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(metadata.id)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-    } catch {}
-    throw error;
+    await cleanupFailedDriveFile(metadata.id);
+    const message = String(error?.message || error || "");
+    if (isNetworkFetchError(error)) {
+      throw new Error("Google Drive 전송 중 네트워크 연결이 끊겼습니다. 사진은 저장되지 않았습니다. 잠시 후 다시 첨부해 주세요.");
+    }
+    throw new Error(message || "Google Drive에 파일을 저장하지 못했습니다.");
   }
-  const objectUrl = URL.createObjectURL(file);
-  driveObjectUrls.set(metadata.id, objectUrl);
-  return { id, type, driveFileId: metadata.id, name: file.name, mimeType, size: Number(file.size || metadata.size || 0), caption: "", ...(type === "image" ? { data: objectUrl } : {}) };
 }
 
 async function createImageBlock(file, id = `mb-${Date.now().toString(36)}`) {
@@ -1604,9 +1731,28 @@ async function repairLegacyDriveAttachments() {
   return { scanned: refsByFile.size, repaired, alreadyAccessible, failed, notNeeded: false };
 }
 
+async function driveFetchResponse(url, options = {}, { retryAuth = true } = {}) {
+  let requestOptions = { ...options, headers: { ...(options.headers || {}) } };
+  let response = await fetch(url, requestOptions);
+  if (response.status === 401 && retryAuth && !localOnly) {
+    clearDriveAccessToken();
+    invalidateBuildingDriveAccessToken?.();
+    const freshToken = await currentDriveToken({ forceRefresh: true });
+    requestOptions = {
+      ...requestOptions,
+      headers: { ...requestOptions.headers, Authorization: `Bearer ${freshToken}` },
+    };
+    response = await fetch(url, requestOptions);
+  }
+  if (response.status === 401) {
+    clearDriveAccessToken();
+    invalidateBuildingDriveAccessToken?.();
+  }
+  return response;
+}
+
 async function driveFetch(url, options = {}) {
-  const response = await fetch(url, options);
-  if (response.status === 401) clearDriveAccessToken();
+  const response = await driveFetchResponse(url, options);
   if (!response.ok) {
     let message = `Google Drive ${response.status}`;
     try {

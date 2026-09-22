@@ -37,7 +37,7 @@ const PROFILE_FILE_NAME = "work-manager-workspace-v1.json";
 const PROFILE_SCHEMA_VERSION = 1;
 const APP_ID = "work-manager-cloud";
 const DRIVE_TOKEN_KEY = "workManagerBuildingDriveTokenV1";
-const DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
+const DRIVE_TOKEN_LIFETIME_MS = 45 * 60 * 1000; // OAuth 만료 직전 재사용을 피하기 위한 안전 여유
 const PROFILE_CACHE_KEY = "workManagerWorkspaceProfileCacheV2";
 const BUILDING_EMAIL_HINT_KEY = "workManagerBuildingEmailHintV1";
 
@@ -47,6 +47,8 @@ let buildingDb = null;
 let buildingUser = null;
 let buildingAuthorization = null;
 let driveAccessToken = "";
+let driveAccessTokenExpiresAt = 0;
+let driveAccessTokenUid = "";
 
 // Firebase Firestore는 같은 app 인스턴스에 서로 다른 옵션으로 initializeFirestore()를
 // 두 번 호출할 수 없습니다. 설정 화면에서 연결 확인을 재시도해도 같은 인스턴스를
@@ -110,25 +112,36 @@ function driveHeaders(token = driveAccessToken) {
 function rememberDriveToken(token, user = buildingUser) {
   driveAccessToken = String(token || "");
   if (!driveAccessToken) return "";
+  driveAccessTokenExpiresAt = Date.now() + DRIVE_TOKEN_LIFETIME_MS;
+  driveAccessTokenUid = user?.uid || "";
   try {
     sessionStorage.setItem(DRIVE_TOKEN_KEY, JSON.stringify({
       token: driveAccessToken,
-      uid: user?.uid || "",
-      expiresAt: Date.now() + DRIVE_TOKEN_LIFETIME_MS,
+      uid: driveAccessTokenUid,
+      expiresAt: driveAccessTokenExpiresAt,
     }));
   } catch {}
   return driveAccessToken;
 }
 
 function restoreDriveToken(user = buildingUser) {
-  if (driveAccessToken) return driveAccessToken;
+  const now = Date.now();
+  const userUid = user?.uid || "";
+  if (driveAccessToken) {
+    const validTime = driveAccessTokenExpiresAt > now;
+    const validUser = !driveAccessTokenUid || !userUid || driveAccessTokenUid === userUid;
+    if (validTime && validUser) return driveAccessToken;
+    clearDriveToken();
+  }
   try {
     const saved = JSON.parse(sessionStorage.getItem(DRIVE_TOKEN_KEY) || "null");
-    if (!saved?.token || Number(saved.expiresAt || 0) <= Date.now() || (saved.uid && user?.uid && saved.uid !== user.uid)) {
+    if (!saved?.token || Number(saved.expiresAt || 0) <= now || (saved.uid && userUid && saved.uid !== userUid)) {
       sessionStorage.removeItem(DRIVE_TOKEN_KEY);
       return "";
     }
     driveAccessToken = saved.token;
+    driveAccessTokenExpiresAt = Number(saved.expiresAt || 0);
+    driveAccessTokenUid = saved.uid || "";
   } catch {
     return "";
   }
@@ -137,6 +150,8 @@ function restoreDriveToken(user = buildingUser) {
 
 function clearDriveToken() {
   driveAccessToken = "";
+  driveAccessTokenExpiresAt = 0;
+  driveAccessTokenUid = "";
   try { sessionStorage.removeItem(DRIVE_TOKEN_KEY); } catch {}
 }
 
@@ -248,7 +263,7 @@ export async function checkBuildingAuthorization(user = buildingUser) {
   return buildingAuthorization;
 }
 
-export async function ensureBuildingDriveAccess() {
+export async function ensureBuildingDriveAccess({ forceRefresh = false } = {}) {
   await initBuildingIdentity();
   if (!buildingUser) {
     await signInBuildingGoogle({ selectAccount: true });
@@ -259,11 +274,16 @@ export async function ensureBuildingDriveAccess() {
     error.code = "app/access-denied";
     throw error;
   }
+  if (forceRefresh) clearDriveToken();
   if (restoreDriveToken(buildingUser)) return buildingUser;
   const result = await reauthenticateWithPopup(buildingUser, googleProvider(false, true));
   const credential = GoogleAuthProvider.credentialFromResult(result);
   rememberDriveToken(credential?.accessToken || "", buildingUser);
   return buildingUser;
+}
+
+export function invalidateBuildingDriveAccessToken() {
+  clearDriveToken();
 }
 
 export async function signOutBuilding() {
