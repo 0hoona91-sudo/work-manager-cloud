@@ -51,6 +51,7 @@ import {
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
   "tasks",
+  "projects",
   "checklistItems",
   "taskLinks",
   "templates",
@@ -67,6 +68,7 @@ const LIVE_COLLECTIONS = [...DATA_COLLECTIONS, "changeLogs"];
 const CHANGE_LOG_LIMIT = 300;
 const ENTITY_LABELS = {
   tasks: "수행업무",
+  projects: "프로젝트",
   checklistItems: "체크리스트",
   taskLinks: "업무 연계규칙",
   templates: "반복/표준 업무",
@@ -334,6 +336,7 @@ function replaceState(target, source) {
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, clone(source));
   target.tasks ||= [];
+  target.projects ||= [];
   target.templates ||= [];
   target.holidays ||= [];
   target.categories ||= [];
@@ -350,6 +353,7 @@ function emptyState(user) {
   const palette = ["#A8D5BA", "#F6C7A5", "#FFD8A8", "#D9C5EA", "#B8D9EA", "#F2B8C6", "#F4E5A3", "#C8D4CB"];
   return {
     tasks: [],
+    projects: [],
     templates: [],
     holidays: [],
     categories,
@@ -380,13 +384,22 @@ function serializeState(state) {
     checklist.forEach((item, order) => {
       const itemId = item.id || docId("check", task.id, order, item.text || "");
       maps.checklistItems.set(docId("task", task.id, itemId),
-        plain({ id: itemId, parentType: "task", parentId: task.id, order, text: item.text || "", done: Boolean(item.done) }));
+        plain({ id: itemId, parentType: "task", parentId: task.id, order, text: item.text || "", owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done) }));
     });
     if (link) maps.taskLinks.set(task.id, plain({ id: task.id, taskId: task.id, ...link }));
     if (task.generatedKey) {
       maps.generatedKeys.set(stableKeyId(task.generatedKey),
         plain({ generatedKey: task.generatedKey, taskId: task.id }));
     }
+  }
+
+  for (const project of state.projects || []) {
+    if (!project.id) continue;
+    const safe = clone(project);
+    for (const stage of safe.stages || []) {
+      stage.resources = (stage.resources || []).map(cleanAttachmentMetadata);
+    }
+    maps.projects.set(project.id, plain(safe));
   }
 
   for (const template of state.templates || []) {
@@ -465,7 +478,7 @@ function deserializeState(maps, localSettings = {}) {
 
   const tasks = [...maps.tasks.values()].map((task) => ({
     ...task,
-    checklist: (checklistByParent.get(`task:${task.id}`) || []).map((item) => ({ id: item.id, text: item.text, done: Boolean(item.done) })),
+    checklist: (checklistByParent.get(`task:${task.id}`) || []).map((item) => ({ id: item.id, text: item.text, owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done) })),
     link: maps.taskLinks.has(task.id) ? omit(maps.taskLinks.get(task.id), ["id", "taskId"]) : null,
   }));
   const rulesByTemplate = new Map();
@@ -497,6 +510,7 @@ function deserializeState(maps, localSettings = {}) {
     .slice(0, 300);
   return {
     tasks,
+    projects: [...maps.projects.values()].map(clone),
     templates,
     holidays: [...maps.holidays.values()],
     categories: categories.map((item) => item.name),
@@ -1365,12 +1379,14 @@ async function importState(incoming, { replace = false } = {}) {
   if (!replace) {
     const current = clone(stateRef);
     next.tasks = mergeById(current.tasks || [], next.tasks || []);
+    next.projects = mergeById(current.projects || [], next.projects || []);
     next.templates = mergeById(current.templates || [], next.templates || []);
     next.holidays = mergeById(current.holidays || [], next.holidays || []);
     next.categories = [...new Set([...(current.categories || []), ...(next.categories || [])])];
     next.owners = [...new Set([...(current.owners || []), ...(next.owners || [])])];
     next.settings = { ...(current.settings || {}), ...(next.settings || {}) };
   }
+  next.projects ||= [];
   await ensureImageUploads(next, true);
   replaceState(stateRef, next);
   await save(stateRef, { reason: replace ? "백업 전체 복원" : "v10 백업 병합 가져오기" });
