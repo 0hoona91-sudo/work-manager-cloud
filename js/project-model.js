@@ -7,14 +7,36 @@
   'use strict';
   const id = (prefix) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,11)}`;
   const clone = (item) => JSON.parse(JSON.stringify(item));
+  // 프로젝트의 모든 날짜 입력에서 공통 사용. 내부 저장은 YYYY-MM-DD로 유지한다.
+  // YYYYMD(202691), YYYYMDD(2026926), YYYYMMDD 및 구분자 입력을 지원한다.
+  // 7자리의 10~12월(예: 2026101)은 두 자리 월을 우선한다.
   const date = (input) => {
-    const raw = String(input || '').trim().replace(/[.\-/\s]/g, '');
-    if (!raw) return '';
-    if (!/^\d{8}$/.test(raw)) throw new Error('날짜는 YYYYMMDD 형식으로 입력해 주세요.');
-    const y = Number(raw.slice(0,4)), m = Number(raw.slice(4,6)), d = Number(raw.slice(6,8));
-    const check = new Date(y,m-1,d);
-    if(check.getFullYear()!==y || check.getMonth()+1!==m || check.getDate()!==d) throw new Error('올바른 날짜를 입력해 주세요.');
-    return `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
+    const text = String(input ?? '').trim();
+    if (!text) return '';
+    const separated = text.match(/^(\d{4})[-./]\s*(\d{1,2})[-./]\s*(\d{1,2})$/);
+    let candidates=[];
+    if (separated) {
+      candidates=[[Number(separated[1]),Number(separated[2]),Number(separated[3])]];
+    } else if (/^\d{6,8}$/.test(text)) {
+      const y=Number(text.slice(0,4)), tail=text.slice(4);
+      if(tail.length===2) candidates=[[y,Number(tail[0]),Number(tail[1])]];
+      else if(tail.length===4) candidates=[[y,Number(tail.slice(0,2)),Number(tail.slice(2))]];
+      else {
+        const oneMonth=[y,Number(tail.slice(0,1)),Number(tail.slice(1))];
+        const twoMonth=[y,Number(tail.slice(0,2)),Number(tail.slice(2))];
+        candidates=(Number(tail.slice(0,2))>=10 && Number(tail.slice(0,2))<=12)
+          ? [twoMonth,oneMonth] : [oneMonth,twoMonth];
+      }
+    } else {
+      throw new Error('날짜는 YYYY-MM-DD 또는 YYYYMMDD 형식으로 입력해 주세요.');
+    }
+    for(const [y,m,d] of candidates){
+      if(y<1000||y>9999||m<1||m>12||d<1||d>31)continue;
+      const check=new Date(y,m-1,d,12);
+      if(check.getFullYear()===y && check.getMonth()+1===m && check.getDate()===d)
+        return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    }
+    throw new Error('올바른 날짜를 입력해 주세요.');
   };
   function freshStep() {
     return { id:id('stage'),taskId:id('project-task'),title:'',participants:[],start:'',endType:'same',endDate:'',afterDays:0,includeHolidays:true,holidayShift:'keep',checklist:[],resources:[] };
@@ -79,7 +101,9 @@
       const end=stageEnd(s,holidayCheck);
       if(!end||end<s.start)throw new Error(`${i+1}단계의 종료일을 확인해 주세요.`);
       s.checklist=(s.checklist||[]).filter(item=>String(item.text||'').trim()).map(item=>({
-        id:item.id||id('check'),text:String(item.text).trim(),owner:String(item.owner||''),dueDate:date(item.dueDate),done:Boolean(item.done)
+        id:item.id||id('check'),text:String(item.text).trim(),
+        owner:s.participants.length===1 ? s.participants[0] : (s.participants.includes(item.owner)?item.owner:''),
+        dueDate:date(item.dueDate),done:Boolean(item.done)
       }));
       s.resources=sanitizeResources(s.resources);
       return s;

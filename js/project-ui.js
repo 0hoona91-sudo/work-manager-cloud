@@ -6,7 +6,7 @@ if(!M)throw new Error('프로젝트 모델을 불러오지 못했습니다.');
 const $p = (selector,root=document)=>root.querySelector(selector);
 const $$p = (selector,root=document)=>[...root.querySelectorAll(selector)];
 const escp = value => String(value??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtp = value => String(value||'').replaceAll('-','');
+const fmtp = value => String(value||'');
 const valp = value => value?String(value):'';
 const projectUid = M.id;
 let editor=null, activeStage=0, dirty=false, saving=false;
@@ -66,8 +66,10 @@ function ensurePage(){
   }
   if(typeof NAV_ITEMS_V33==='object'&&NAV_ITEMS_V33)NAV_ITEMS_V33.projectPage='프로젝트';
   if(typeof NAV_ITEMS_LOCAL_V12==='object'&&NAV_ITEMS_LOCAL_V12)NAV_ITEMS_LOCAL_V12.projectPage='프로젝트';
+  ensureProjectVisibilityDefault();
   try{ensureLayoutDefaultsV33();ensureNavVisibilityLocalV12();}catch{}
   applyProjectThemeIcon();
+  syncProjectVisibility();
 }
 function renderProjectCards(){
   const root=$p('#prjGrid');if(!root)return;
@@ -89,9 +91,26 @@ function renderProjectPage(){
   renderProjectCards();
   syncProjectVisibility();
 }
+function ensureProjectVisibilityDefault(){
+  state.settings ||= {};
+  state.settings.navVisibilityLocalV12 ||= {};
+  state.settings.navVisibilityV33 ||= {};
+  // v1.3은 메뉴가 별도 선택 없이 켜지던 버전: v1.3.1 첫 실행에서는 한 번 꺼 두고 명시적 선택을 기다린다.
+  if(state.settings.projectVisibilityOptInV131!==true){
+    state.settings.navVisibilityLocalV12.projectPage=false;
+    state.settings.navVisibilityV33.projectPage=false;
+    state.settings.projectVisibilityOptInV131=true;
+  }
+  if(typeof state.settings.navVisibilityLocalV12.projectPage!=='boolean')
+    state.settings.navVisibilityLocalV12.projectPage=false;
+  // 로컬 메뉴의 값이 우선이며 구버전 V33과 일치시켜 표시 판정을 하나로 만든다.
+  state.settings.navVisibilityV33.projectPage=state.settings.navVisibilityLocalV12.projectPage;
+  return state.settings.navVisibilityLocalV12.projectPage;
+}
 function syncProjectVisibility(){
+  const enabled=ensureProjectVisibilityDefault();
   const nav=document.querySelector('.side .prj-navbtn');if(!nav)return;
-  const hidden=state.settings?.navVisibilityLocalV12?.projectPage===false || state.settings?.navVisibilityV33?.projectPage===false;
+  const hidden=!enabled;
   nav.classList.toggle('v33-nav-hidden',hidden);
   nav.classList.toggle('local-v12-nav-hidden',hidden);
   nav.hidden=hidden;nav.setAttribute('aria-hidden',String(hidden));
@@ -109,6 +128,7 @@ function ensureSettingsControl(){
   // 기존 운영판 설정/백업은 v1.2 독립 메뉴 표시 목록을 사용한다.
   if(typeof NAV_ITEMS_LOCAL_V12==='object'&&NAV_ITEMS_LOCAL_V12){
     NAV_ITEMS_LOCAL_V12.projectPage='프로젝트';
+    ensureProjectVisibilityDefault();
     if(typeof ensureNavVisibilityLocalV12==='function')ensureNavVisibilityLocalV12();
     if(typeof ensureLayoutSettingsCardLocalV12==='function')ensureLayoutSettingsCardLocalV12();
     return;
@@ -117,9 +137,9 @@ function ensureSettingsControl(){
   if(!card||card.querySelector('[data-nav-toggle-v33="projectPage"]'))return;
   const row=document.createElement('label');row.className='v33-config-item';row.innerHTML='<input type="checkbox" data-nav-toggle-v33="projectPage"><span>프로젝트</span>';
   card.appendChild(row);const input=row.querySelector('input');
-  input.checked=state.settings?.navVisibilityV33?.projectPage!==false;
+  input.checked=ensureProjectVisibilityDefault();
   row.classList.toggle('is-off',!input.checked);
-  input.onchange=()=>{state.settings.navVisibilityV33.projectPage=input.checked;row.classList.toggle('is-off',!input.checked);syncProjectVisibility();void saveState({reason:'프로젝트 메뉴 표시 변경'});};
+  input.onchange=()=>{state.settings.navVisibilityLocalV12.projectPage=input.checked;state.settings.navVisibilityV33.projectPage=input.checked;row.classList.toggle('is-off',!input.checked);syncProjectVisibility();void saveState({reason:'프로젝트 메뉴 표시 변경'});};
 }
 function applyProjectThemeIcon(){
   const icon=$p('.prj-navbtn .nav-icon');if(!icon)return;
@@ -132,7 +152,9 @@ function applyProjectThemeIcon(){
   icon.textContent=src?'':'▤';
 }
 function dateField(key,label,value,{required=false}={}){
-  return `<div class="prj-field prj-date-field"><label for="prj-${escp(key)}">${escp(label)}${required?' *':''}</label><div class="prj-date-wrap"><input id="prj-${escp(key)}" data-prj-field="${escp(key)}" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="YYYYMMDD" value="${escp(fmtp(value))}"><span class="prj-picker-holder"><button type="button" tabindex="-1" aria-label="${escp(label)} 달력 열기">▦</button><input type="date" data-date-for="${escp(key)}" value="${escp(value||'')}" aria-label="${escp(label)} 달력에서 선택"></span></div></div>`;
+  // 기존 업무 등록 폼과 같은 날짜 버튼/기본 HTML 달력을 사용한다.
+  const formatted=/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?value:'';
+  return `<div class="prj-field prj-date-field"><label for="prj-${escp(key)}">${escp(label)}${required?' *':''}</label><div class="prj-date-wrap date-entry-v20"><input class="date-text-v20" type="text" id="prj-${escp(key)}" data-prj-field="${escp(key)}" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="YYYY-MM-DD" value="${escp(fmtp(value))}"><input type="date" class="date-picker-v20" data-date-proxy-v20="true" data-date-for="${escp(key)}" value="${escp(formatted)}" tabindex="-1" aria-label="${escp(label||'체크리스트 마감일')} 달력에서 선택"><button type="button" class="date-picker-button-v34 prj-calendar-button" aria-label="${escp(label||'체크리스트 마감일')} 달력 열기" title="달력 열기">📅</button></div></div>`;
 }
 function editorHeader(){
   return `<div class="prj-main-fields"><div class="prj-field prj-full"><label>프로젝트명 *</label><input id="prj-name" data-project-root="name" value="${escp(editor.name)}" placeholder="프로젝트명을 입력해 주세요."></div>
@@ -143,12 +165,12 @@ function editorHeader(){
 }
 function stageTabs(){
   return `<div class="prj-stage-tabs" role="tablist" aria-label="프로젝트 단계 순서">${editor.stages.map((step,i)=>`
-  <button type="button" draggable="true" role="tab" aria-selected="${activeStage===i}" class="prj-stage-tab ${activeStage===i?'active':''}" data-step-tab="${i}" title="드래그하여 단계 순서 변경"><span class="prj-grip" aria-hidden="true">⠿</span>${i+1}단계</button>`).join('')}<button type="button" id="prj-add-step" class="prj-add-step" aria-label="단계 추가">＋</button></div>`;
+  <button type="button" draggable="true" role="tab" aria-selected="${activeStage===i}" class="prj-stage-tab ${activeStage===i?'active':''}" data-step-tab="${i}" title="드래그하여 단계 순서 변경"><span class="prj-grip" aria-hidden="true">⠿</span>${i+1}단계</button>`).join('')}<button type="button" id="prj-add-step" class="prj-add-step" aria-label="단계 추가"><span class="prj-plus-mark" aria-hidden="true"></span><span>단계 추가</span></button></div>`;
 }
 function checkRows(step){
   return (step.checklist||[]).map((c,i)=>`<div class="prj-check-row" data-prj-check-row="${escp(c.id)}">
       <div class="prj-check-order">${i+1}</div><input aria-label="체크할 내용 ${i+1}" placeholder="체크할 내용" data-check-field="text" value="${escp(c.text)}">
-      <select aria-label="담당자 ${i+1}" data-check-field="owner">${selectable(state.owners,c.owner,{placeholder:'담당자 선택'})}</select>
+      <select aria-label="담당자 ${i+1}" data-check-field="owner" ${step.participants.length<=1?'disabled':''}>${selectable(step.participants,step.participants.length===1?step.participants[0]:c.owner,{placeholder:step.participants.length?'담당자 선택':'참여자 먼저 선택'})}</select>
       ${dateField(`check_${i}`,'',c.dueDate)}<button type="button" data-remove-check="${escp(c.id)}" class="prj-x" title="이 체크항목만 삭제" aria-label="${i+1}번 체크항목 삭제">×</button>
     </div>`).join('');
 }
@@ -173,7 +195,7 @@ function stageEditor(){
 }
 function setDirty(){dirty=true;}
 function renderTabs(){const tabs=$p('#prjTabs');if(tabs){tabs.innerHTML=stageTabs();bindTabs(tabs);}}
-function renderStage(){const target=$p('#prjStagePane');if(!target)return;target.innerHTML=stageEditor();bindStageControls(target);}
+function renderStage(){const target=$p('#prjStagePane');if(!target)return;const step=editor?.stages[activeStage];if(step)normalizeCheckAssignments(step);target.innerHTML=stageEditor();bindStageControls(target);}
 function showEditor(){
   modal(editor?.updatedAt?'프로젝트 수정':'프로젝트 등록',`<div class="prj-editor">
      <div id="prjHeader">${editorHeader()}</div><div id="prjTabs">${stageTabs()}</div><div id="prjStagePane">${stageEditor()}</div>
@@ -189,11 +211,35 @@ function showEditor(){
 function openEditor(id=null,stageId=null){
   const existing=id?projectById(id):null;
   editor=existing?M.clone(existing):M.freshProject(todayISO());
-  editor.stages.forEach(s=>{s.checklist=M.checksForEdit(s,projectStageTask(editor.id,s.id));s.resources||=[];s.participants||=[];s.endType||='same';});
+  // 실제 담당자 목록에 혼자만 등록되어 있는 환경에서는 모든 단계와 체크항목 담당자 자동 고정.
+  if(state.owners.length===1 && !editor.manager)editor.manager=state.owners[0];
+  editor.stages.forEach(s=>{
+    s.checklist=M.checksForEdit(s,projectStageTask(editor.id,s.id));s.resources||=[];s.participants||=[];s.endType||='same';
+    if(state.owners.length===1 && !s.participants.length)s.participants=[state.owners[0]];
+    normalizeCheckAssignments(s);
+  });
   activeStage=Math.max(0,stageId?editor.stages.findIndex(s=>s.id===stageId):0);
   dirty=false;pendingFiles=new Map();showEditor();
 }
 function cancelEditor(){if(saving)return;if(dirty&&!confirm('저장하지 않은 프로젝트 변경사항을 버릴까요?'))return;closeModal();editor=null;pendingFiles.clear();}
+function normalizeCheckAssignments(step){
+  const allowed=step.participants||[];
+  (step.checklist||[]).forEach(item=>{
+    if(allowed.length===1)item.owner=allowed[0];
+    else if(!allowed.includes(item.owner))item.owner='';
+  });
+}
+function refreshCheckOwners(root,step){
+  normalizeCheckAssignments(step);
+  $$p('[data-prj-check-row]',root).forEach(row=>{
+    const check=step.checklist.find(c=>c.id===row.dataset.prjCheckRow);
+    const select=$p('[data-check-field="owner"]',row);
+    if(!check||!select)return;
+    select.innerHTML=selectable(step.participants,check.owner,{placeholder:step.participants.length?'담당자 선택':'참여자 먼저 선택'});
+    select.disabled=step.participants.length<=1;
+    select.value=check.owner;
+  });
+}
 function updateDateField(key,value){
   const map={projectStart:()=>{editor.start=value;},projectEnd:()=>{editor.end=value;},stageStart:()=>{editor.stages[activeStage].start=value;},stageEnd:()=>{editor.stages[activeStage].endDate=value;}};
   if(map[key])map[key]();
@@ -204,18 +250,48 @@ function updateDateField(key,value){
 }
 function bindDateControls(root){
   $$p('[data-prj-field]',root).forEach(input=>{
-    input.addEventListener('input',()=>{updateDateField(input.dataset.prjField,input.value);});
-    input.addEventListener('blur',()=>{try{const formatted=M.date(input.value);input.value=fmtp(formatted);updateDateField(input.dataset.prjField,formatted);const picker=input.closest('.prj-date-wrap')?.querySelector('input[type="date"]');if(picker)picker.value=formatted;}catch(error){input.setCustomValidity(error.message);input.reportValidity();setTimeout(()=>input.setCustomValidity(''),1500);}});
+    input.addEventListener('input',()=>{
+      input.setCustomValidity('');input.classList.remove('is-invalid-v20');
+      updateDateField(input.dataset.prjField,input.value);
+    });
+    const normalize=()=>{
+      try{
+        const formatted=M.date(input.value);
+        input.value=fmtp(formatted);input.setCustomValidity('');input.classList.remove('is-invalid-v20');
+        updateDateField(input.dataset.prjField,formatted);
+        const picker=input.closest('.prj-date-wrap')?.querySelector('input[type="date"]');
+        if(picker)picker.value=formatted;
+      }catch(error){
+        input.classList.add('is-invalid-v20');input.setCustomValidity(error.message);input.reportValidity();
+      }
+    };
+    input.addEventListener('blur',normalize);
+    input.addEventListener('change',normalize);
   });
   $$p('[data-date-for]',root).forEach(date=>{
     const text=date.closest('.prj-date-wrap')?.querySelector('[data-prj-field]');
     const btn=date.parentElement?.querySelector('button');
-    if(btn)btn.onclick=()=>{if(typeof date.showPicker==='function'){try{date.showPicker();}catch{date.focus();date.click();}}else date.click();};
-    date.onchange=()=>{if(text)text.value=fmtp(date.value);updateDateField(date.dataset.dateFor,date.value);};
+    if(btn)btn.onclick=event=>{
+      event.preventDefault();event.stopPropagation();
+      if(text){try{date.value=M.date(text.value);}catch{}}
+      try{if(typeof date.showPicker==='function'){date.showPicker();return;}}catch{}
+      try{date.focus({preventScroll:true});date.click();}catch{}
+    };
+    date.onchange=()=>{
+      if(text){text.value=fmtp(date.value);text.setCustomValidity('');text.classList.remove('is-invalid-v20');}
+      updateDateField(date.dataset.dateFor,date.value);
+    };
   });
 }
 function bindEditorHeader(root){
-  $$p('[data-project-root]',root).forEach(field=>field.addEventListener('input',()=>{editor[field.dataset.projectRoot]=field.value;setDirty();}));
+  $$p('[data-project-root]',root).forEach(field=>field.addEventListener('input',()=>{
+    editor[field.dataset.projectRoot]=field.value;
+    if(field.dataset.projectRoot==='manager' && state.owners.length===1){
+      editor.stages.forEach(s=>{if(!s.participants.length)s.participants=[field.value];normalizeCheckAssignments(s);});
+      renderStage();
+    }
+    setDirty();
+  }));
   bindDateControls($p('#prjHeader',root));
 }
 function bindTabs(root){
@@ -226,18 +302,28 @@ function bindTabs(root){
     button.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';};
     button.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));if(M.moveStep(editor,from,i)){activeStage=i;setDirty();renderTabs();renderStage();}};
   });
-  const add=$p('#prj-add-step',root);if(add)add.onclick=()=>{activeStage=M.addStep(editor);setDirty();renderTabs();renderStage();};
+  const add=$p('#prj-add-step',root);if(add)add.onclick=()=>{
+    activeStage=M.addStep(editor);
+    if(state.owners.length===1)editor.stages[activeStage].participants=[state.owners[0]];
+    setDirty();renderTabs();renderStage();
+  };
 }
 function bindStageControls(root){
   const s=editor.stages[activeStage];if(!s)return;
   $$p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
-  $$p('[data-person]',root).forEach(input=>input.onchange=()=>{s.participants=state.owners.filter(o=>$$p('[data-person]:checked',root).some(x=>x.dataset.person===o));setDirty();});
+  $$p('[data-person]',root).forEach(input=>input.onchange=()=>{
+    s.participants=state.owners.filter(o=>$$p('[data-person]:checked',root).some(x=>x.dataset.person===o));
+    refreshCheckOwners(root,s);setDirty();
+  });
   bindDateControls(root);
   $$p('input[name="prjEndMode"]',root).forEach(input=>input.onchange=()=>{if(input.checked){s.endType=input.value;setDirty();renderStage();}});
   const after=$p('#prj-after-days',root);if(after)after.oninput=()=>{s.afterDays=Number(after.value)||0;setDirty();};
   const holidays=$p('#prj-count-holidays',root);if(holidays)holidays.onchange=()=>{s.includeHolidays=holidays.checked;setDirty();};
   const shift=$p('#prj-holiday-shift',root);if(shift)shift.onchange=()=>{s.holidayShift=shift.value;setDirty();};
-  const addCheck=$p('#prj-add-check',root);if(addCheck)addCheck.onclick=()=>{s.checklist.push({id:projectUid('check'),text:'',owner:'',dueDate:'',done:false});setDirty();renderStage();};
+  const addCheck=$p('#prj-add-check',root);if(addCheck)addCheck.onclick=()=>{
+    s.checklist.push({id:projectUid('check'),text:'',owner:s.participants.length===1?s.participants[0]:'',dueDate:'',done:false});
+    setDirty();renderStage();
+  };
   $$p('[data-prj-check-row]',root).forEach(row=>{
     const check=s.checklist.find(c=>c.id===row.dataset.prjCheckRow);if(!check)return;
     $$p('[data-check-field]',row).forEach(input=>input.oninput=()=>{check[input.dataset.checkField]=input.value;setDirty();});
@@ -391,5 +477,5 @@ ensureSettingsControl();
 // theme 버튼은 이미지를 별도 요소로 겹치지 않고 nav-icon의 background만 사용한다.
 const observer=new MutationObserver(()=>applyProjectThemeIcon());
 observer.observe(document.body,{attributes:true,attributeFilter:['data-v7-theme']});
-window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal};
+window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility};
 })();
