@@ -1684,7 +1684,7 @@ const uid=p=>p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(
 const fmtDate=s=>s?s.replaceAll('-','/'):'-';
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const statusLabel=s=>({planned:'예정',prep:'준비중',progress:'진행중',done:'완료',hold:'보류',overdue:'기한초과'}[s]||s||'예정');
-const state={tasks:[],templates:[],holidays:[],categories:[],owners:[],settings:{homeView:'gantt'},selectedCategories:[],changeLogs:[]};
+const state={tasks:[],projects:[],templates:[],holidays:[],categories:[],owners:[],settings:{homeView:'gantt'},selectedCategories:[],changeLogs:[]};
 
 const holidaySeed=[
  ['2026-01-01','신정','법정공휴일'],['2026-02-16','설날 연휴','법정공휴일'],['2026-02-17','설날','법정공휴일'],['2026-02-18','설날 연휴','법정공휴일'],
@@ -1726,7 +1726,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20260922-v124');
+  const cloud=await import('./js/cloud-sync.js?v=20260926-project-v1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1744,7 +1744,7 @@ async function saveState(meta={}){
   const cloudJob=window.cloudSync?window.cloudSync.save(snapshot,meta):Promise.resolve();
   await Promise.all([localJob,cloudJob]);
 }
-function seed(){state.categories=['시설','안전','행정','기타'];state.owners=['담당자'];state.holidays=clone(holidaySeed);state.templates=[];state.tasks=[];state.selectedCategories=[];state.changeLogs=[];state.settings={homeView:'gantt',localBeta:true}}
+function seed(){state.categories=['시설','안전','행정','기타'];state.owners=['담당자'];state.holidays=clone(holidaySeed);state.templates=[];state.tasks=[];state.projects=[];state.selectedCategories=[];state.changeLogs=[];state.settings={homeView:'gantt',localBeta:true}}
 
 
 function isHoliday(s){const d=dateOf(s);if(!d)return false;const wd=d.getDay();return wd===0||wd===6||state.holidays.some(h=>h.date===s)}
@@ -11770,4 +11770,7 @@ requestAnimationFrame(()=>{
   window.addEventListener('load',()=>setTimeout(installLegacyRepair,800));
 })();
 </script>
+<link rel="stylesheet" href="./css/project-feature.css?v=20260926-project-v1">
+<script src="./js/project-model.js?v=20260926-project-v1"></script>
+<script src="./js/project-ui.js?v=20260926-project-v1"></script>
 </body></html>
