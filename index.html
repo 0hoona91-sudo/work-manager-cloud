@@ -6527,7 +6527,11 @@ function ensureLayoutSettingsCardLocalV12(){
     const syncLabel=()=>input.closest('.v12-config-item')?.classList.toggle('is-off',!input.checked);
     input.checked=visibility[key]!==false;syncLabel();
     input.onchange=()=>{
-      visibility[key]=!!input.checked;syncLabel();ensureNavVisibilityLocalV12();applySidebarVisibilityLocalV12();void saveState({reason:'화면 구성 변경'});
+      visibility[key]=!!input.checked;
+      if(key==='projectPage'){state.settings.projectVisibilityOptInV131=true;state.settings.navVisibilityV33.projectPage=visibility[key];}
+      syncLabel();ensureNavVisibilityLocalV12();applySidebarVisibilityLocalV12();
+      if(key==='projectPage'&&window.WMProjectUI?.syncProjectVisibility)window.WMProjectUI.syncProjectVisibility();
+      void saveState({reason:'화면 구성 변경'});
     };
   });
 }
@@ -11770,7 +11774,7 @@ requestAnimationFrame(()=>{
   window.addEventListener('load',()=>setTimeout(installLegacyRepair,800));
 })();
 </script>
-<link rel="stylesheet" href="./css/project-feature.css?v=20260926-project-v1">
-<script src="./js/project-model.js?v=20260926-project-v1"></script>
-<script src="./js/project-ui.js?v=20260926-project-v1"></script>
+<link rel="stylesheet" href="./css/project-feature.css?v=20260926-project-v131">
+<script src="./js/project-model.js?v=20260926-project-v131"></script>
+<script src="./js/project-ui.js?v=20260926-project-v131"></script>
 </body></html>
