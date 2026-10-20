@@ -1726,7 +1726,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20260926-project-v1');
+  const cloud=await import('./js/cloud-sync.js?v=20261017-tasks-v15');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -2534,7 +2534,7 @@ function taskFromDbTemplateV5(t,spec){
   const deadline=addDays(spec.planned,Number(t.deadlineOffset||0));
   const taskId=stableGeneratedTaskId(spec.key);
   return{
-    id:taskId,generatedKey:spec.key,dbAuto:true,autoSourceTemplateId:t.id,templateId:t.id,seriesId:`dbseries:${t.id}`,groupId:`dbgrp:${spec.key}`,step:1,
+    id:taskId,generatedKey:spec.key,dbAuto:true,dbDateCascadeV151:true,autoSourceTemplateId:t.id,templateId:t.id,seriesId:`dbseries:${t.id}`,groupId:`dbgrp:${spec.key}`,step:1,
     category:t.category,name:t.name,urgent:!!t.urgent,status:'planned',owner:t.owner||state.owners[0]||'',start:spec.planned,end,deadline,
     unconfirmed:t.dayRule==='unknown',checklist:(t.checklist||[]).map((text,index)=>({id:stableGeneratedCheckId(taskId,index),text,done:false})),notes:t.notes||'',actualComplete:null,periodLabel:periodFromDate(spec.planned),
     link:null,repeat:{cycle:t.cycle,holidayShift:t.holidayShift||'prev',source:'db'},autoRawDate:spec.raw,manualOverride:false
@@ -2973,19 +2973,58 @@ function ensureDbLinkedChildrenV5(root,tpl,policy='pending'){
     if(stale.length){const ids=new Set(stale.map(x=>x.id));state.tasks=state.tasks.filter(x=>!ids.has(x.id))}
   }
 }
+// V1.5.1: Treat the later of a stage's planned end and deadline as its planned
+// finish when that chain has been edited after this patch. Older untouched
+// chains keep the existing anchor until the user explicitly reschedules one.
+// Actual completion always takes priority if recorded.
+function dbLinkedScheduleBasisV151(parent,link){
+  if(link.basis==='start')return parent.start;
+  if(link.basis==='end')return parent.end||parent.start;
+  if(parent.actualComplete)return parent.actualComplete;
+  if((parent.dbAuto||parent.dbManual)&&parent.dbDateCascadeV151){
+    return [parent.start,parent.end,parent.deadline].filter(Boolean).sort().pop()||parent.start;
+  }
+  return parent.deadline||parent.end||parent.start;
+}
+function dbEditedOccurrenceDeadlineV151(task,start,end,previousStart,previousEnd,previousDeadline){
+  const input=document.querySelector('#tfDeadline');
+  if(input?.value)return input.value;
+  if(start===previousStart&&end===previousEnd)return previousDeadline||end;
+  const tplId=task.dbManual?task.dbManualRootTemplateId:task.autoSourceTemplateId;
+  const tpl=state.templates.find(item=>item.id===tplId);
+  const sourceStage=task.dbManual?Number(task.dbManualSourceStage||0):task.parentAutoRootId?Number(task.step||1)-1:0;
+  const def=sourceStage>0?tpl?.linkedSteps?.[sourceStage-1]:null;
+  const rule=task.link||def;
+  if(rule){
+    let due=calcByModeV6(start,Number(rule.limitDays||0),rule.limitMode||'calendar');
+    const shift=rule.limitHolidayShift||rule.holidayShift||'next';
+    if(shift!=='keep')due=shiftWorkday(due,shift);
+    // Period-type stages end at their deadline. An explicitly adjusted end is
+    // authoritative for that occurrence, but never changes the template.
+    if((rule.workType||'single')==='period'&&end!==previousEnd)return end;
+    return due;
+  }
+  // Root templates can have a deadline offset distinct from their duration.
+  if(tpl&&Number.isFinite(Number(tpl.deadlineOffset)))
+    return addDays(start,Number(tpl.deadlineOffset||0));
+  const offset=previousStart&&previousDeadline?
+    Math.round((dateOf(previousDeadline)-dateOf(previousStart))/86400000):0;
+  return addDays(start,Number.isFinite(offset)?offset:0);
+}
 function recalcLinks(){
   for(let pass=0;pass<20;pass++){
     let changed=false;const sorted=[...state.tasks].sort((a,b)=>(a.step||1)-(b.step||1));
     for(const t of sorted){
       if(!t.link?.dynamic||t.manualOverride||t.scheduleOverride||effectiveStatus(t)==='done')continue;
       const p=state.tasks.find(x=>x.id===t.link.parentId);if(!p)continue;
-      const basis=t.link.basis==='actualEnd'?(p.actualComplete||p.deadline||p.end||p.start):(t.link.basis==='start'?p.start:(p.end||p.start));
+      const basis=dbLinkedScheduleBasisV151(p,t.link);
       if(!basis)continue;
       let ns=calcByModeV6(basis,Number(t.link.startOffset??t.link.offset??0),t.link.startMode||t.link.mode||'business');
       if((t.link.startHolidayShift||t.link.holidayShift||'next')!=='keep')ns=shiftWorkday(ns,t.link.startHolidayShift||t.link.holidayShift||'next');
       let due=calcByModeV6(ns,Number(t.link.limitDays||0),t.link.limitMode||'calendar');
       if((t.link.limitHolidayShift||'next')!=='keep')due=shiftWorkday(due,t.link.limitHolidayShift||'next');
       const ne=(t.link.workType||'single')==='period'?due:ns;
+      if((p.dbAuto||p.dbManual)&&p.dbDateCascadeV151&&(t.dbAuto||t.dbManual))t.dbDateCascadeV151=true;
       if(ns!==t.start||ne!==t.end||due!==t.deadline){
         t.start=ns;t.end=ne;t.deadline=due;t.periodLabel=periodFromDate(ns);changed=true
       }
@@ -3699,10 +3738,8 @@ function saveDbAutoOccurrenceV9(t){
     const un=requestedUnconfirmed&&!userPickedConcreteDate;
     if(un)start=shiftWorkday(endOfMonth(Number(start.slice(0,4)),Number(start.slice(5,7))),'prev');
     const rule={type:$('#tfEndType').value,date:$('#tfEndDate').value,days:Number($('#tfAfterDays').value||0),includeHolidays:$('#tfIncludeHolidays').checked,shift:$('#tfHolidayShift').value};
-    let end=calcEnd(start,rule),deadline=$('#tfDeadline').value||end;
+    let end=calcEnd(start,rule),deadline=dbEditedOccurrenceDeadlineV151(t,start,end,oldStart,oldEnd,oldDeadline);
     if(un){end=start;deadline=start}
-    // 시작일만 움직였고 기존이 당일업무였다면 마감일도 같은 간격으로 자연스럽게 이동.
-    if(start!==oldStart&&deadline===oldDeadline&&oldDeadline===oldStart)deadline=start;
     const scheduleChanged=start!==oldStart||end!==oldEnd||deadline!==oldDeadline;
     const originalLink=t.link?clone(t.link):null;
     const originalRepeat=t.repeat?clone(t.repeat):null;
@@ -3716,7 +3753,7 @@ function saveDbAutoOccurrenceV9(t){
     });
     t.repeat=originalRepeat;t.link=originalLink;
     if(scheduleChanged){
-      t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;
+      t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
       // 중간 연계업무 자체의 날짜를 직접 바꾼 경우 그 단계는 고정하되, 그 이후 단계는 계속 이 업무를 기준으로 따라간다.
       if(t.parentAutoRootId&&t.link)t.link.dynamic=false;
     }
@@ -3741,7 +3778,7 @@ changeTaskStartV5=function(t,newStart){
   if(!t?.dbAuto)return changeTaskStartV9Base(t,newStart);
   if(!newStart||newStart===t.start)return;
   const old=t.start,dur=Math.max(0,Math.round((dateOf(t.end||old)-dateOf(old))/86400000)||0),dueOff=Math.max(0,Math.round((dateOf(t.deadline||t.end||old)-dateOf(old))/86400000)||0);
-  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=addDays(newStart,dueOff);t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;
+  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
   if(t.parentAutoRootId&&t.link)t.link.dynamic=false;
   recalcLinks();saveState();renderTaskTable();renderHome();toast('현재 회차를 이동하고 이후 연계업무를 다시 계산했습니다.');
 };
@@ -3946,7 +3983,7 @@ function createManualDbChainV10(root,startStage,endStage,firstStart){
     const src=stageSourceV10(root,stage);
     const sched=initialStageScheduleV10(root,stage,firstStart);
     const task={
-      id:uid('task'),groupId,step:stage-startStage+1,dbManual:true,dbManualRootTemplateId:root.id,
+      id:uid('task'),groupId,step:stage-startStage+1,dbManual:true,dbDateCascadeV151:true,dbManualRootTemplateId:root.id,
       dbManualSourceStage:stage,category:src.category,name:src.name,urgent:!!src.urgent,status:'planned',
       owner:src.owner||root.owner||'',start:sched.start,end:sched.end,deadline:sched.deadline,
       unconfirmed:false,checklist:(src.checklist||[]).map(text=>({id:uid('c'),text,done:false})),
@@ -3988,7 +4025,7 @@ function saveManualDbOccurrenceV10(t){
     const un=requestedUnconfirmed&&!userPickedConcreteDate;
     if(un)start=shiftWorkday(endOfMonth(Number(start.slice(0,4)),Number(start.slice(5,7))),'prev');
     const rule={type:$('#tfEndType').value,date:$('#tfEndDate').value,days:Number($('#tfAfterDays').value||0),includeHolidays:$('#tfIncludeHolidays').checked,shift:$('#tfHolidayShift').value};
-    let end=calcEnd(start,rule),deadline=$('#tfDeadline').value||end;
+    let end=calcEnd(start,rule),deadline=dbEditedOccurrenceDeadlineV151(t,start,end,oldStart,oldEnd,oldDeadline);
     if(un){end=start;deadline=start}
     const scheduleChanged=start!==oldStart||end!==oldEnd||deadline!==oldDeadline;
     const originalLink=t.link?clone(t.link):null;
@@ -3999,7 +4036,7 @@ function saveManualDbOccurrenceV10(t){
     });
     t.link=originalLink;t.repeat=null;
     if(scheduleChanged){
-      t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;
+      t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
       // 첫 단계는 자유롭게 이동. 중간 단계를 직접 고친 경우 그 단계는 고정하고 이후 단계만 계속 따라간다.
       if(t.link)t.link.dynamic=false;
     }
@@ -4024,8 +4061,8 @@ changeTaskStartV5=function(t,newStart){
   if(!newStart||newStart===t.start)return;
   const old=t.start,dur=Math.max(0,Math.round((dateOf(t.end||old)-dateOf(old))/86400000)||0),
     dueOff=Math.max(0,Math.round((dateOf(t.deadline||t.end||old)-dateOf(old))/86400000)||0);
-  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=addDays(newStart,dueOff);
-  t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;
+  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));
+  t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
   if(t.link)t.link.dynamic=false;
   recalcLinks();saveState();renderTaskTable();renderHome();
   toast(t.link?'현재 단계를 이동하고 이후 연계업무를 다시 계산했습니다.':'첫 업무 날짜를 이동하고 연계업무를 다시 계산했습니다.');
@@ -4871,7 +4908,8 @@ function recalcNewDbChainV24(root,createdIds=null){
     for(const task of children.sort((a,b)=>(a.step||1)-(b.step||1))){
       if(!task.link?.dynamic)continue;
       const parent=state.tasks.find(item=>item.id===task.link.parentId);if(!parent)continue;
-      const basis=task.link.basis==='actualEnd'?(parent.actualComplete||parent.deadline||parent.end||parent.start):(task.link.basis==='start'?parent.start:(parent.end||parent.start));
+      const basis=dbLinkedScheduleBasisV151(parent,task.link);
+      if((parent.dbAuto||parent.dbManual)&&parent.dbDateCascadeV151)task.dbDateCascadeV151=true;
       if(!basis)continue;
       let start=calcByModeV6(basis,Number(task.link.startOffset??task.link.offset??0),task.link.startMode||task.link.mode||'business');
       if((task.link.startHolidayShift||task.link.holidayShift||'next')!=='keep')start=shiftWorkday(start,task.link.startHolidayShift||task.link.holidayShift||'next');
@@ -11953,4 +11991,40 @@ requestAnimationFrame(()=>{
 <link rel="stylesheet" href="./css/project-feature.css?v=20260926-project-v131">
 <script src="./js/project-model.js?v=20260926-project-v131"></script>
 <script src="./js/project-ui.js?v=20260926-project-v131"></script>
+
+<style id="google-tasks-v15-css">
+#taskListPage .pagehead{gap:12px;flex-wrap:wrap}
+#googleTasksToggleLabelV15{display:inline-flex;align-items:center;gap:8px;cursor:pointer;min-height:38px;padding:6px 10px;border:1px solid var(--line,rgba(80,110,150,.18));border-radius:10px;background:var(--card,#fff);font-weight:650;font-size:13px;margin-left:auto}
+#googleTasksToggleV15{width:18px;height:18px;accent-color:var(--accent,#3778bf);cursor:pointer}
+#googleTasksStatusV15{font-size:12px;color:var(--muted,#627286);padding:5px 13px;line-height:1.5;overflow-wrap:anywhere}
+#googleTasksReconnectV15{margin-top:3px;margin-bottom:4px}
+.gt-overlay-v15{position:fixed;inset:0;z-index:999999;background:rgba(12,20,32,.56);display:grid;place-items:center;padding:16px}
+.gt-dialog-v15{width:min(540px,100%);max-height:90vh;overflow-y:auto;background:var(--card,#fff);color:var(--ink,#18253b);border-radius:18px;padding:22px;box-shadow:0 14px 70px rgba(0,0,0,.25)}
+.gt-dialog-v15 h3{margin:0 0 12px;font-size:20px;color:inherit}
+.gt-dialog-v15 p{line-height:1.5;font-size:13px;color:var(--muted,#667388)}
+.gt-label-v15{font-size:13px;font-weight:700;display:grid;gap:7px;margin:14px 0}
+.gt-label-v15 select{width:100%;min-height:42px;border-radius:10px;background:var(--card,#fff);color:inherit;border:1px solid #b9c6d9;padding:9px}
+.gt-checkline-v15{font-size:13px;display:flex;align-items:flex-start;gap:8px}
+.gt-caution-v15{padding:10px;background:rgba(65,118,185,.075);border-radius:10px}
+.gt-actions-v15{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.gt-actions-v15 button{cursor:pointer;border-radius:10px;border:1px solid #a6b7cc;padding:10px 20px;color:inherit;background:transparent}
+.gt-actions-v15 #gt-ok-v15{background:#3576c1;color:#fff;border:0}
+@media(max-width:760px){#googleTasksToggleLabelV15{margin-left:0;order:1;font-size:12px}#taskListPage .pagehead #newTaskBtn{order:2}#googleTasksStatusV15{font-size:11px}}
+</style>
+<script id="google-tasks-v15-app-bridge">
+// 새 모듈은 기존 업무 데이터 모델을 변경하지 않고 공개된 브리지만 사용합니다.
+window.workManagerTasksBridgeV15={
+  state,
+  save:meta=>saveState(meta),
+  refresh:()=>{renderTaskTable();renderHome();},
+  effectiveStatus:t=>effectiveStatus(t),
+};
+const saveStateGoogleTasksV15Base=saveState;
+saveState=async function(meta={}){
+  const result=await saveStateGoogleTasksV15Base(meta);
+  window.dispatchEvent(new Event('wm:tasks-v15-saved'));
+  return result;
+};
+</script>
+<script type="module" src="./js/google-tasks-sync.js?v=20261017-tasks-v15"></script>
 </body></html>
