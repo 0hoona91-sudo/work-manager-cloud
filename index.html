@@ -1726,7 +1726,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261017-tasks-v15');
+  const cloud=await import('./js/cloud-sync.js?v=20261021-personal-only-v1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -2529,9 +2529,9 @@ function preserveChecklistV5(oldChecks,newTexts){
   return (newTexts||[]).map((text,index)=>{const old=previous.get(text);return{id:old?.id||uid('c'),text,done:old?.done||false}});
 }
 function taskFromDbTemplateV5(t,spec){
-  const dur=Math.max(0,Number(t.durationDays||0));
+  const dur=Math.max(0,Number(t.durationDays||0)-1);
   const end=addDays(spec.planned,dur);
-  const deadline=addDays(spec.planned,Number(t.deadlineOffset||0));
+  const deadline=Number(t.deadlineOffset||0)>0?addDays(spec.planned,Number(t.deadlineOffset)):end;
   const taskId=stableGeneratedTaskId(spec.key);
   return{
     id:taskId,generatedKey:spec.key,dbAuto:true,dbDateCascadeV151:true,autoSourceTemplateId:t.id,templateId:t.id,seriesId:`dbseries:${t.id}`,groupId:`dbgrp:${spec.key}`,step:1,
@@ -2596,7 +2596,7 @@ function syncTemplateScheduleV5(t,from,to,policy=t.applyPolicy||'pending'){
         if(!root.manualOverride&&!root.scheduleOverride)root.unconfirmed=t.dayRule==='unknown';
         root.checklist=preserveChecklistV5(root.checklist,t.checklist||[]);
         if(!root.manualOverride&&!root.scheduleOverride){
-          root.start=spec.planned;root.end=addDays(spec.planned,Math.max(0,Number(t.durationDays||0)));root.deadline=addDays(spec.planned,Number(t.deadlineOffset||0));
+          root.start=spec.planned;root.end=addDays(spec.planned,Math.max(0,Number(t.durationDays||0)-1));root.deadline=Number(t.deadlineOffset||0)>0?addDays(spec.planned,Number(t.deadlineOffset)):root.end;
         }
       }
     }
@@ -2980,53 +2980,104 @@ function ensureDbLinkedChildrenV5(root,tpl,policy='pending'){
 function dbLinkedScheduleBasisV151(parent,link){
   if(link.basis==='start')return parent.start;
   if(link.basis==='end')return parent.end||parent.start;
-  if(parent.actualComplete)return parent.actualComplete;
-  if((parent.dbAuto||parent.dbManual)&&parent.dbDateCascadeV151){
-    return [parent.start,parent.end,parent.deadline].filter(Boolean).sort().pop()||parent.start;
-  }
-  return parent.deadline||parent.end||parent.start;
+  return parent.actualComplete||parent.end||parent.start;
 }
 function dbEditedOccurrenceDeadlineV151(task,start,end,previousStart,previousEnd,previousDeadline){
-  const input=document.querySelector('#tfDeadline');
-  if(input?.value)return input.value;
-  if(start===previousStart&&end===previousEnd)return previousDeadline||end;
-  const tplId=task.dbManual?task.dbManualRootTemplateId:task.autoSourceTemplateId;
-  const tpl=state.templates.find(item=>item.id===tplId);
-  const sourceStage=task.dbManual?Number(task.dbManualSourceStage||0):task.parentAutoRootId?Number(task.step||1)-1:0;
-  const def=sourceStage>0?tpl?.linkedSteps?.[sourceStage-1]:null;
-  const rule=task.link||def;
-  if(rule){
-    let due=calcByModeV6(start,Number(rule.limitDays||0),rule.limitMode||'calendar');
-    const shift=rule.limitHolidayShift||rule.holidayShift||'next';
-    if(shift!=='keep')due=shiftWorkday(due,shift);
-    // Period-type stages end at their deadline. An explicitly adjusted end is
-    // authoritative for that occurrence, but never changes the template.
-    if((rule.workType||'single')==='period'&&end!==previousEnd)return end;
-    return due;
+  if(!task.parentAutoRootId && !task.link && (task.dbAuto||task.dbManual) && (start!==previousStart||end!==previousEnd)){
+    // In the DB schedule, the root's planned finish is its end, not its old deadline.
+    return end;
   }
-  // Root templates can have a deadline offset distinct from their duration.
-  if(tpl&&Number.isFinite(Number(tpl.deadlineOffset)))
-    return addDays(start,Number(tpl.deadlineOffset||0));
-  const offset=previousStart&&previousDeadline?
-    Math.round((dateOf(previousDeadline)-dateOf(previousStart))/86400000):0;
-  return addDays(start,Number.isFinite(offset)?offset:0);
+  const input=document.querySelector('#tfDeadline');
+  if(input?.value && input.value!==previousDeadline)return input.value;
+  if(start===previousStart&&end===previousEnd)return previousDeadline||end;
+  if(task.link){
+    return end;
+  }
+  return end;
+}
+
+// V1.5.2: stages use the SAME parent anchor for the beginning and due date.
+// Example: parent ends 11/17, startOffset=1 business, limitDays=15 business
+// -> start 11/18 and end 15 working days after 11/17 (not after 11/18).
+function linkedStageDatesV152(parent,link){
+  const anchor=dbLinkedScheduleBasisV151(parent,link);
+  if(!anchor)return null;
+  const beginMode=link.startMode||link.mode||'business';
+  const startShift=link.startHolidayShift||link.holidayShift||'next';
+  const dueShift=link.limitHolidayShift||link.holidayShift||'next';
+  const offset=Number(link.startOffset??link.offset??0);
+  const limit=Number(link.limitDays||0);
+  let start=calcByModeV6(anchor,offset,beginMode);
+  if(startShift!=='keep')start=shiftWorkday(start,startShift);
+  let deadline=limit>0?calcByModeV6(anchor,limit,link.limitMode||'calendar'):start;
+  if(dueShift!=='keep')deadline=shiftWorkday(deadline,dueShift);
+  if(deadline<start)deadline=start;
+  // A limit of N is a selectable working RANGE, even if a legacy DB row was
+  // classified as single-day; the actual task status still follows its checklist.
+  const end=limit>0||link.workType==='period'?deadline:start;
+  return{start,end,deadline};
+}
+function dbStageLinkV152(task){
+  const current=task.link||null;
+  if(!current)return null;
+  // DB is the authoritative rule when the row belongs to an auto-generated chain.
+  const sourceId=task.dbAuto?task.autoSourceTemplateId:task.dbManualRootTemplateId;
+  const tpl=sourceId?state.templates.find(x=>x.id===sourceId):null;
+  const index=task.dbAuto?Number(task.step||0)-2:Number(task.dbManualSourceStage||0)-1;
+  const source=index>=0?tpl?.linkedSteps?.[index]:null;
+  if(!source)return current;
+  return{
+    ...current,
+    dynamic:source.dynamic!==false,
+    basis:source.basis||'actualEnd',
+    startOffset:Number(source.startOffset??source.offset??0),
+    startMode:source.startMode||source.mode||'business',
+    startHolidayShift:source.startHolidayShift||source.holidayShift||'next',
+    limitDays:Number(source.limitDays||0),
+    limitMode:source.limitMode||'calendar',
+    limitHolidayShift:source.limitHolidayShift||source.holidayShift||'next',
+    workType:source.workType||'single'
+  };
+}
+function dbChainHasCascadeV152(task,taskById){
+  const seen=new Set();let item=task;
+  while(item&&!seen.has(item.id)){
+    if(item.dbDateCascadeV151)return true;
+    seen.add(item.id);
+    item=item.link?.parentId?taskById.get(item.link.parentId):null;
+  }
+  return false;
 }
 function recalcLinks(){
+  const taskById=new Map(state.tasks.map(t=>[t.id,t]));
   for(let pass=0;pass<20;pass++){
-    let changed=false;const sorted=[...state.tasks].sort((a,b)=>(a.step||1)-(b.step||1));
-    for(const t of sorted){
-      if(!t.link?.dynamic||t.manualOverride||t.scheduleOverride||effectiveStatus(t)==='done')continue;
-      const p=state.tasks.find(x=>x.id===t.link.parentId);if(!p)continue;
-      const basis=dbLinkedScheduleBasisV151(p,t.link);
-      if(!basis)continue;
-      let ns=calcByModeV6(basis,Number(t.link.startOffset??t.link.offset??0),t.link.startMode||t.link.mode||'business');
-      if((t.link.startHolidayShift||t.link.holidayShift||'next')!=='keep')ns=shiftWorkday(ns,t.link.startHolidayShift||t.link.holidayShift||'next');
-      let due=calcByModeV6(ns,Number(t.link.limitDays||0),t.link.limitMode||'calendar');
-      if((t.link.limitHolidayShift||'next')!=='keep')due=shiftWorkday(due,t.link.limitHolidayShift||'next');
-      const ne=(t.link.workType||'single')==='period'?due:ns;
-      if((p.dbAuto||p.dbManual)&&p.dbDateCascadeV151&&(t.dbAuto||t.dbManual))t.dbDateCascadeV151=true;
-      if(ns!==t.start||ne!==t.end||due!==t.deadline){
-        t.start=ns;t.end=ne;t.deadline=due;t.periodLabel=periodFromDate(ns);changed=true
+    let changed=false;
+    const sorted=[...state.tasks].sort((a,b)=>(a.step||1)-(b.step||1));
+    for(const task of sorted){
+      if(!task.link?.dynamic||task.manualOverride||task.scheduleOverride||effectiveStatus(task)==='done')continue;
+      const parent=taskById.get(task.link.parentId);if(!parent)continue;
+      const isDbChain=!!(task.dbAuto||task.dbManual);
+      const cascade=isDbChain&&dbChainHasCascadeV152(parent,taskById);
+      // Avoid silently rewriting untouched historical DB occurrences on page load.
+      if(isDbChain&&!cascade)continue;
+      const rule=cascade?dbStageLinkV152(task):task.link;
+      if(!rule?.dynamic)continue;
+      let next;
+      if(cascade){next=linkedStageDatesV152(parent,rule)}
+      else{
+        const anchor=rule.basis==='start'?parent.start:(rule.basis==='end'?parent.end:(parent.actualComplete||parent.deadline||parent.end||parent.start));
+        if(!anchor)continue;
+        let ns=calcByModeV6(anchor,Number(rule.startOffset??rule.offset??0),rule.startMode||rule.mode||'business');
+        if((rule.startHolidayShift||rule.holidayShift||'next')!=='keep')ns=shiftWorkday(ns,rule.startHolidayShift||rule.holidayShift||'next');
+        let due=calcByModeV6(ns,Number(rule.limitDays||0),rule.limitMode||'calendar');
+        if((rule.limitHolidayShift||'next')!=='keep')due=shiftWorkday(due,rule.limitHolidayShift||'next');
+        next={start:ns,end:(rule.workType||'single')==='period'?due:ns,deadline:due};
+      }
+      if(!next)continue;
+      if(cascade&&isDbChain)task.dbDateCascadeV151=true;
+      if(task.start!==next.start||task.end!==next.end||task.deadline!==next.deadline){
+        task.start=next.start;task.end=next.end;task.deadline=next.deadline;
+        task.periodLabel=periodFromDate(next.start);changed=true;
       }
     }
     if(!changed)break;
@@ -3054,7 +3105,7 @@ function stepEditorHtmlV6(s,i){
       <div class="db-step-schedule span2">
         <b>마감 / 기간</b>
         <div class="inline" style="margin-top:7px"><span>시작일로부터</span><input type="number" min="0" data-v6limit="${i}" value="${Number(s.limitDays||0)}" style="width:78px"><span>일 이내</span><select data-v6limitmode="${i}"><option value="business">근무일</option><option value="calendar">달력일</option></select><span>휴일이면</span><select data-v6limitshift="${i}"><option value="prev">전 근무일</option><option value="next">다음 근무일</option><option value="keep">그대로</option></select></div>
-        <div class="hint">일회성 업무는 시작일은 하루로 두고 마감일만 계산합니다. 기간 업무는 계산된 날짜까지 업무 막대가 이어집니다.</div>
+        <div class="hint">연계업무의 시작 간격과 마감 간격은 모두 상위 기준일에서 계산합니다. 마감 범위가 있으면 종료일까지 업무 기간으로 표시됩니다.</div>
       </div>
       <div class="field wide"><label>이 단계 체크리스트</label>${stepChecklistEditorHtmlV6(s,i)}</div>
     </div>
@@ -3778,7 +3829,7 @@ changeTaskStartV5=function(t,newStart){
   if(!t?.dbAuto)return changeTaskStartV9Base(t,newStart);
   if(!newStart||newStart===t.start)return;
   const old=t.start,dur=Math.max(0,Math.round((dateOf(t.end||old)-dateOf(old))/86400000)||0),dueOff=Math.max(0,Math.round((dateOf(t.deadline||t.end||old)-dateOf(old))/86400000)||0);
-  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
+  t.start=newStart;t.end=!t.link&&!t.parentAutoRootId?autoFirstStageEndV152(t,newStart):addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
   if(t.parentAutoRootId&&t.link)t.link.dynamic=false;
   recalcLinks();saveState();renderTaskTable();renderHome();toast('현재 회차를 이동하고 이후 연계업무를 다시 계산했습니다.');
 };
@@ -3966,14 +4017,14 @@ function openDbRegisterModalV10(){
 function initialStageScheduleV10(root,stage,start){
   if(stage===0){
     const duration=Math.max(0,Number(root.durationDays||0));
-    const end=addDays(start,duration);
-    const deadline=addDays(start,Number(root.deadlineOffset||duration||0));
+    const end=addDays(start,Math.max(0,duration-1));
+    const deadline=Number(root.deadlineOffset||0)>0?addDays(start,Number(root.deadlineOffset)):end;
     return{start,end,deadline};
   }
   const s=root.linkedSteps?.[stage-1]||{};
   let deadline=calcByModeV6(start,Number(s.limitDays||0),s.limitMode||'calendar');
   if((s.limitHolidayShift||'next')!=='keep')deadline=shiftWorkday(deadline,s.limitHolidayShift||'next');
-  const end=(s.workType||'single')==='period'?deadline:start;
+  const end=Number(s.limitDays||0)>0||s.workType==='period'?deadline:start;
   return{start,end,deadline};
 }
 function createManualDbChainV10(root,startStage,endStage,firstStart){
@@ -4061,7 +4112,7 @@ changeTaskStartV5=function(t,newStart){
   if(!newStart||newStart===t.start)return;
   const old=t.start,dur=Math.max(0,Math.round((dateOf(t.end||old)-dateOf(old))/86400000)||0),
     dueOff=Math.max(0,Math.round((dateOf(t.deadline||t.end||old)-dateOf(old))/86400000)||0);
-  t.start=newStart;t.end=addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));
+  t.start=newStart;t.end=!t.link&&!t.parentAutoRootId?autoFirstStageEndV152(t,newStart):addDays(newStart,dur);t.deadline=dbEditedOccurrenceDeadlineV151(t,newStart,t.end,old,addDays(old,dur),addDays(old,dueOff));
   t.periodLabel=periodFromDate(newStart);t.manualOverride=true;t.scheduleOverride=true;t.unconfirmed=false;t.dbDateCascadeV151=true;
   if(t.link)t.link.dynamic=false;
   recalcLinks();saveState();renderTaskTable();renderHome();
@@ -4902,21 +4953,17 @@ function rollingAutoTargetV24(reference=todayISO()){
 
 // 신규 DB 회차에 딸린 연계 단계만 계산한다. 기존 업무의 일정·상태·체크 진행률은 건드리지 않는다.
 function recalcNewDbChainV24(root,createdIds=null){
-  const children=state.tasks.filter(task=>task.parentAutoRootId===root.id&&(!createdIds||createdIds.has(task.id)));
+  const created=state.tasks.filter(t=>t.parentAutoRootId===root.id&&(!createdIds||createdIds.has(t.id)));
+  const byId=new Map(state.tasks.map(t=>[t.id,t]));
   for(let pass=0;pass<20;pass++){
     let changed=false;
-    for(const task of children.sort((a,b)=>(a.step||1)-(b.step||1))){
+    for(const task of [...created].sort((a,b)=>(a.step||1)-(b.step||1))){
       if(!task.link?.dynamic)continue;
-      const parent=state.tasks.find(item=>item.id===task.link.parentId);if(!parent)continue;
-      const basis=dbLinkedScheduleBasisV151(parent,task.link);
-      if((parent.dbAuto||parent.dbManual)&&parent.dbDateCascadeV151)task.dbDateCascadeV151=true;
-      if(!basis)continue;
-      let start=calcByModeV6(basis,Number(task.link.startOffset??task.link.offset??0),task.link.startMode||task.link.mode||'business');
-      if((task.link.startHolidayShift||task.link.holidayShift||'next')!=='keep')start=shiftWorkday(start,task.link.startHolidayShift||task.link.holidayShift||'next');
-      let due=calcByModeV6(start,Number(task.link.limitDays||0),task.link.limitMode||'calendar');
-      if((task.link.limitHolidayShift||'next')!=='keep')due=shiftWorkday(due,task.link.limitHolidayShift||'next');
-      const end=(task.link.workType||'single')==='period'?due:start;
-      if(start!==task.start||end!==task.end||due!==task.deadline){task.start=start;task.end=end;task.deadline=due;task.periodLabel=periodFromDate(start);changed=true}
+      const parent=byId.get(task.link.parentId);if(!parent)continue;
+      const next=linkedStageDatesV152(parent,dbStageLinkV152(task));if(!next)continue;
+      if(task.start!==next.start||task.end!==next.end||task.deadline!==next.deadline){
+        Object.assign(task,next,{periodLabel:periodFromDate(next.start)});changed=true;
+      }
     }
     if(!changed)break;
   }
@@ -12026,5 +12073,44 @@ saveState=async function(meta={}){
   return result;
 };
 </script>
-<script type="module" src="./js/google-tasks-sync.js?v=20261017-tasks-v15"></script>
+<script type="module" src="./js/google-tasks-sync.js?v=20261021-personal-only-v1"></script>
+
+<script id="linked-schedule-v1-5-2">
+'use strict';
+// Keep the 1st stage N-day range when only its start date is changed in the editor.
+function autoFirstStageEndV152(task,newStart){
+  const id=task.dbAuto?task.autoSourceTemplateId:task.dbManualRootTemplateId;
+  const tpl=state.templates.find(x=>x.id===id);
+  const duration=Math.max(1,Number(tpl?.durationDays||1));
+  return addDays(newStart,duration-1);
+}
+const openTaskFormV152Base=openTaskForm;
+openTaskForm=function(id=null){
+  const result=openTaskFormV152Base(id);
+  const task=id?state.tasks.find(t=>t.id===id):null;
+  if(!task||(task.dbAuto||task.dbManual)!==true||task.parentAutoRootId||task.link)return result;
+  const start=$('#tfStart'),end=$('#tfEndDate'),endMode=$('#tfEndType'),unknown=$('#tfUnconfirmed');
+  if(!start||!end||!endMode)return result;
+  let endWasEdited=false;
+  end.addEventListener('input',()=>{endWasEdited=true});
+  end.addEventListener('change',()=>{endWasEdited=true});
+  $$('input[name=tfEndModeV32]').forEach(x=>x.addEventListener('change',()=>{endWasEdited=true}));
+  const adjust=()=>{
+    const nextStart=start.value;
+    if(!nextStart||nextStart===task.start)return;
+    if(unknown)unknown.checked=false;
+    if(endWasEdited)return;
+    const nextEnd=autoFirstStageEndV152(task,nextStart);
+    end.value=nextEnd;
+    endMode.value='date';
+    endMode.dispatchEvent(new Event('change',{bubbles:true}));
+    const hiddenDeadline=$('#tfDeadline');if(hiddenDeadline)hiddenDeadline.value='';
+  };
+  start.addEventListener('input',adjust);
+  start.addEventListener('change',adjust);
+  // Even when an OS date picker only commits the value on submit, normalize before save.
+  const save=$('#saveTask');if(save){const old=save.onclick;save.onclick=function(event){adjust();return old?.call(this,event)}}
+  return result;
+};
+</script>
 </body></html>
