@@ -32,21 +32,21 @@ a{color:#236b4a}
 <main class="wrap">
   <article class="card">
     <h1>업무관리시스템 개인정보처리방침</h1>
-    <p class="muted">시행일: 2026년 9월 19일</p>
+    <p class="muted">최종 수정일: 2026년 10월 21일</p>
 
     <div class="notice">
-      업무관리시스템은 하나의 공용 웹 프로그램을 제공하되, 각 사용자의 실제 업무 데이터는
-      사용자가 직접 연결한 개인 Firebase/Firestore 및 Google Drive에 분리 저장되도록 설계하고 있습니다.
+      업무관리시스템은 개인 소유자 전용 프로그램입니다.
+      업무 기록은 소유자의 개인 Firebase/Firestore에, 첨부파일과 연결 설정은 소유자의 Google Drive에 저장됩니다.
     </div>
 
     <h2>1. 처리하는 정보</h2>
-    <p>서비스는 기능 제공을 위해 다음 정보를 처리할 수 있습니다.</p>
+    <p>프로그램은 기능 제공을 위해 소유자의 다음 정보를 처리할 수 있습니다.</p>
     <ul>
       <li>Google 로그인 정보: Google 계정 식별자(UID), 이메일 주소, 표시 이름, 프로필 사진</li>
       <li>Google Drive 권한을 통해 앱이 생성하거나 사용하는 파일 및 앱 전용 설정 데이터</li>
       <li>개인 업무공간 연결정보: 개인 Firebase 프로젝트 설정, 전용 사용자 UID, 자동 연결을 위해 생성된 전용 계정 자격정보</li>
-      <li>사용자가 입력한 업무, 체크리스트, 반복업무, 메모, 설정 등은 사용자가 연결한 개인 Firestore에 저장됩니다.</li>
-      <li>사용자가 첨부한 문서·사진 등은 사용자의 Google Drive에 저장됩니다.</li>
+      <li>업무, 체크리스트, 반복업무, 메모, 설정 등은 소유자의 개인 Firestore에 저장됩니다.</li>
+      <li>첨부된 문서·사진 등은 소유자의 Google Drive에 저장됩니다.</li>
     </ul>
 
     <h2>2. Google Drive 접근 범위</h2>
@@ -63,18 +63,19 @@ a{color:#236b4a}
       <li>어느 기기에서 접속하더라도 동일한 개인 업무공간을 찾고 연결</li>
       <li>업무 데이터의 저장·동기화·복원</li>
       <li>첨부파일의 업로드 및 연결</li>
+      <li>소유자가 Google Tasks 연동을 켠 경우 선택한 Tasks 목록의 할 일·하위 할 일·완료 상태 동기화</li>
       <li>서비스 보안 유지 및 오류 진단</li>
     </ul>
 
     <h2>4. 저장 위치 및 분리</h2>
     <p>
-      공용 GitHub Pages는 프로그램 코드를 제공하는 역할을 합니다.
-      실제 업무 데이터는 각 사용자가 직접 만든 개인 Firebase/Firestore에 저장되며,
-      첨부파일과 앱 전용 연결정보는 각 사용자의 Google Drive에 저장됩니다.
+      GitHub Pages는 프로그램 파일을 제공하는 역할을 합니다.
+      실제 업무 데이터는 소유자의 개인 Firebase/Firestore에 저장되며,
+      첨부파일과 앱 전용 연결정보는 소유자의 Google Drive에 저장됩니다.
     </p>
     <p>
-      건물 입구 역할의 공용 Firebase Authentication은 Google 로그인 처리를 위해 계정 식별 정보를
-      Google/Firebase에서 처리할 수 있으나, 공용 Firestore에 사용자의 업무내용을 저장하는 용도로 사용하지 않습니다.
+      로그인용 Firebase Authentication은 소유자의 Google 로그인 식별 정보를 처리하지만,
+      로그인용 Firestore에는 실제 업무내용을 저장하지 않습니다. 사용권한은 서버 보안규칙으로 제한합니다.
     </p>
 
     <h2>5. 제3자 제공 및 판매</h2>
@@ -104,7 +105,7 @@ a{color:#236b4a}
     <h2>8. 보안</h2>
     <p>
       서비스는 HTTPS 기반 GitHub Pages, Firebase Authentication, Firestore 보안규칙 및 Google OAuth를 이용하여
-      사용자 간 데이터가 섞이지 않도록 분리하는 것을 목표로 합니다.
+      소유자 이외 계정의 접근을 제한하는 것을 목표로 합니다.
       사용자는 자신의 Google 계정과 Firebase 프로젝트의 보안 설정을 안전하게 관리해야 합니다.
     </p>
 
@@ -121,7 +122,7 @@ a{color:#236b4a}
     </p>
 
     <h2>11. 문의</h2>
-    <p>서비스 및 개인정보 관련 문의: <a href="mailto:o.hoona91@gmail.com">o.hoona91@gmail.com</a></p>
+    <p>이 프로그램은 개인 전용입니다. 계정 및 개인정보 관련 연락처는 Google OAuth 동의 화면에 등록된 사용자 지원 이메일을 이용할 수 있습니다.</p>
 
     <div class="footer">
       업무관리시스템 · GitHub Pages 기반 개인 업무관리 웹앱

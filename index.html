@@ -1726,7 +1726,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261021-personal-only-v1');
+  const cloud=await import('./js/cloud-sync.js?v=20261021-privacy-clean-v1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -12073,7 +12073,7 @@ saveState=async function(meta={}){
   return result;
 };
 </script>
-<script type="module" src="./js/google-tasks-sync.js?v=20261021-personal-only-v1"></script>
+<script type="module" src="./js/google-tasks-sync.js?v=20261021-privacy-clean-v1"></script>
 
 <script id="linked-schedule-v1-5-2">
 'use strict';
