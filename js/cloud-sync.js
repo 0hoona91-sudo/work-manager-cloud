@@ -32,7 +32,7 @@ import {
   where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-import { firebaseConfig as legacyFirebaseConfig, appConfig } from "./firebase-config.js?v=20260920-v122";
+import { firebaseConfig as legacyFirebaseConfig, appConfig } from "./firebase-config.js?v=20261021-privacy-clean-v1";
 import {
   initBuildingIdentity,
   signInBuildingGoogle,
@@ -46,7 +46,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20261021-personal-only-v1";
+} from "./workspace-profile.js?v=20261021-privacy-clean-v1";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -709,9 +709,8 @@ async function authenticateBuildingAndWorkspace() {
   if (!loaded) {
     gate(
       "이 Google 계정에 연결된 개인 업무공간이 아직 없습니다.",
-      `<a class="cloud-google-btn" href="./setup.html" style="display:block;text-decoration:none;line-height:26px">내 업무공간 만들기</a>
-       <button class="cloud-secondary-btn" id="cloudWorkspaceLogout" type="button">다른 Google 계정 사용</button>`,
-      "처음 한 번만 개인 Firebase를 연결하면 이후에는 어느 기기에서든 자동으로 찾습니다.",
+      `<button class="cloud-secondary-btn" id="cloudWorkspaceLogout" type="button">로그아웃 후 다시 로그인</button>`,
+      "기존 개인 업무공간 연결정보가 발견되지 않았습니다. 보관한 설정 백업을 확인해 주세요. 신규 사용자 등록 페이지는 제공하지 않습니다.",
     );
     document.getElementById("cloudWorkspaceLogout").onclick = async () => {
       await signOutBuilding();
@@ -738,7 +737,7 @@ function friendlyError(error) {
   if (code.includes("network")) return "인터넷 연결을 확인해 주세요.";
   if (code.includes("app/access-denied")) return "관리자가 허용한 계정만 사용할 수 있습니다.";
   if (code.includes("permission-denied")) return "이 계정에는 데이터 접근 권한이 없습니다.";
-  if (code.includes("invalid-credential") || code.includes("invalid-login-credentials")) return "개인 업무공간 자동 로그인 정보가 올바르지 않습니다. setup.html에서 업무공간 연결을 다시 확인해 주세요.";
+  if (code.includes("invalid-credential") || code.includes("invalid-login-credentials")) return "개인 업무공간 자동 로그인 정보가 올바르지 않습니다. 업무공간 연결정보를 확인해 주세요.";
   if (code.includes("popup-blocked")) return "브라우저가 Google 로그인 창을 막았습니다. 이 사이트의 팝업을 허용한 뒤 Google로 로그인을 다시 눌러 주세요.";
   if (code.includes("popup-closed-by-user")) return "Google 권한 창이 닫혔습니다. 다시 눌러 권한 승인을 완료해 주세요.";
   if (code.includes("web-storage-unsupported")) return "브라우저 저장공간이 제한되어 있습니다. 시크릿 탭이 아닌 일반 탭에서 열고 쿠키와 사이트 데이터를 허용한 뒤 다시 시도해 주세요.";

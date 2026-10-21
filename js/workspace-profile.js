@@ -15,6 +15,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocFromServer,
   getFirestore,
   initializeFirestore,
   persistentLocalCache,
@@ -160,14 +161,19 @@ function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-// 개인 운영 모드: 공용 웹앱에 본인 계정 외 Google 로그인 허용 금지.
-// 참고: 실제 접근 통제는 반드시 lobby Firestore 서버 보안규칙에서도 적용해야 합니다.
-const PERSONAL_OWNER_EMAIL = "0.hoona91@gmail.com";
+// 소유자 이메일을 공개 소스에 하드코딩하지 않습니다.
+// 서버에서 owner-only Firestore 규칙으로 보호되는 allowedUsers 문서 확인에 성공한
+// 현재 Google 계정만 소유자로 판별합니다. 서버 보안규칙은 절대로 완화하지 마세요.
+function hasVerifiedGoogleIdentity(user) {
+  return Boolean(user?.uid && normalizeEmail(user?.email) && user?.emailVerified === true
+    && Array.isArray(user.providerData)
+    && user.providerData.some(provider => provider?.providerId === "google.com"));
+}
 function isPersonalOwner(user) {
-  return normalizeEmail(user?.email) === PERSONAL_OWNER_EMAIL
-    && user?.emailVerified === true
-    && Array.isArray(user?.providerData)
-    && user.providerData.some(provider => provider?.providerId === "google.com");
+  return hasVerifiedGoogleIdentity(user)
+    && buildingAuthorization?.allowed === true
+    && buildingAuthorization?.uid === user.uid
+    && buildingAuthorization?.email === normalizeEmail(user.email);
 }
 function assertPersonalOwner(user) {
   if (!isPersonalOwner(user)) {
@@ -260,10 +266,22 @@ export async function signInBuildingGoogle({ selectAccount = true } = {}) {
   buildingUser = result.user;
   buildingAuthorization = null;
   clearDriveToken();
-  if (!isPersonalOwner(buildingUser)) {
-    // 다른 계정의 기존 로컬 캐시 및 세션으로도 로그인할 수 없도록 즉시 로그아웃.
+  // Firebase 로그인 이후 서버의 소유자 전용 허용 문서를 확인합니다.
+  // UI 검사뿐 아니라 서버 Firestore 보안규칙이 최종 차단을 담당합니다.
+  let permission;
+  try {
+    permission = await checkBuildingAuthorization(buildingUser);
+  } catch (error) {
     await signOut(buildingAuth);
     buildingUser = null;
+    buildingAuthorization = null;
+    invalidateBuildingTasksToken();
+    throw error;
+  }
+  if (!permission?.allowed) {
+    await signOut(buildingAuth);
+    buildingUser = null;
+    buildingAuthorization = null;
     invalidateBuildingTasksToken();
     const error = new Error("이 업무관리시스템은 소유자 계정으로만 사용할 수 있습니다.");
     error.code = "app/access-denied";
@@ -278,12 +296,24 @@ export async function checkBuildingAuthorization(user = buildingUser) {
   const target = user || buildingUser;
   const email = String(target?.email || "").trim().toLowerCase();
   if (!target || !email) return { allowed: false, email, reason: "missing-email" };
-  if (!isPersonalOwner(target)) return { allowed: false, email, reason: "personal-only" };
-  if (buildingAuthorization?.email === email) return buildingAuthorization;
-  const snapshot = await getDoc(doc(buildingDb, "allowedUsers", email));
+  if (!hasVerifiedGoogleIdentity(target)) return { allowed: false, email, reason: "unverified-google" };
+  if (buildingAuthorization?.uid === target.uid && buildingAuthorization?.email === email) return buildingAuthorization;
+  // 강제로 서버에 조회합니다. 이전 브라우저 캐시의 enabled:true는 신뢰하지 않습니다.
+  // 적용된 lobby Firestore 규칙은 소유자 본인만 allowedUsers 문서를 읽도록 제한해야 합니다.
+  let snapshot;
+  try {
+    snapshot = await getDocFromServer(doc(buildingDb, "allowedUsers", email));
+  } catch (error) {
+    if (error?.code === "permission-denied") {
+      buildingAuthorization = { allowed: false, uid: target.uid, email, reason: "server-denied" };
+      return buildingAuthorization;
+    }
+    throw error;
+  }
   const data = snapshot.exists() ? snapshot.data() : null;
   buildingAuthorization = {
     allowed: Boolean(snapshot.exists() && data?.enabled === true),
+    uid: target.uid,
     email,
     data: data || null,
   };
@@ -536,7 +566,7 @@ export async function connectPrivateWorkspace(profile) {
   if (profile.google?.uid && profile.google.uid !== buildingUser.uid) {
     throw new Error("현재 Google 계정과 업무공간 소유자의 UID가 일치하지 않습니다.");
   }
-  if (profile.google?.email && normalizeEmail(profile.google.email) !== PERSONAL_OWNER_EMAIL) {
+  if (profile.google?.email && normalizeEmail(profile.google.email) !== normalizeEmail(buildingUser.email)) {
     throw new Error("현재 Google 계정과 업무공간 소유자의 이메일이 일치하지 않습니다.");
   }
   const appName = `wm-private-${profile.workspace.firebaseConfig.projectId}`;
