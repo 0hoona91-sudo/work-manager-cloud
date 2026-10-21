@@ -160,6 +160,23 @@ function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+// 개인 운영 모드: 공용 웹앱에 본인 계정 외 Google 로그인 허용 금지.
+// 참고: 실제 접근 통제는 반드시 lobby Firestore 서버 보안규칙에서도 적용해야 합니다.
+const PERSONAL_OWNER_EMAIL = "0.hoona91@gmail.com";
+function isPersonalOwner(user) {
+  return normalizeEmail(user?.email) === PERSONAL_OWNER_EMAIL
+    && user?.emailVerified === true
+    && Array.isArray(user?.providerData)
+    && user.providerData.some(provider => provider?.providerId === "google.com");
+}
+function assertPersonalOwner(user) {
+  if (!isPersonalOwner(user)) {
+    const error = new Error("이 업무관리시스템은 소유자 전용입니다. 해당 Google 계정은 사용할 수 없습니다.");
+    error.code = "app/access-denied";
+    throw error;
+  }
+}
+
 function rememberBuildingEmail(email) {
   const normalized = normalizeEmail(email);
   if (!normalized) return "";
@@ -241,9 +258,18 @@ export async function signInBuildingGoogle({ selectAccount = true } = {}) {
   await initBuildingIdentity();
   const result = await signInWithPopup(buildingAuth, googleProvider(selectAccount, false));
   buildingUser = result.user;
-  if (buildingUser?.email) rememberBuildingEmail(buildingUser.email);
   buildingAuthorization = null;
   clearDriveToken();
+  if (!isPersonalOwner(buildingUser)) {
+    // 다른 계정의 기존 로컬 캐시 및 세션으로도 로그인할 수 없도록 즉시 로그아웃.
+    await signOut(buildingAuth);
+    buildingUser = null;
+    invalidateBuildingTasksToken();
+    const error = new Error("이 업무관리시스템은 소유자 계정으로만 사용할 수 있습니다.");
+    error.code = "app/access-denied";
+    throw error;
+  }
+  if (buildingUser?.email) rememberBuildingEmail(buildingUser.email);
   return buildingUser;
 }
 
@@ -252,6 +278,7 @@ export async function checkBuildingAuthorization(user = buildingUser) {
   const target = user || buildingUser;
   const email = String(target?.email || "").trim().toLowerCase();
   if (!target || !email) return { allowed: false, email, reason: "missing-email" };
+  if (!isPersonalOwner(target)) return { allowed: false, email, reason: "personal-only" };
   if (buildingAuthorization?.email === email) return buildingAuthorization;
   const snapshot = await getDoc(doc(buildingDb, "allowedUsers", email));
   const data = snapshot.exists() ? snapshot.data() : null;
@@ -287,6 +314,7 @@ export function invalidateBuildingDriveAccessToken() {
 }
 
 export async function signOutBuilding() {
+  invalidateBuildingTasksToken();
   await initBuildingIdentity();
   clearDriveToken();
   if (buildingAuth.currentUser) await signOut(buildingAuth);
@@ -417,7 +445,7 @@ export function parseFirebaseConfigText(text) {
 
 export async function provisionPrivateWorkspace(firebaseConfig) {
   await initBuildingIdentity();
-  if (!buildingUser) throw new Error("먼저 Google 계정으로 로그인해 주세요.");
+  assertPersonalOwner(buildingUser);
 
   const appName = `wm-private-provision-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const privateApp = initializeApp(firebaseConfig, appName);
@@ -479,7 +507,7 @@ export async function testPrivateFirestore(provisioned) {
 
 export async function finalizeWorkspaceProvision(provisioned) {
   await initBuildingIdentity();
-  if (!buildingUser) throw new Error("건물 로그인 정보가 없습니다.");
+  assertPersonalOwner(buildingUser);
   if (!provisioned?.firebaseConfig || !provisioned?.credentials?.uid) throw new Error("개인 업무공간 생성 정보가 없습니다.");
   const profile = {
     schemaVersion: PROFILE_SCHEMA_VERSION,
@@ -502,7 +530,15 @@ export async function finalizeWorkspaceProvision(provisioned) {
 }
 
 export async function connectPrivateWorkspace(profile) {
+  await initBuildingIdentity();
+  assertPersonalOwner(buildingUser);
   if (!validateWorkspaceProfile(profile)) throw new Error("업무공간 설정이 올바르지 않습니다.");
+  if (profile.google?.uid && profile.google.uid !== buildingUser.uid) {
+    throw new Error("현재 Google 계정과 업무공간 소유자의 UID가 일치하지 않습니다.");
+  }
+  if (profile.google?.email && normalizeEmail(profile.google.email) !== PERSONAL_OWNER_EMAIL) {
+    throw new Error("현재 Google 계정과 업무공간 소유자의 이메일이 일치하지 않습니다.");
+  }
   const appName = `wm-private-${profile.workspace.firebaseConfig.projectId}`;
   let privateApp = getApps().find((candidate) => candidate.name === appName);
   if (!privateApp) privateApp = initializeApp(profile.workspace.firebaseConfig, appName);
@@ -524,6 +560,7 @@ export async function connectPrivateWorkspace(profile) {
 }
 
 export function loadCachedWorkspaceProfile(user = buildingUser) {
+  if (!isPersonalOwner(user)) return null;
   const profile = readWorkspaceProfileCache(user);
   return profile ? { profile, file: null, source: "cache" } : null;
 }
@@ -544,5 +581,50 @@ export function hasBuildingDriveToken() {
 }
 
 export function getBuildingDriveAccessToken() {
-  return restoreDriveToken(buildingUser) || "";
+  return isPersonalOwner(buildingUser) ? (restoreDriveToken(buildingUser) || "") : "";
+}
+
+
+// v1.5 — Google Tasks 추가 동의: 기존 Drive 권한이나 공용 로그인 설정과 분리합니다.
+const TASKS_SCOPE_V15 = "https://www.googleapis.com/auth/tasks";
+const TASKS_TOKEN_KEY_V15 = "workManagerTasksTokenV15";
+let tasksTokenV15 = "";
+let tasksExpiryV15 = 0;
+let tasksUidV15 = "";
+export function invalidateBuildingTasksToken() {
+  tasksTokenV15 = ""; tasksExpiryV15 = 0; tasksUidV15 = "";
+  try { sessionStorage.removeItem(TASKS_TOKEN_KEY_V15); } catch {}
+}
+export function getBuildingTasksToken() {
+  if (!isPersonalOwner(buildingAuth?.currentUser || buildingUser)) return "";
+  const uid = buildingAuth?.currentUser?.uid || buildingUser?.uid || "";
+  if (tasksTokenV15 && Date.now() < tasksExpiryV15 && uid && tasksUidV15 === uid) return tasksTokenV15;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(TASKS_TOKEN_KEY_V15) || "null");
+    if (uid && saved?.uid === uid && Number(saved.expiresAt) > Date.now() && saved.token) {
+      tasksTokenV15 = saved.token; tasksExpiryV15 = saved.expiresAt; tasksUidV15 = uid;
+      return tasksTokenV15;
+    }
+  } catch {}
+  invalidateBuildingTasksToken();
+  return "";
+}
+export async function authorizeBuildingTasks() {
+  await initBuildingIdentity();
+  const user = buildingAuth.currentUser;
+  if (!user) throw new Error("업무관리시스템 Google 로그인부터 진행해 주세요.");
+  const permission = await checkBuildingAuthorization(user);
+  if (!permission.allowed) throw new Error("업무관리시스템에 허용된 Google 계정이 아닙니다.");
+  const provider = googleProvider(false, false);
+  provider.addScope(TASKS_SCOPE_V15);
+  // 팝업은 사용자 클릭에서만 호출합니다. 갱신 실패로 다른 API 권한은 폐기하지 않습니다.
+  const result = await reauthenticateWithPopup(user, provider);
+  if (result.user?.uid !== user.uid) throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
+  const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken;
+  if (!token) throw new Error("Google Tasks 권한 토큰을 받지 못했습니다.");
+  tasksTokenV15 = token;
+  tasksUidV15 = user.uid;
+  tasksExpiryV15 = Date.now() + 45 * 60 * 1000;
+  try { sessionStorage.setItem(TASKS_TOKEN_KEY_V15, JSON.stringify({token,uid:user.uid,expiresAt:tasksExpiryV15})); } catch {}
+  return token;
 }

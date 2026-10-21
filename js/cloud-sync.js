@@ -46,7 +46,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20260922-v124";
+} from "./workspace-profile.js?v=20261021-personal-only-v1";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -384,7 +384,7 @@ function serializeState(state) {
     checklist.forEach((item, order) => {
       const itemId = item.id || docId("check", task.id, order, item.text || "");
       maps.checklistItems.set(docId("task", task.id, itemId),
-        plain({ id: itemId, parentType: "task", parentId: task.id, order, text: item.text || "", owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done) }));
+        plain({ id: itemId, parentType: "task", parentId: task.id, order, text: item.text || "", owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done), ...(item.googleTaskId ? { googleTaskId: item.googleTaskId } : {}) }));
     });
     if (link) maps.taskLinks.set(task.id, plain({ id: task.id, taskId: task.id, ...link }));
     if (task.generatedKey) {
@@ -478,7 +478,7 @@ function deserializeState(maps, localSettings = {}) {
 
   const tasks = [...maps.tasks.values()].map((task) => ({
     ...task,
-    checklist: (checklistByParent.get(`task:${task.id}`) || []).map((item) => ({ id: item.id, text: item.text, owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done) })),
+    checklist: (checklistByParent.get(`task:${task.id}`) || []).map((item) => ({ id: item.id, text: item.text, owner: item.owner || "", dueDate: item.dueDate || "", done: Boolean(item.done), ...(item.googleTaskId ? { googleTaskId: item.googleTaskId } : {}) })),
     link: maps.taskLinks.has(task.id) ? omit(maps.taskLinks.get(task.id), ["id", "taskId"]) : null,
   }));
   const rulesByTemplate = new Map();
@@ -644,7 +644,7 @@ async function authenticateBuildingAndWorkspace() {
   buildingUser = identity.user || null;
   if (!buildingUser) {
     gate(
-      "Google 계정으로 로그인하면 어느 기기에서든 내 개인 업무공간을 자동으로 찾습니다.",
+      "본인 계정으로 로그인하면 개인 업무공간을 불러옵니다.",
       `<button class="cloud-google-btn" id="cloudGoogleLogin" type="button"><span>G</span> Google로 로그인</button>`,
     );
     await new Promise((resolve) => {
@@ -667,7 +667,7 @@ async function authenticateBuildingAndWorkspace() {
   const authorization = await checkBuildingAuthorization(buildingUser);
   if (!authorization.allowed) {
     gate(
-      "이 Google 계정은 업무관리시스템 사용 승인을 받지 않았습니다.",
+      "이 업무관리시스템은 소유자 계정으로만 이용할 수 있습니다.",
       `<button class="cloud-secondary-btn" id="cloudUnauthorizedLogout" type="button">다른 Google 계정 사용</button>`,
       "관리자가 허용한 계정만 사용할 수 있습니다.",
     );
@@ -788,13 +788,7 @@ function chooseInitialState(legacyState, user) {
 export async function bootstrapCloud({ state, legacyState = null } = {}) {
   stateRef = state;
   ensureShell();
-  if (new URLSearchParams(location.search).has("local-preview")) {
-    localOnly = true;
-    replaceState(stateRef, legacyState || emptyState(null));
-    hideGate();
-    setSyncStatus("offline", "로컬 미리보기");
-    return controller();
-  }
+  // 개인 전용 운영판: ?local-preview 인증 우회 경로를 제거했습니다.
   gate("건물 입구와 개인 업무공간을 연결하는 중입니다.");
   await authenticateBuildingAndWorkspace();
   document.getElementById("cloudUser").textContent = buildingUser?.email || buildingUser?.displayName || "Google 계정";
