@@ -3116,11 +3116,21 @@ function openDbForm(id=null,seed=null){
   const orig=id?state.templates.find(x=>x.id===id):null;
   const t=clone(orig||seed||{category:state.categories[0]||'',name:'',cycle:'monthly',cycleMonths:[],quarter:1,half:'first',dayRule:'unknown',exactDay:null,holidayShift:'prev',checklist:[],methodBlocks:[],attachments:[],keywords:'',notes:'',autoSchedule:true,activeFrom:todayISO(),activeUntil:'',applyPolicy:'pending',weekdays:[3],linkedSteps:[],durationDays:0,deadlineOffset:0});
   let checks=[...(t.checklist||[])],blocks=clone(t.methodBlocks||[]),attachments=clone(t.attachments||[]),steps=clone(t.linkedSteps||[]);
+  let libraryKindV175=t.libraryKindV175||((t.linkedSteps||[]).length?'project':'general');
+  let projectChecksV175=clone(t.projectChecksV175||checks.map(text=>({id:uid('pc'),text:String(text||''),owner:t.owner||'',dueDate:''})));
+  const useProjectV175=()=>libraryKindV175==='project';
+  const ownersV175=()=>Array.isArray(state.owners)?state.owners.filter(Boolean):[];
+  const projectCheckExtrasV175=(checksArray,meta,i,forStep)=>{
+    const owners=ownersV175();
+    const resolved=(meta[i]&&typeof meta[i]==='object')?meta[i]:{};
+    const opts=['<option value="">담당자 선택</option>',...owners.map(o=>`<option value="${esc(o)}" ${o===(resolved.owner||t.owner)?'selected':''}>${esc(o)}</option>`)].join('');
+    return `<span class="library-project-check-extra-v175"><select aria-label="체크리스트 담당자" data-lib-owner="${forStep?'step':'root'}|${forStep?forStep-1:0}|${i}">${opts}</select><input aria-label="체크리스트 마감일" type="date" data-lib-due="${forStep?'step':'root'}|${forStep?forStep-1:0}|${i}" value="${esc(resolved.dueDate||'')}"></span>`;
+  };
   steps.forEach(s=>{if(s.startOffset===undefined)s.startOffset=Number(s.offset||0);if(!s.startMode)s.startMode=s.mode||'business';if(!s.startHolidayShift)s.startHolidayShift=s.holidayShift||'next';if(!s.workType)s.workType='single';if(s.limitDays===undefined)s.limitDays=0;if(!s.limitMode)s.limitMode='calendar';if(!s.limitHolidayShift)s.limitHolidayShift=s.holidayShift||'next';if(!Array.isArray(s.checklist))s.checklist=[]});
-  modal(id?'업무 DB 수정':'업무 DB 등록',`<div class="formgrid">
+  modal(id?'라이브러리 수정':'라이브러리 등록',`<div class="formgrid">
     <div class="field"><label>구분</label><select id="dfCat">${state.categories.map(c=>`<option ${t.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
     <div class="field"><label>업무명</label><input id="dfName" value="${esc(t.name||'')}"></div>
-    <fieldset class="subbox span2"><legend>자동 수행업무 생성</legend>
+    <fieldset class="subbox span2" data-lib-field="auto"><legend>자동 수행업무 생성</legend>
       <div class="checks"><label><input type="checkbox" id="dfAutoSchedule" ${t.autoSchedule?'checked':''}> 수행업무 목록에 자동 등록</label></div>
       <div class="formgrid" style="margin-top:10px">
         <div class="field"><label>자동생성 시작일</label><input type="date" id="dfActiveFrom" value="${t.activeFrom||todayISO()}"></div>
@@ -3129,22 +3139,33 @@ function openDbForm(id=null,seed=null){
         <div class="field"><label>1단계 기본 업무 기간(일)</label><input type="number" min="0" id="dfDurationDays" value="${Number(t.durationDays||0)}"></div>
       </div>
     </fieldset>
-    <fieldset class="subbox span2"><legend>수행 주기</legend>
+    <fieldset class="subbox span2" data-lib-field="cycle"><legend>수행 주기</legend>
       <div class="radios">${[['weekly','주별'],['monthly','월별'],['quarterly','분기별'],['half','반기별'],['yearly','연간'],['none','비정기/참고']].map(([v,l])=>`<label><input type="radio" name="dfCycle" value="${v}" ${t.cycle===v?'checked':''}>${l}</label>`).join('')}</div>
       <div id="dfCycleExtra" style="margin-top:10px"></div>
     </fieldset>
-    <fieldset class="subbox span2"><legend>실시일 / 마감 규칙</legend>
+    <fieldset class="subbox span2" data-lib-field="day"><legend>실시일 / 마감 규칙</legend>
       <div class="checks"><label><input type="radio" name="dfDay" value="unknown" ${t.dayRule==='unknown'?'checked':''}>세부일정 미정 → 해당월 마지막 근무일</label><label><input type="radio" name="dfDay" value="exact" ${t.dayRule==='exact'?'checked':''}>매월/실시월 <input type="number" id="dfExactDay" min="1" max="31" value="${t.exactDay||1}" style="width:75px">일</label><label>휴일이면 <select id="dfShift"><option value="prev">전 근무일</option><option value="next">다음 근무일</option><option value="keep">그대로</option></select></label></div>
     </fieldset>
-    <fieldset class="subbox span2"><legend>1단계 주요 체크리스트</legend><div id="dfChecks" class="check-editor"></div><button class="btn small" id="dfAddCheck">＋ 항목</button></fieldset>
-    <fieldset class="subbox span2"><legend>연계되는 업무</legend><div class="muted">각 단계별로 시작 시점, 마감/수행기간, 체크리스트를 따로 정합니다. DB에 저장하면 DB 목록에서도 각 단계가 한 줄씩 표시됩니다.</div><div id="dfLinkedSteps" class="db-step-list" style="margin-top:10px"></div><button class="btn small" id="dfAddLinked">＋ 다음 연계업무</button></fieldset>
+    <fieldset class="subbox span2" data-lib-field="checks"><legend id="libChecksLegendV175">체크리스트</legend><div id="libRootStepNameWrapV175" class="field" hidden><label>1단계 업무명 *</label><input id="libRootStepNameV175" placeholder="첫 번째 단계의 세부 업무명" value="${esc(t.projectRootStepNameV175||t.name||'')}"></div><div id="dfChecks" class="check-editor"></div><button class="btn small" id="dfAddCheck">＋ 항목</button></fieldset>
+    <fieldset class="subbox span2" data-lib-field="steps"><legend id="libStepsLegendV175">다음 단계</legend><div class="muted">각 단계별로 시작 시점, 마감/수행기간, 체크리스트를 따로 정합니다. DB에 저장하면 DB 목록에서도 각 단계가 한 줄씩 표시됩니다.</div><div id="dfLinkedSteps" class="db-step-list" style="margin-top:10px"></div><button class="btn small" id="dfAddLinked">＋ 다음 단계</button></fieldset>
     <fieldset class="subbox span2"><legend>업무수행방법 — 글·사진을 원하는 순서로 배치</legend><div class="inline method-add-actions-v23" style="margin-bottom:10px"><button class="btn small" id="addMethodText">＋ 글</button><label class="btn small">＋ 사진<input type="file" id="addMethodImage" accept="image/*" multiple hidden></label></div><div id="methodBlockEditor" class="method-block-editor"></div></fieldset>
     <fieldset class="subbox span2"><legend>관련 양식 / 자료</legend><div class="inline method-add-actions-v23" style="margin-bottom:10px"><label class="btn small">＋ 자료 추가<input type="file" id="addTemplateAttachmentV30" accept="${TEMPLATE_ATTACHMENT_ACCEPT_V30}" multiple hidden></label><span class="muted">업무 문서 · 이 PC 브라우저의 로컬 저장소에 저장</span></div><input type="hidden" id="dfAttachmentSignatureV30" value="${esc(templateAttachmentSignatureV30(attachments))}"><div id="templateAttachmentEditorV30" class="template-attachment-list-v30"></div></fieldset>
     <div class="field"><label>검색키워드</label><input id="dfKeywords" value="${esc(t.keywords||'')}"></div>
     <div class="field"><label>비고</label><input id="dfNotes" value="${esc(t.notes||'')}"></div>
   </div>`,`<button class="btn" data-close>취소</button>${id?'<button class="btn danger" id="deleteDb">삭제</button>':''}<button class="btn primary" id="saveDb">저장</button>`,'db-form-modal locked-modal');
   $('#dfShift').value=t.holidayShift||'prev';$('#dfApplyPolicy').value=t.applyPolicy||'pending';
-  function rchecks(){const root=$('#dfChecks');root.innerHTML=checks.map((x,i)=>`<div class="editrow"><span>□</span><input data-dci="${i}" value="${esc(x)}"><button class="btn small danger" data-dcr="${i}">×</button></div>`).join('');$$('[data-dci]').forEach(x=>x.oninput=()=>checks[+x.dataset.dci]=x.value);$$('[data-dcr]').forEach(x=>x.onclick=()=>{checks.splice(+x.dataset.dcr,1);rchecks()})}
+  function rchecks(){
+    const root=$('#dfChecks');
+    projectChecksV175=checks.map((text,i)=>({...projectChecksV175[i],id:projectChecksV175[i]?.id||uid('pc'),text:String(text||'')}));
+    root.innerHTML=checks.map((x,i)=>`<div class="editrow library-check-row-v175"><span>${i+1}</span><input data-dci="${i}" value="${esc(x)}" placeholder="체크할 내용">${useProjectV175()?projectCheckExtrasV175(checks,projectChecksV175,i,0):''}<button class="btn small danger" data-dcr="${i}">×</button></div>`).join('');
+    $$('[data-dci]',root).forEach(x=>x.oninput=()=>{checks[+x.dataset.dci]=x.value;projectChecksV175[+x.dataset.dci].text=x.value});
+    $$('[data-dcr]',root).forEach(x=>x.onclick=()=>{const i=+x.dataset.dcr;checks.splice(i,1);projectChecksV175.splice(i,1);rchecks()});
+    bindProjectExtrasV175(root);
+  }
+  function bindProjectExtrasV175(root){
+    $$('[data-lib-owner]',root).forEach(el=>el.onchange=()=>{const [kind,step,index]=el.dataset.libOwner.split('|');const meta=kind==='root'?projectChecksV175:steps[Number(step)].projectChecksV175; if(meta?.[Number(index)])meta[Number(index)].owner=el.value;});
+    $$('[data-lib-due]',root).forEach(el=>el.onchange=()=>{const [kind,step,index]=el.dataset.libDue.split('|');const meta=kind==='root'?projectChecksV175:steps[Number(step)].projectChecksV175; if(meta?.[Number(index)])meta[Number(index)].dueDate=el.value;});
+  }
   function rblocks(){
     const root=$('#methodBlockEditor');
     root.innerHTML=blocks.map((b,i)=>{
@@ -3179,24 +3200,69 @@ function openDbForm(id=null,seed=null){
       const q=$(`[data-v6q="${i}"]`),res=$(`[data-v6res="${i}"]`);
       if(q)q.oninput=()=>{s.name=q.value;s.templateId=null;const term=q.value.trim().toLowerCase();const hits=state.templates.filter(x=>x.id!==t.id&&term&&[x.name,x.category,x.keywords].join(' ').toLowerCase().includes(term)).slice(0,8);res.classList.toggle('hidden',!term);res.innerHTML=hits.map(x=>`<div class="db-step-search-hit" data-v6pick="${i}|${x.id}"><b>${esc(x.name)}</b><div class="muted">${esc(x.category)} · ${esc(templatePeriodLabel(x))}</div></div>`).join('')||'<div class="db-step-search-hit muted">DB 검색 결과 없음 · 그대로 직접 작성 가능</div>';$$(`[data-v6pick^="${i}|"]`).forEach(el=>el.onclick=()=>{const [,tid]=el.dataset.v6pick.split('|'),tp=state.templates.find(x=>x.id===tid);s.templateId=tp.id;s.name=tp.name;s.category=tp.category;s.owner=tp.owner||s.owner||t.owner||'';s.inheritRootCategory=false;s.inheritRootOwner=false;s.checklist=clone(tp.checklist||[]);s.notes=tp.notes||'';q.value=tp.name;$(`[data-v6cat="${i}"]`).value=tp.category;res.classList.add('hidden');rsteps()})};
     });
-    $$('[data-v6scheck]').forEach(x=>x.oninput=()=>{const [i,j]=x.dataset.v6scheck.split('|').map(Number);steps[i].checklist[j]=x.value});
-    $$('[data-v6scheckrm]').forEach(x=>x.onclick=()=>{const [i,j]=x.dataset.v6scheckrm.split('|').map(Number);steps[i].checklist.splice(j,1);rsteps()});
-    $$('[data-v6scheckadd]').forEach(x=>x.onclick=()=>{const i=Number(x.dataset.v6scheckadd);steps[i].checklist=steps[i].checklist||[];steps[i].checklist.push('');rsteps()});
+    $$('[data-v6scheck]').forEach(x=>x.oninput=()=>{const [i,j]=x.dataset.v6scheck.split('|').map(Number);steps[i].checklist[j]=x.value;if(steps[i].projectChecksV175?.[j])steps[i].projectChecksV175[j].text=x.value});
+    $$('[data-v6scheckrm]').forEach(x=>x.onclick=()=>{const [i,j]=x.dataset.v6scheckrm.split('|').map(Number);steps[i].checklist.splice(j,1);steps[i].projectChecksV175?.splice(j,1);rsteps()});
+    $$('[data-v6scheckadd]').forEach(x=>x.onclick=()=>{const i=Number(x.dataset.v6scheckadd);steps[i].checklist=steps[i].checklist||[];steps[i].checklist.push('');steps[i].projectChecksV175||=[];steps[i].projectChecksV175.push({id:uid('pc'),text:'',owner:steps[i].owner||'',dueDate:''});rsteps()});
     $$('[data-v6dbrm]').forEach(x=>x.onclick=()=>{steps.splice(Number(x.dataset.v6dbrm),1);rsteps()});
   }
-  function rsteps(){const root=$('#dfLinkedSteps');root.innerHTML=steps.map(stepEditorHtmlV6).join('')||'<div class="muted">연계업무가 없으면 비워두면 됩니다.</div>';bindStepControls()}
+  function rsteps(){
+    const root=$('#dfLinkedSteps');
+    steps.forEach(s=>{s.projectChecksV175=(s.checklist||[]).map((text,i)=>({...s.projectChecksV175?.[i],id:s.projectChecksV175?.[i]?.id||uid('pc'),text:String(text||'')}))});
+    root.innerHTML=steps.map(stepEditorHtmlV6).join('')||'<div class="muted">추가 단계가 없습니다.</div>';
+    if(useProjectV175())steps.forEach((s,i)=>{
+      const group=$(`[data-v6stepchecks="${i}"]`,root);if(!group)return;
+      group.insertAdjacentHTML('afterbegin','<div class="library-check-head-v175"><span>번호</span><span>체크항목 내용</span><span>담당자 · 마감일</span><span></span></div>');
+      $$('[data-v6scheck]',group).forEach(input=>{
+        const j=Number(input.dataset.v6scheck.split('|')[1]);
+        const row=input.closest('.step-check-row')||input.parentElement;
+        row?.classList.add('library-check-row-v175');
+        input.placeholder='체크할 내용';
+        input.insertAdjacentHTML('afterend',projectCheckExtrasV175(s.checklist,s.projectChecksV175,j,i+1));
+      });
+      const top=$(`[data-v6q="${i}"]`,root)?.closest('.field');
+      if(top){const label=top.querySelector('label');if(label)label.textContent=`${i+2}단계 업무명 *`;}
+      const heading=root.querySelectorAll('.db-step-top b')[i];if(heading)heading.textContent=`${i+2}단계`;
+    });
+    bindStepControls();bindProjectExtrasV175(root);
+  }
+  function refreshLibraryKindV175(){
+    const project=useProjectV175(),form=$('#modalRoot .db-form-modal');if(!form)return;
+    form.classList.toggle('library-project-v175',project);
+    form.classList.toggle('library-general-v175',!project);
+    const mode=$('#libKindV175');if(mode)$$('button[data-lib-kind]',mode).forEach(button=>{button.classList.toggle('active',button.dataset.libKind===libraryKindV175);button.setAttribute('aria-pressed',button.dataset.libKind===libraryKindV175?'true':'false')});
+    const nameLabel=$('#dfName')?.closest('.field')?.querySelector('label');if(nameLabel)nameLabel.textContent=project?'프로젝트명':'업무명';
+    const ownerLabel=$('#dfOwner')?.closest('.field')?.querySelector('label');if(ownerLabel)ownerLabel.textContent=project?'총괄 담당자':'담당자';
+    const rootName=$('#libRootStepNameWrapV175');if(rootName)rootName.hidden=!project;
+    const chkLabel=$('#libChecksLegendV175');if(chkLabel)chkLabel.textContent=project?'1단계':'체크리스트';
+    const checkHead=$('#libRootCheckHeadV175');
+    if(project&&!checkHead){$('#dfChecks')?.insertAdjacentHTML('beforebegin','<div id="libRootCheckHeadV175" class="library-check-head-v175"><span>번호</span><span>체크항목 내용</span><span>담당자 · 마감일</span><span></span></div>');}
+    if(!project&&checkHead)checkHead.remove();
+    const stepLabel=$('#libStepsLegendV175');if(stepLabel)stepLabel.textContent='다음 단계';
+    rchecks();rsteps();
+  }
   rchecks();rblocks();rattachments();rcycle();rsteps();$$('input[name=dfCycle]').forEach(x=>x.onchange=rcycle);
+  const modeHost=$('#modalRoot .db-form-modal .modal-body .formgrid');
+  if(modeHost){
+    modeHost.insertAdjacentHTML('afterbegin',`<div class="span2 library-mode-v175" id="libKindV175" role="group" aria-label="라이브러리 유형"><button type="button" data-lib-kind="general" aria-pressed="false">일반업무</button><button type="button" data-lib-kind="project" aria-pressed="false">프로젝트</button></div>`);
+    $$('[data-lib-kind]',modeHost).forEach(btn=>btn.onclick=()=>{
+      if(btn.dataset.libKind===libraryKindV175)return;
+      if(libraryKindV175==='project'&&btn.dataset.libKind==='general'&&steps.length&&!confirm('일반업무로 변경하면 저장 시 프로젝트 단계 정보가 제거됩니다. 계속할까요?'))return;
+      libraryKindV175=btn.dataset.libKind;refreshLibraryKindV175();
+    });
+  }
+  refreshLibraryKindV175();
   let previousRootCategory=$('#dfCat').value;
   $('#dfCat').onchange=()=>{const next=$('#dfCat').value;steps.forEach((s,i)=>{if(s.inheritRootCategory===true||(!s.templateId&&s.category===previousRootCategory)){s.category=next;s.inheritRootCategory=true;const el=$(`[data-v6cat="${i}"]`);if(el)el.value=next}});previousRootCategory=next};
-  $('#dfAddCheck').onclick=()=>{checks.push('');rchecks()};$('#dfAddLinked').onclick=()=>{steps.push({name:'',category:$('#dfCat')?.value||t.category,owner:$('#dfOwner')?.value||t.owner||'',inheritRootCategory:true,inheritRootOwner:true,dynamic:true,basis:'actualEnd',startOffset:0,startMode:'business',startHolidayShift:'next',workType:'single',limitDays:0,limitMode:'calendar',limitHolidayShift:'next',checklist:[]});rsteps()};
+  $('#dfAddCheck').onclick=()=>{checks.push('');projectChecksV175.push({id:uid('pc'),text:'',owner:$('#dfOwner')?.value||'',dueDate:''});rchecks()};$('#dfAddLinked').onclick=()=>{steps.push({name:'',category:$('#dfCat')?.value||t.category,owner:$('#dfOwner')?.value||t.owner||'',inheritRootCategory:true,inheritRootOwner:true,dynamic:true,basis:'actualEnd',startOffset:0,startMode:'business',startHolidayShift:'next',workType:'period',limitDays:0,limitMode:'calendar',limitHolidayShift:'next',checklist:[],projectChecksV175:[]});rsteps()};
   $('#addMethodText').onclick=()=>{blocks.push({id:uid('mb'),type:'text',text:''});rblocks()};$('#addMethodImage').onchange=async e=>{const input=e.target,files=[...input.files];input.disabled=true;let ok=0;try{for(const f of files){try{const block=await makeMethodImageBlock(f);blocks.push(block);ok++;rblocks()}catch(err){console.error('사진 첨부 실패',f?.name,err);toast(`${f?.name||'사진'}: ${err?.message||'사진을 저장하지 못했습니다.'}`)}}if(ok&&files.length>1)toast(`사진 ${ok}개 첨부 완료${ok<files.length?` · 실패 ${files.length-ok}개`:''}`)}finally{input.disabled=false;input.value=''}};
   $('#addTemplateAttachmentV30').onchange=async e=>{try{for(const file of e.target.files)attachments.push(await makeTemplateAttachmentV30(file));rattachments();toast('관련 자료를 로컬에 저장했습니다. 저장 버튼을 눌러 업무DB에 연결하세요.')}catch(err){toast(err.message||'자료를 저장하지 못했습니다.')}finally{e.target.value=''}};
   $('#saveDb').onclick=async()=>{
-    const name=$('#dfName').value.trim();if(!name)return toast('업무명을 입력하세요.');
+    const name=$('#dfName').value.trim();if(!name)return toast(useProjectV175()?'프로젝트명을 입력하세요.':'업무명을 입력하세요.');
+    if(useProjectV175()&&!$('#libRootStepNameV175')?.value.trim())return toast('1단계 업무명을 입력하세요.');
     const cyc=$('input[name=dfCycle]:checked').value,months=($('#dfMonths')?.value||'').split(',').map(x=>Number(x.trim())).filter(x=>x>=1&&x<=12);
     const rootCategory=$('#dfCat').value;
-    steps=steps.map(s=>({...s,name:String(s.name||'').trim(),category:s.category||rootCategory,owner:s.owner||t.owner||'',checklist:(s.checklist||[]).map(x=>x.trim()).filter(Boolean),startOffset:Number(s.startOffset||0),limitDays:Number(s.limitDays||0)})).filter(s=>s.name);
-    Object.assign(t,{category:rootCategory,owner:$('#dfOwner')?.value||t.owner||'',name,cycle:cyc,cycleMonths:months,quarter:Number($('#dfQuarter')?.value||0)||null,half:$('#dfHalf')?.value||null,weekdays:$$('[data-dfwd]:checked').map(x=>Number(x.dataset.dfwd)),weekday:Number($('[data-dfwd]:checked')?.dataset.dfwd??t.weekday??1),dayRule:$('input[name=dfDay]:checked').value,exactDay:Number($('#dfExactDay').value)||null,holidayShift:$('#dfShift').value,checklist:checks.map(x=>x.trim()).filter(Boolean),methodBlocks:blocks,attachments:attachments.map(cleanTemplateAttachmentV30),method:'',photos:[],keywords:$('#dfKeywords').value,notes:$('#dfNotes').value,autoSchedule:$('#dfAutoSchedule').checked,activeFrom:$('#dfActiveFrom').value||todayISO(),activeUntil:$('#dfActiveUntil').value||'',applyPolicy:$('#dfApplyPolicy').value,durationDays:Number($('#dfDurationDays').value||0),linkedSteps:steps});
+    steps=useProjectV175()?steps.map(s=>({...s,name:String(s.name||'').trim(),category:s.category||rootCategory,owner:s.owner||t.owner||'',projectChecksV175:(s.checklist||[]).map((x,i)=>({...s.projectChecksV175?.[i],text:String(x).trim()})).filter(c=>c.text),checklist:(s.checklist||[]).map(x=>x.trim()).filter(Boolean),startOffset:Number(s.startOffset||0),limitDays:Number(s.limitDays||0)})).filter(s=>s.name):[];
+    Object.assign(t,{category:rootCategory,owner:$('#dfOwner')?.value||t.owner||'',name,cycle:useProjectV175()?'none':cyc,cycleMonths:useProjectV175()?[]:months,quarter:Number($('#dfQuarter')?.value||0)||null,half:$('#dfHalf')?.value||null,weekdays:$$('[data-dfwd]:checked').map(x=>Number(x.dataset.dfwd)),weekday:Number($('[data-dfwd]:checked')?.dataset.dfwd??t.weekday??1),dayRule:$('input[name=dfDay]:checked').value,exactDay:Number($('#dfExactDay').value)||null,holidayShift:$('#dfShift').value,checklist:checks.map(x=>x.trim()).filter(Boolean),methodBlocks:blocks,attachments:attachments.map(cleanTemplateAttachmentV30),method:'',photos:[],keywords:$('#dfKeywords').value,notes:$('#dfNotes').value,autoSchedule:false,libraryKindV175,projectRootStepNameV175:useProjectV175()?($('#libRootStepNameV175')?.value.trim()||name):'',projectChecksV175:useProjectV175()?checks.map((text,i)=>({...projectChecksV175[i],text:String(text).trim()})).filter(c=>c.text):[],activeFrom:$('#dfActiveFrom').value||todayISO(),activeUntil:$('#dfActiveUntil').value||'',applyPolicy:$('#dfApplyPolicy').value,durationDays:Number($('#dfDurationDays').value||0),linkedSteps:steps});
     if(orig)Object.assign(orig,t);else{t.id=uid('tpl');state.templates.push(t)}
     const target=orig||t,[df,dt]=v5DefaultAutoRange();syncTemplateHistoricalLocalV14(target,todayISO(),t.applyPolicy||'pending');syncTemplateScheduleV5(target,df,dt,t.applyPolicy||'pending');recalcLinks();await saveState();closeModal();renderDbTable();renderTaskTable();renderHome();toast(t.autoSchedule?'DB 저장 · 과거 누락 포함 수행업무 자동 동기화 완료':'업무 DB를 저장했습니다.');
   };
@@ -3206,7 +3272,7 @@ function openDbForm(id=null,seed=null){
 function flattenDbRowsV6(){
   const rows=[];
   for(const t of state.templates){
-    rows.push({kind:'root',ref:`root|${t.id}`,root:t,stepIndex:0,name:t.name,category:t.category,cycle:templatePeriodLabel(t),notes:t.notes||''});
+    rows.push({kind:'root',ref:`root|${t.id}`,root:t,stepIndex:0,name:t.name,category:t.category,cycle:isProjectLibraryV175(t)?'프로젝트':templatePeriodLabel(t),notes:t.notes||''});
     (t.linkedSteps||[]).forEach((s,i)=>{const src=effectiveStepSourceV6(s,t);rows.push({kind:'step',ref:`step|${t.id}|${i}`,root:t,step:s,stepIndex:i+1,name:src.name,category:src.category,cycle:`${i+2}단계 · 상위업무 연계`,notes:src.notes||''})});
   }
   return rows;
@@ -3884,6 +3950,7 @@ function ensureDbRegisterUiV10(){
 function dbVisibleRowsV10(){
   const q=$('#dbSearch')?.value.trim().toLowerCase()||'';
   return flattenDbRowsV6().filter(r=>{
+    if(r.kind==='step'&&isProjectLibraryV175(r.root))return false;
     if(!q)return true;
     const source=r.kind==='root'?r.root:effectiveStepSourceV6(r.step,r.root);
     return [r.name,r.category,r.cycle,r.notes,ownerForDbRefV8(r.ref),...(source.checklist||[]),...(source.methodBlocks||[]).flatMap(block=>[block.text,block.caption,block.name])].join(' ').toLowerCase().includes(q);
@@ -3935,17 +4002,20 @@ function renderDbTable(){
   updateDbRegisterSelectionV10();
 }
 
+function isProjectLibraryV175(t){return !!t&&(t.libraryKindV175==='project'||(!t.libraryKindV175&&(t.linkedSteps||[]).length>0))}
 function selectedDbDescriptorsV10(){
   const rows=flattenDbRowsV6();
+  const seenProjectRootsV175=new Set();
   return [...selectedDbRefsV10].map(ref=>{
     const row=rows.find(r=>r.ref===ref);if(!row)return null;
+    if(isProjectLibraryV175(row.root)){if(seenProjectRootsV175.has(row.root.id))return null;seenProjectRootsV175.add(row.root.id);return{ref:`root|${row.root.id}`,row:{...row,kind:'root',name:row.root.name},root:row.root,startStage:0,maxStage:(row.root.linkedSteps||[]).length};}
     const startStage=row.kind==='root'?0:Number(String(ref).split('|')[2])+1;
     return{ref,row,root:row.root,startStage,maxStage:(row.root.linkedSteps||[]).length};
   }).filter(Boolean);
 }
 function stageSourceV10(root,stage){
   if(stage===0)return{
-    name:root.name,category:root.category,urgent:!!root.urgent,owner:root.owner||'',
+    name:isProjectLibraryV175(root)?(root.projectRootStepNameV175||root.name):root.name,category:root.category,urgent:!!root.urgent,owner:root.owner||'',
     checklist:clone(root.checklist||[]),notes:root.notes||'',templateId:root.id,methodBlocks:clone(root.methodBlocks||[])
   };
   const s=root.linkedSteps?.[stage-1]||{},src=effectiveStepSourceV6(s,root);
@@ -3971,8 +4041,8 @@ function registerCardHtmlV10(d,index){
       ${(root.linkedSteps||[]).length?'<span class="chain-label">🔗 연계업무</span>':'<span class="db-auto-badge">단일업무</span>'}
     </div>
     <div class="db-register-grid">
-      <div class="field"><label>첫 업무 시작일</label><input type="date" data-v10start="${index}" value="${todayISO()}"></div>
-      <div class="field"><label>업무목록에 함께 등록할 범위</label><select data-v10endstage="${index}">${options.join('')}</select>
+      <div class="field"><label>${isProjectLibraryV175(root)?'프로젝트 시작일':'첫 업무 시작일'}</label><input type="date" data-v10start="${index}" value="${todayISO()}"></div>
+      <div class="field">${isProjectLibraryV175(root)?`<label>등록할 단계</label><input type="hidden" data-v10endstage="${index}" value="${maxStage}"><div class="db-register-range-help">프로젝트 전체 ${maxStage+1}단계를 하나의 프로젝트로 등록합니다.</div>`:`<label>업무목록에 함께 등록할 범위</label><select data-v10endstage="${index}">${options.join('')}</select>`}
         <div class="db-register-range-help">같이 등록된 뒷 단계는 DB에 저장된 일정 규칙으로 연결됩니다. 첫 업무 날짜를 바꾸면 새 업무가 생기지 않고 기존 연계업무 날짜만 자동 재계산됩니다.</div>
       </div>
     </div>
@@ -3998,19 +4068,24 @@ function openDbRegisterModalV10(){
   });
   $('#v10RegisterDbTasks').onclick=async()=>{
     let created=0;
-    const groups=[];
-    for(let i=0;i<desc.length;i++){
-      const start=$(`[data-v10start="${i}"]`)?.value;
-      const endStage=Number($(`[data-v10endstage="${i}"]`)?.value??desc[i].startStage);
-      if(!start){toast('모든 선택 업무의 시작일을 지정하세요.');return}
-      const res=createManualDbChainV10(desc[i].root,desc[i].startStage,endStage,start);
-      created+=res.count;groups.push(res);
-    }
-    recalcLinks();
-    await saveState();
-    selectedDbRefsV10.clear();
-    closeModal();renderDbTable();renderTaskTable();renderHome();
-    toast(`${created}개의 업무를 업무목록에 등록했습니다.`);
+    const beforeTasks=clone(state.tasks),beforeProjects=clone(state.projects||[]);
+    const button=$('#v10RegisterDbTasks');if(button)button.disabled=true;
+    try{
+      for(let i=0;i<desc.length;i++){
+        const start=$(`[data-v10start="${i}"]`)?.value;
+        const endStage=isProjectLibraryV175(desc[i].root)?desc[i].maxStage:Number($(`[data-v10endstage="${i}"]`)?.value??desc[i].startStage);
+        if(!start)throw new Error('모든 선택 업무의 시작일을 지정하세요.');
+        const res=createManualDbChainV10(desc[i].root,desc[i].startStage,endStage,start);
+        created+=res.count;
+      }
+      recalcLinks();await saveState({reason:'라이브러리에서 직접 수행업무/프로젝트 등록'});
+      selectedDbRefsV10.clear();closeModal();renderDbTable();renderTaskTable();renderHome();
+      toast(`업무/프로젝트 ${created}개 단계를 등록했습니다.`);
+    }catch(error){
+      state.tasks=beforeTasks;state.projects=beforeProjects;
+      console.error('라이브러리 등록 실패',error);
+      alert(`수행업무를 등록하지 못했습니다.\n${error?.message||error}`);
+    }finally{if(button?.isConnected)button.disabled=false;}
   };
 }
 
@@ -4027,7 +4102,45 @@ function initialStageScheduleV10(root,stage,start){
   const end=Number(s.limitDays||0)>0||s.workType==='period'?deadline:start;
   return{start,end,deadline};
 }
+function createProjectFromLibraryV175(root,firstStart){
+  const M=window.WMProjectModel;
+  if(!M?.freshProject||!M?.reconcile)throw new Error('프로젝트 모델을 불러오지 못했습니다.');
+  const owner=root.owner||state.owners?.[0]||'';
+  if(!owner)throw new Error('프로젝트 총괄 담당자를 지정해 주세요.');
+  const p=M.freshProject(firstStart);
+  p.name=root.name;p.category=root.category;p.manager=owner;p.libraryTemplateIdV175=root.id;
+  const defs=[{name:root.projectRootStepNameV175||root.name,owner,checklist:root.checklist||[],projectChecksV175:root.projectChecksV175||[],attachments:root.attachments||[],methodBlocks:root.methodBlocks||[]},...(root.linkedSteps||[]).map(step=>{const effective=effectiveStepSourceV6(step,root);return{...effective,...step,name:step.name||effective.name,checklist:step.checklist?.length?step.checklist:effective.checklist||[],owner:step.owner||effective.owner||owner};})];
+  let previousEnd=firstStart;
+  p.stages=defs.map((src,i)=>{
+    const step=M.freshStep();step.title=src.name||`${i+1}단계`;
+    step.participants=[...new Set([src.owner||owner,...(src.projectChecksV175||[]).map(c=>c.owner)].filter(Boolean))];
+    let start=firstStart;
+    if(i>0){
+      start=calcByModeV6(previousEnd,Math.max(0,Number(src.startOffset??src.offset??0)),src.startMode||src.mode||'business');
+      if((src.startHolidayShift||'keep')!=='keep')start=shiftWorkday(start,src.startHolidayShift);
+    }
+    const limit=i>0?Math.max(0,Number(src.limitDays||0)):Math.max(0,Number(root.durationDays||1)-1);
+    const end=i>0?calcByModeV6(start,limit,src.limitMode||'calendar'):addDays(start,limit);
+    step.start=start;step.endType='date';step.endDate=end;step.holidayShift='keep';
+    step.checklist=(src.checklist||[]).map((text,j)=>{
+      const meta=src.projectChecksV175?.[j]||{};
+      return{id:M.id('check'),text:String(text||'').trim(),owner:meta.owner||src.owner||owner,dueDate:meta.dueDate||'',done:false};
+    }).filter(c=>c.text);
+    step.resources=(src.attachments||[]).filter(f=>f?.driveFileId||f?.localFileId).map(a=>({id:M.id('resource'),type:a.type||'file',name:a.name||'자료',mimeType:a.mimeType||'application/octet-stream',size:Number(a.size)||0,driveFileId:a.driveFileId||undefined,localFileId:a.localFileId||undefined}));
+    step.methodBlocks=clone(src.methodBlocks||[]);
+    previousEnd=end;return step;
+  });
+  p.end=previousEnd;
+  const holidays=d=>{const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return d.getDay()===0||d.getDay()===6||(state.holidays||[]).some(h=>h.date===iso)};
+  const validated=M.normalizeProject(p,holidays);
+  const result=M.reconcile(state,validated,holidays);
+  state.projects=result.projects;state.tasks=result.tasks;
+  for(const task of state.tasks.filter(t=>t.projectId===validated.id))task.libraryTemplateIdV175=root.id;
+  return{groupId:validated.id,projectId:validated.id,count:validated.stages.length,taskIds:validated.stages.map(s=>s.taskId)};
+}
 function createManualDbChainV10(root,startStage,endStage,firstStart){
+  if(isProjectLibraryV175(root))return createProjectFromLibraryV175(root,firstStart);
+
   const groupId=uid('dbmgrp'),tasks=[];
   let prev=null;
   for(let stage=startStage;stage<=endStage;stage++){
@@ -12037,7 +12150,7 @@ requestAnimationFrame(()=>{
 </script>
 <link rel="stylesheet" href="./css/project-feature.css?v=20260926-project-v131">
 <script src="./js/project-model.js?v=20260926-project-v131"></script>
-<script src="./js/project-ui.js?v=20260926-project-v131"></script>
+<script src="./js/project-ui.js?v=20261022-v175"></script>
 
 <style id="google-tasks-v15-css">
 #taskListPage .pagehead{gap:12px;flex-wrap:wrap}
@@ -12113,6 +12226,6 @@ openTaskForm=function(id=null){
   return result;
 };
 </script>
-<link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-reform1">
-<script src="./js/workflow-reform-v17.js?v=20261022-reform1"></script>
+<link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-v175">
+<script src="./js/workflow-reform-v17.js?v=20261022-v175"></script>
 </body></html>
