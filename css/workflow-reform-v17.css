@@ -115,3 +115,29 @@ body.app-v21.mobile-ui-v17 #taskListPage .workflow-board-v172 #taskTableBody tr 
 #taskListPage .workflow-project-completed-v173 .workflow-project-next-v171{background:var(--accent-softer,#f4f8fc)}
 #taskListPage.workflow-completed-split-v173 .workflow-general-v17 .tablewrap{width:100%;min-width:0;overflow-x:auto}
 @media(max-width:980px){#taskListPage.workflow-completed-split-v173 #workflowSplitV17{grid-template-columns:minmax(0,1fr)!important}}
+
+
+/* v1.7.4 — project completion is explicit, never inferred from a single stage. */
+.workflow-project-actions-v174{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}
+.workflow-project-close-v174{padding:8px 12px;border-radius:9px;border:1px solid var(--accent,#3778bf);background:var(--accent,#3778bf);color:#fff;font-size:12px;font-weight:800;cursor:pointer}
+.workflow-project-close-v174:hover{filter:brightness(.96)}
+.workflow-project-close-v174:disabled{opacity:.5;cursor:wait}
+#taskListPage .workflow-board-v172{display:table!important;width:100%!important;max-width:none!important;table-layout:fixed!important;min-width:550px!important}
+#taskListPage .workflow-general-v17,#taskListPage .workflow-general-v17 #workflowGeneralMountV17,#taskListPage .workflow-general-v17 .tablewrap{display:block;min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box}
+#taskListPage .workflow-board-v172 thead{display:table-header-group!important;width:auto!important}
+#taskListPage .workflow-board-v172 tbody{display:table-row-group!important;width:auto!important}
+#taskListPage .workflow-board-v172 tr{display:table-row!important;width:auto!important}
+#taskListPage .workflow-board-v172 tr>td,#taskListPage .workflow-board-v172 tr>th{display:table-cell!important;box-sizing:border-box!important;min-width:0!important;vertical-align:middle!important}
+#taskListPage .workflow-board-v172 .workflow-sort-button-v174{font:inherit;font-size:11px;line-height:1.5;border:0;background:transparent;color:inherit;padding:0;cursor:pointer;font-weight:800;white-space:normal;text-align:left}
+#taskListPage .workflow-board-v172 .workflow-sort-button-v174:hover{text-decoration:underline;text-underline-offset:3px}
+#taskListPage .workflow-board-v172 th[aria-sort]{color:var(--accent-deep,#2b679e)}
+#taskListPage .workflow-board-v172 tr>th:nth-child(1),#taskListPage .workflow-board-v172 tr>td:nth-child(1){width:34px!important}
+#taskListPage .workflow-board-v172 tr>th:nth-child(2),#taskListPage .workflow-board-v172 tr>td:nth-child(2){width:48px!important}
+#taskListPage .workflow-board-v172 tr>th:nth-child(3),#taskListPage .workflow-board-v172 tr>td:nth-child(3){width:64px!important}
+#taskListPage .workflow-board-v172 tr>th:nth-child(4),#taskListPage .workflow-board-v172 tr>td:nth-child(4){width:auto!important}
+#taskListPage .workflow-board-v172 tr>th:nth-child(5),#taskListPage .workflow-board-v172 tr>td:nth-child(5){width:205px!important}
+#taskListPage .workflow-board-v172:not(.workflow-board-completed-v174) tr>th:nth-child(6),#taskListPage .workflow-board-v172:not(.workflow-board-completed-v174) tr>td:nth-child(6){width:105px!important}
+#taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>th:nth-child(6),#taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>td:nth-child(6){width:110px!important}
+#taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>th:nth-child(7),#taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>td:nth-child(7){width:105px!important}
+#taskListPage .workflow-actual-complete-v174{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text,#253750);text-align:center}
+@media(max-width:980px){#taskListPage.workflow-completed-split-v173 #workflowSplitV17,#taskListPage #workflowSplitV17{grid-template-columns:minmax(0,1fr)!important}}
