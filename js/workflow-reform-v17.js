@@ -20,6 +20,16 @@ const lookupLibraryRef=t=>{
 const libraryRootId=t=>t?.dbManualRootTemplateId||t?.autoSourceTemplateId||t?.dbSourceTemplateId||t?.templateId||'';
 const libraryRoot=t=>state.templates.find(x=>x.id===libraryRootId(t));
 const reopenedProjects=new Set();
+function isProjectClosedV174(p){
+  if(!p?.workflowClosedAtV174)return false;
+  const stages=projectStages(p);
+  return stages.length>0 && stages.every(({t})=>t&&done(t));
+}
+function canCloseProjectV174(p){
+  const stages=projectStages(p);
+  return stages.length>0 && stages.every(({t})=>t&&done(t));
+}
+
 
 // No newly generated occurrences are permitted before explicit registration from the library.
 // Keep stored cycle metadata and all existing historical occurrences unchanged.
@@ -95,44 +105,108 @@ function boardDateV172(value){
   const match=normalized.match(/^(\d{4})[-/.]?(\d{2})[-/.]?(\d{2})$/);
   return match ? `${match[1]}/${match[2]}/${match[3]}` : '-';
 }
+// v1.7.4: render both views from the same six-column source table.
+// The legacy renderer rebuilds a TEN-column header on every update, and late
+// layout code sometimes rebuilds it AGAIN. Keep the six/seven-column header
+// and all row cells in step; avoid the phantom columns seen after the page paints.
+let boardSortV174=null;
+const boardColumnDefsV174=(completed)=>[
+  ['all',''],['urgent','긴급'],['category','구분'],['name','업무명'],
+  ['dates','시작일 / 마감일'],...(completed?[['completed','실제 완료일']]:[]),['notes','비고']
+];
+function taskIdForBoardV174(row){
+  return row.querySelector('[data-task]')?.dataset.task || row.querySelector('[data-task-select]')?.dataset.taskSelect||'';
+}
+function redrawBoardHeaderV174(completed){
+  const row=get('#taskListPage .datatable thead tr');if(!row)return;
+  const defs=boardColumnDefsV174(completed);
+  const signature=defs.map(([,name])=>name).join('|');
+  if(row.dataset.workflowSignatureV174===signature && row.cells.length===defs.length)return;
+  row.replaceChildren();
+  defs.forEach(([key,label])=>{
+    const cell=document.createElement('th');cell.scope='col';
+    if(key==='all'){
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.id='selectAllTasks';checkbox.title='현재 표시된 일반업무만 전체 선택';cell.appendChild(checkbox);
+    }else{
+      const button=document.createElement('button');button.type='button';button.className='workflow-sort-button-v174';button.dataset.workflowSort=key;
+      button.textContent=label;
+      button.title='클릭하여 오름차순/내림차순, 더블클릭으로 기본 순서';
+      if(boardSortV174?.key===key){cell.setAttribute('aria-sort',boardSortV174.dir==='asc'?'ascending':'descending');button.textContent+=boardSortV174.dir==='asc'?' ↑':' ↓';}
+      button.onclick=()=>{
+        if(window.localDevTableSortV1)window.localDevTableSortV1.task=null;
+        boardSortV174=boardSortV174?.key===key&&boardSortV174.dir==='asc'?{key,dir:'desc'}:{key,dir:'asc'};
+        renderTaskTable();
+      };
+      button.ondblclick=(e)=>{e.preventDefault();boardSortV174=null;if(window.localDevTableSortV1)window.localDevTableSortV1.task=null;renderTaskTable()};
+      cell.appendChild(button);
+    }
+    row.appendChild(cell);
+  });
+  row.dataset.workflowSignatureV174=signature;
+}
+function applyBoardSortV174(){
+  if(!boardSortV174)return;
+  const body=get('#taskTableBody');if(!body)return;
+  const key=boardSortV174.key,dir=boardSortV174.dir==='asc'?1:-1;
+  const field=(t)=>{
+    if(key==='urgent')return t.urgent?1:0;
+    if(key==='category')return t.category||'';
+    if(key==='name')return t.name||'';
+    if(key==='dates')return t.start||'';
+    if(key==='completed')return t.actualComplete||'';
+    if(key==='notes')return t.notes||'';
+    return '';
+  };
+  const collator=new Intl.Collator('ko',{numeric:true,sensitivity:'base'});
+  [...body.rows].filter(row=>taskIdForBoardV174(row)).map((row,index)=>({row,index,task:state.tasks.find(t=>t.id===taskIdForBoardV174(row))})).sort((a,b)=>{
+    const x=field(a.task||{}),y=field(b.task||{});
+    return (typeof x==='number'&&typeof y==='number'?x-y:collator.compare(String(x),String(y)))*dir||a.index-b.index;
+  }).forEach(({row})=>body.appendChild(row));
+}
 function compactTaskBoardV172(){
   const page=get('#taskListPage'),table=get('#taskListPage .datatable'),body=get('#taskTableBody');
   if(!page||!table||!body)return;
+  const completed=(typeof currentTaskViewV35==='function'&&currentTaskViewV35()==='completed');
   table.classList.add('workflow-board-v172');
-  const row=table.tHead?.rows?.[0];
-  if(row&&row.cells.length>=10){
-    const original=[...row.cells];
-    // Keep the original select-all control and existing sort behavior.
-    const date=original[6];
-    date.textContent='시작일 / 마감일';
-    date.title='시작일과 마감일 (목록에서 수정 불가)';
-    row.replaceChildren(original[0],original[1],original[2],original[3],date,original[9]);
-  }
+  table.classList.toggle('workflow-board-completed-v174',completed);
   body.querySelectorAll('tr').forEach(tr=>{
     const cells=[...tr.cells];
-    if(cells.length<10){if(cells.length===1&&cells[0].hasAttribute('colspan'))cells[0].colSpan=6;return;} // empty state
-    const id=tr.querySelector('[data-task]')?.dataset.task
-       ||tr.querySelector('[data-task-select]')?.dataset.taskSelect;
-    const task=id && state.tasks.find(t=>t.id===id);
+    if(cells.length===1&&cells[0].hasAttribute('colspan')){cells[0].colSpan=completed?7:6;return;}
+    if(cells.length!==10)return; // already compact, never reinterpret another layout as 10 columns
+    const id=taskIdForBoardV174(tr),task=id&&state.tasks.find(t=>t.id===id);
     if(!task)return;
-    const date=document.createElement('td');
-    date.className='workflow-range-cell-v172';
-    const dateDisplay=document.createElement('span');
-    dateDisplay.className='workflow-date-range-v172';
-    dateDisplay.textContent=`${boardDateV172(task.start)} ~ ${boardDateV172(task.deadline||task.end||task.start)}`;
-    dateDisplay.title='일정은 상세 화면이나 업무 라이브러리의 규칙에서 확인·변경하세요';
-    date.appendChild(dateDisplay);
-    // Keep title click, checkbox selection, urgent indicator and note text.
-    // Removed input date/status controls are never presented in the board.
-    cells[3].querySelectorAll('.db-auto-badge,.mobile-urgent-badge-v17,.mobile-compact-schedule-v26').forEach(el=>el.remove());
+    const date=document.createElement('td');date.className='workflow-range-cell-v172';
+    const range=document.createElement('span');range.className='workflow-date-range-v172';
+    range.textContent=`${boardDateV172(task.start)} ~ ${boardDateV172(task.deadline||task.end||task.start)}`;
+    range.title='목록에서는 날짜를 수정할 수 없습니다';date.appendChild(range);
+    const endDate=document.createElement('td');endDate.className='workflow-actual-complete-v174';
+    if(completed){endDate.textContent=boardDateV172(task.actualComplete);}
     for(const cell of [cells[0],cells[1],cells[2],cells[3],cells[9]]){
-      cell.classList.remove('mobile-field-v17','mobile-card-title-v17','mobile-empty-field-v17');
-      cell.removeAttribute('data-mobile-label');
+      cell.classList.remove('mobile-field-v17','mobile-card-title-v17','mobile-empty-field-v17');cell.removeAttribute('data-mobile-label');
     }
-    tr.replaceChildren(cells[0],cells[1],cells[2],cells[3],date,cells[9]);
+    tr.replaceChildren(cells[0],cells[1],cells[2],cells[3],date,...(completed?[endDate]:[]),cells[9]);
     tr.classList.add('workflow-board-row-v172');
   });
+  redrawBoardHeaderV174(completed);
+  applyBoardSortV174();
+  bindVisibleSelectAllV173();
 }
+// Some inherited navigation/sorting code updates the header after the initial paint.
+// Repair only that header without unnecessarily re-rendering the task dataset.
+let boardRepairQueuedV174=false;
+function observeBoardHeaderV174(){
+  const head=get('#taskListPage .datatable thead');if(!head)return;
+  new MutationObserver(()=>{
+    if(boardRepairQueuedV174)return;
+    const completed=typeof currentTaskViewV35==='function'&&currentTaskViewV35()==='completed';
+    const defs=boardColumnDefsV174(completed);
+    const row=head.rows?.[0];
+    if(row&&row.cells.length===defs.length&&row.dataset.workflowSignatureV174===defs.map(([,v])=>v).join('|'))return;
+    boardRepairQueuedV174=true;
+    queueMicrotask(()=>{boardRepairQueuedV174=false;redrawBoardHeaderV174(completed);bindVisibleSelectAllV173()});
+  }).observe(head,{childList:true,subtree:true});
+}
+observeBoardHeaderV174();
 function markLibraryRows(){
   const root=get('#dbTableBody');if(!root)return;
   getAll('.db-auto-badge',root).forEach(b=>{if(/자동|연계/.test(b.textContent||'')){b.textContent='라이브러리 보관';b.title='직접 등록하기 전에는 새 업무가 생성되지 않습니다.';}});
@@ -212,7 +286,7 @@ function visibleProjectListV173(completed){
   return (state.projects||[]).filter(p=>{
     if(!projectMatches(p,q,cat,scope))return false;
     const steps=projectStages(p);
-    return completed?steps.some(({t})=>done(t)):steps.some(({t})=>t&&!done(t));
+    return completed?isProjectClosedV174(p):!isProjectClosedV174(p);
   });
 }
 function renderProjectCards(completed=false){
@@ -228,7 +302,7 @@ function renderProjectCards(completed=false){
     const expand=reopenedProjects.has(p.id);
     const schedule=[p.start||'',p.end||''].filter(Boolean).join(' ~ ')||'일정 미정';
     const manager=p.manager||'담당자 미지정';
-    const status=completed?(fullyDone?'완료':'일부 완료'):'진행 중';
+    const status=completed?'완료':fullyDone?'종료 대기':'진행 중';
     const lastFinished=finishedSteps[finishedSteps.length-1];
     const latestDate=finishedSteps.map(({t})=>t?.actualComplete||'').filter(Boolean).sort().pop()||'';
     const highlight=completed
@@ -236,7 +310,7 @@ function renderProjectCards(completed=false){
       :(active?`${active.i+1}단계 · ${active.s.title||active.t?.name||'업무명 미정'}`:'진행 중인 단계 없음');
     // On the completed screen show only finished stages, never duplicate the
     // same project's stages in the right-hand general-work table.
-    const shownSteps=completed?finishedSteps:steps;
+    const shownSteps=steps;
     return `<article class="workflow-project-card-v17 ${completed?'workflow-project-completed-v173':''}${completed&&!fullyDone?' workflow-project-partial-v173':''}">
       <div class="workflow-project-top-v171"><span class="workflow-project-category-v171">${html(p.category||'미분류')}</span><span class="workflow-project-status-v171">${status}</span></div>
       <button type="button" class="workflow-project-title-v17" data-workflow-expand="${html(p.id)}" aria-expanded="${expand}">
@@ -246,11 +320,74 @@ function renderProjectCards(completed=false){
       </button>
       <div class="workflow-project-info-v171"><span>총괄 ${html(manager)}</span><span>${finished}/${steps.length}단계 완료</span></div>
       <div class="workflow-project-progress-v171" role="progressbar" aria-label="프로젝트 진행률" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${percent}%"></span></div>
-      <div class="workflow-project-next-v171"><span class="workflow-project-next-label-v171">${completed?(fullyDone?'프로젝트 완료':'완료된 단계'):'다음 단계'}</span><strong>${html(highlight)}</strong></div>
-      <div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${shownSteps.map(stageMarkup).join('')}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div>
+      <div class="workflow-project-next-v171"><span class="workflow-project-next-label-v171">${completed?'프로젝트 종료':'다음 단계'}</span><strong>${html(completed?`종료일 · ${p.workflowClosedAtV174||'-'}`:highlight)}</strong></div>
+      <div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${shownSteps.map(stageMarkup).join('')}<div class="workflow-project-actions-v174">${completed?'':`<button type="button" class="workflow-project-close-v174" data-workflow-project-close="${html(p.id)}">프로젝트 완료(종료)</button>`}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div></div>
     </article>`;
-  }).join(''):`<p class="workflow-empty-v17">${completed?'완료된 프로젝트 단계가 없습니다.':'표시할 진행 프로젝트가 없습니다.'}</p>`;
+  }).join(''):`<p class="workflow-empty-v17">${completed?'종료 처리된 프로젝트가 없습니다.':'표시할 진행 프로젝트가 없습니다.'}</p>`;
 }
+async function closeProjectV174(id,button){
+  const p=state.projects.find(item=>item.id===id);if(!p)return;
+  if(!canCloseProjectV174(p)){
+    alert('프로젝트의 모든 단계가 완료된 후에 종료할 수 있습니다. 미완료 체크리스트나 단계 상태를 먼저 확인해 주세요.');return;
+  }
+  if(!confirm(`'${p.name}' 프로젝트를 완료(종료)하고 완료업무 목록으로 이동할까요?`))return;
+  const previous=p.workflowClosedAtV174||null;
+  p.workflowClosedAtV174=new Date().toISOString().slice(0,10);
+  button.disabled=true;
+  try{
+    await saveState({reason:`프로젝트 종료 · ${p.name}`});
+    reopenedProjects.delete(p.id);
+    renderTaskTable();renderHome();
+    if(typeof toast==='function')toast('프로젝트를 완료업무로 이동했습니다.');
+  }catch(error){
+    p.workflowClosedAtV174=previous;
+    alert('프로젝트 종료를 저장하지 못했습니다. 연결 상태를 확인해 주세요.');
+    renderTaskTable();
+  }
+}
+// When a finished project's checked item is re-opened, ask FIRST. The original
+// project-ui handler is retained to update the exact checklist and persist it.
+function completedProjectCheckGuardV174(event){
+  const input=event.target?.closest?.('[data-prj-complete]');
+  const manual=event.target?.closest?.('#prjManualComplete');
+  if(!input&&!manual)return;
+  let task;
+  if(input){
+    const checkId=input.dataset.prjComplete;
+    task=state.tasks.find(item=>item.projectId&&item.checklist?.some(c=>c.id===checkId));
+    const existing=task?.checklist?.find(c=>c.id===checkId);
+    if(!existing?.done||input.checked!==false)return;
+  }else{
+    // For a stage with no checklist the manual-completion button may reopen it.
+    const modal=get('#modalRoot .prj-task-modal');
+    const title=modal?.querySelector('.modal-head h3')?.textContent;
+    task=state.tasks.find(item=>item.projectId&&item.name===title);
+    if(!task||!done(task))return;
+  }
+  const project=state.projects.find(p=>p.id===task?.projectId);
+  if(!project?.workflowClosedAtV174)return;
+  const accepted=confirm(`'${project.name}' 프로젝트의 완료 상태가 해제됩니다.\n진행(예정)업무로 되돌릴까요?`);
+  if(!accepted){
+    event.preventDefault();event.stopImmediatePropagation();
+    if(input)input.checked=true;
+    return;
+  }
+  project.workflowClosedAtV174=null;
+  // The existing project-ui onchange handler will persist this change with the
+  // checklist state. Keep the project displayed as active immediately.
+  reopenedProjects.add(project.id);
+}
+document.addEventListener('click',completedProjectCheckGuardV174,true);
+// Also protect changes coming from template editing or another local action:
+// reopening a stage can never silently re-complete an already closed project.
+const projectSaveBaseV174=saveState;
+saveState=async function(...args){
+  for(const p of state.projects||[]){
+    if(p.workflowClosedAtV174&&!canCloseProjectV174(p))p.workflowClosedAtV174=null;
+  }
+  return projectSaveBaseV174.apply(this,args);
+};
+
 function ensureSplit(){
   const page=get('#taskListPage');if(!page)return;
   const table=page.querySelector(':scope > .tablewrap');
@@ -262,6 +399,8 @@ function ensureSplit(){
     get('#workflowProjectListV17',split)?.addEventListener('click',e=>{
       const expand=e.target.closest('[data-workflow-expand]');
       if(expand){const id=expand.dataset.workflowExpand;reopenedProjects.has(id)?reopenedProjects.delete(id):reopenedProjects.add(id);renderProjectCards(currentTaskViewV35?.()==='completed');return;}
+      const close=e.target.closest('[data-workflow-project-close]');
+      if(close){void closeProjectV174(close.dataset.workflowProjectClose,close);return;}
       const edit=e.target.closest('[data-workflow-project-edit]');if(edit){window.WMProjectUI?.openEditor(edit.dataset.workflowProjectEdit);return;}
       const step=e.target.closest('[data-workflow-step]');if(step&&step.dataset.workflowStep){openChecklist(step.dataset.workflowStep);}
     });
@@ -303,7 +442,7 @@ function updateSplit(){
   page.classList.toggle('workflow-completed-split-v173',completed);
   split.hidden=false;
   get('#workflowProjectsHeadingV173').textContent=completed?'완료된 프로젝트':'프로젝트 목록';
-  get('#workflowProjectsSubheadingV173').textContent=completed?'완료 또는 일부 완료된 단계':'프로젝트별 단계 관리';
+  get('#workflowProjectsSubheadingV173').textContent=completed?'종료 버튼으로 확정한 프로젝트':'프로젝트별 단계 관리';
   get('#workflowGeneralHeadingV173').textContent=completed?'완료된 일반업무':'일반업무 목록';
   get('#workflowGeneralSubheadingV173').textContent=completed?'완료 처리된 일반업무 기록':'직접 등록 · 라이브러리 등록 업무';
   // Retain an orphaned stage in the general table instead of making it
