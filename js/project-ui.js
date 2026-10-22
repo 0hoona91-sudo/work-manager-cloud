@@ -319,7 +319,7 @@ function bindStageControls(root){
     const input=$p('#'+id,root);
     if(input)input.oninput=()=>{s[key]=Number(input.value)||0;M.applyRelativeDates(editor,holidayCheck);setDirty();};
   }
-  $p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
+  $$p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
   $$p('[data-person]',root).forEach(input=>input.onchange=()=>{
     s.participants=state.owners.filter(o=>$$p('[data-person]:checked',root).some(x=>x.dataset.person===o));
     refreshCheckOwners(root,s);setDirty();
