@@ -50,7 +50,19 @@ function renameVisible(){
   const modalHead=get('#modalRoot .modal-head h3');
   if(modalHead)modalHead.textContent=modalHead.textContent.replaceAll('반복/표준 업무','업무 라이브러리').replaceAll('표준업무','라이브러리 업무').replaceAll('업무 DB','업무 라이브러리');
   const navProject=get('.side .navbtn[data-page="projectPage"]');
-  if(navProject){navProject.setAttribute('aria-hidden','true');navProject.hidden=true;}
+  if(navProject){
+    navProject.setAttribute('aria-hidden','true');
+    navProject.setAttribute('tabindex','-1');
+    navProject.hidden=true;
+    navProject.style.setProperty('display','none','important');
+  }
+  // The old project's Settings toggle is no longer relevant: editing remains
+  // available inside the Progress page, not through a separate project tab.
+  getAll('[data-nav-toggle-v33="projectPage"],[data-nav-toggle-local-v12="projectPage"]').forEach(input=>{
+    const row=input.closest('label,.v33-config-item,.local-v12-nav-item');
+    if(row)row.hidden=true;
+    input.disabled=true;
+  });
   const auto=get('#dbAutomationSettings');if(auto)auto.hidden=true;
   for(const id of ['#repairRepeatsSetting','#syncDbSchedules']){const el=get(id);if(el)el.hidden=true;}
 }
@@ -131,8 +143,25 @@ function renderProjectCards(){
     return projectStages(p).some(({t})=>t&&!done(t));
   });
   root.innerHTML=pList.length?pList.map(p=>{
-    const steps=projectStages(p),finished=steps.filter(({t})=>done(t)).length,expand=reopenedProjects.has(p.id);
-    return `<article class="workflow-project-card-v17"><button type="button" class="workflow-project-title-v17" data-workflow-expand="${html(p.id)}" aria-expanded="${expand}"><span class="workflow-project-mark-v17">▤</span><span class="workflow-project-copy-v17"><b>${html(p.name)}</b><small>${html(p.category||'미분류')} · ${html(p.manager||'담당자 미지정')} · ${finished}/${steps.length}단계 완료</small></span><span>${expand?'▴':'▾'}</span></button><div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${steps.map(stageMarkup).join('')}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div></article>`;
+    const steps=projectStages(p),finished=steps.filter(({t})=>done(t)).length;
+    const pending=steps.filter(({t})=>t&&!done(t));
+    const active=pending[0];
+    const percent=steps.length?Math.round(finished/steps.length*100):0;
+    const expand=reopenedProjects.has(p.id);
+    const schedule=[p.start||'',p.end||''].filter(Boolean).join(' ~ ')||'일정 미정';
+    const manager=p.manager||'담당자 미지정';
+    return `<article class="workflow-project-card-v17">
+      <div class="workflow-project-top-v171"><span class="workflow-project-category-v171">${html(p.category||'미분류')}</span><span class="workflow-project-status-v171">진행 중</span></div>
+      <button type="button" class="workflow-project-title-v17" data-workflow-expand="${html(p.id)}" aria-expanded="${expand}">
+        <span class="workflow-project-mark-v17" aria-hidden="true">▤</span>
+        <span class="workflow-project-copy-v17"><b>${html(p.name||'프로젝트명 미정')}</b><small>${html(schedule)}</small></span>
+        <span class="workflow-project-chevron-v171" aria-hidden="true">${expand?'▴':'▾'}</span>
+      </button>
+      <div class="workflow-project-info-v171"><span>총괄 ${html(manager)}</span><span>${finished}/${steps.length}단계 완료</span></div>
+      <div class="workflow-project-progress-v171" role="progressbar" aria-label="프로젝트 진행률" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${percent}%"></span></div>
+      <div class="workflow-project-next-v171"><span class="workflow-project-next-label-v171">다음 단계</span><strong>${html(active?`${active.i+1}단계 · ${active.s.title||active.t?.name||'업무명 미정'}`:'진행 중인 단계 없음')}</strong></div>
+      <div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${steps.map(stageMarkup).join('')}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div>
+    </article>`;
   }).join(''):'<p class="workflow-empty-v17">표시할 진행 프로젝트가 없습니다.</p>';
 }
 function ensureSplit(){
@@ -180,20 +209,51 @@ function ensureCreateMenu(){
   trigger.textContent='＋ 업무 작성 ▾';
   trigger.setAttribute('aria-haspopup','menu');
   trigger.setAttribute('aria-expanded','false');
-  const menu=document.createElement('div');menu.id='workflowCreateMenuV17';menu.className='workflow-create-menu-v17';menu.setAttribute('role','menu');menu.hidden=true;
+  const menu=document.createElement('div');
+  menu.id='workflowCreateMenuV17';menu.className='workflow-create-menu-v17';
+  menu.setAttribute('role','menu');menu.hidden=true;
   menu.innerHTML='<button type="button" data-workflow-create="project" role="menuitem">▤ 프로젝트 등록</button><button type="button" data-workflow-create="normal" role="menuitem">＋ 일반 업무 등록</button>';
-  trigger.parentElement?.append(menu);
+  // A body-level fixed menu avoids clipping by search toolbar, sticky table headers
+  // and the stacking context used by #taskListPage on desktop and mobile.
+  document.body.appendChild(menu);
   const previous=trigger.onclick;
-  // Capture intercepts legacy handlers without altering other task creation entry points.
-  trigger.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden));},true);
+  function closeMenu(){
+    menu.hidden=true;
+    trigger.setAttribute('aria-expanded','false');
+  }
+  function reposition(){
+    if(menu.hidden)return;
+    const rect=trigger.getBoundingClientRect();
+    const viewportWidth=document.documentElement.clientWidth;
+    const viewportHeight=window.visualViewport?.height||window.innerHeight;
+    const width=Math.min(258,Math.max(188,viewportWidth-16));
+    const menuHeight=menu.getBoundingClientRect().height||102;
+    const below=rect.bottom+7;
+    const top=below+menuHeight>viewportHeight-8&&rect.top>menuHeight+12
+      ? rect.top-menuHeight-7 : Math.min(below,viewportHeight-menuHeight-8);
+    menu.style.width=`${width}px`;
+    menu.style.left=`${Math.max(8,Math.min(viewportWidth-width-8,rect.right-width))}px`;
+    menu.style.top=`${Math.max(8,top)}px`;
+  }
+  trigger.addEventListener('click',e=>{
+    e.preventDefault();e.stopImmediatePropagation();
+    if(!menu.hidden){closeMenu();return;}
+    menu.hidden=false;
+    trigger.setAttribute('aria-expanded','true');
+    reposition();
+  },true);
   menu.addEventListener('click',e=>{
     const button=e.target.closest('[data-workflow-create]');if(!button)return;
-    menu.hidden=true;trigger.setAttribute('aria-expanded','false');
+    e.preventDefault();e.stopPropagation();
+    closeMenu();
     if(button.dataset.workflowCreate==='project')window.WMProjectUI?.openEditor();
     else if(typeof previous==='function')previous.call(trigger,new MouseEvent('click'));
     else openTaskForm();
   });
-  document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==trigger){menu.hidden=true;trigger.setAttribute('aria-expanded','false');}});
+  document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!trigger.contains(e.target))closeMenu();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+  window.addEventListener('resize',reposition,{passive:true});
+  window.addEventListener('scroll',reposition,{passive:true,capture:true});
 }
 function lockScheduleDates(task){
   const modal=get('#modalRoot .modal');if(!task||!modal)return;
