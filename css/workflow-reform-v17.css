@@ -141,3 +141,23 @@ body.app-v21.mobile-ui-v17 #taskListPage .workflow-board-v172 #taskTableBody tr 
 #taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>th:nth-child(7),#taskListPage .workflow-board-v172.workflow-board-completed-v174 tr>td:nth-child(7){width:105px!important}
 #taskListPage .workflow-actual-complete-v174{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text,#253750);text-align:center}
 @media(max-width:980px){#taskListPage.workflow-completed-split-v173 #workflowSplitV17,#taskListPage #workflowSplitV17{grid-template-columns:minmax(0,1fr)!important}}
+/* v1.7.5 : 개인 라이브러리 일반업무/프로젝트 분리 */
+#workflowEditorNoteV17{display:none!important}
+.db-form-modal [data-lib-field="auto"],.db-form-modal [data-lib-field="day"]{display:none!important}
+.db-form-modal.library-project-v175 [data-lib-field="cycle"],.db-form-modal.library-general-v175 [data-lib-field="steps"]{display:none!important}
+#libRootStepNameWrapV175[hidden]{display:none!important}
+.library-mode-v175{display:flex;flex-wrap:wrap;gap:8px;padding:13px 14px;border-radius:13px;background:var(--surface-soft,#f2f5fa);border:1px solid #dce6f3}
+.library-mode-v175 button{padding:11px 19px;background:white;border:1px solid #c2d4ec;color:var(--text,#28456d);border-radius:10px;font-weight:800;cursor:pointer}
+.library-mode-v175 button.active{background:var(--accent,#376fb7);border-color:var(--accent,#376fb7);color:#fff}
+.library-project-v175 .library-check-row-v175{display:grid;grid-template-columns:20px minmax(100px,1.6fr) minmax(220px,1.4fr) 35px;align-items:center;gap:8px;max-width:100%;background:#f3f7fd;border-radius:9px;padding:8px}
+.library-check-row-v175 input[data-dci],.library-check-row-v175 input[data-v6scheck]{min-width:0;width:100%}
+.library-project-check-extra-v175{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%}
+.library-project-check-extra-v175 select,.library-project-check-extra-v175 input{min-width:0;width:50%;padding:9px 7px;border:1px solid #c7d7ed;border-radius:8px;background:white}
+.library-project-v175 .step-check-row.library-check-row-v175{display:grid;grid-template-columns:20px minmax(100px,1.6fr) minmax(220px,1.4fr) 35px;gap:6px;align-items:center}
+.library-project-v175 .step-check-row .library-project-check-extra-v175{grid-column:3}
+.library-project-v175 [data-lib-field="steps"] .db-step-grid-v6{width:100%;}
+.prj-stage-add-resource-v175{display:inline-flex;position:relative;margin-top:10px;cursor:pointer;justify-content:center;align-items:center;font-weight:700}
+.prj-resource-hint-v175{display:block;margin-top:7px;color:var(--muted,#687589)}
+@media(max-width:780px){.library-project-v175 .library-check-row-v175,.library-project-v175 .step-check-row.library-check-row-v175{display:flex;flex-wrap:wrap}.library-project-check-extra-v175{flex:1 1 100%;width:100%}}
+.library-check-head-v175{display:grid;grid-template-columns:20px minmax(100px,1.6fr) minmax(220px,1.4fr) 35px;gap:8px;padding:5px 8px;color:var(--muted,#667991);font-size:11px;font-weight:800}
+@media(max-width:780px){.library-check-head-v175{display:none}}
