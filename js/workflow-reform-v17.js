@@ -595,6 +595,77 @@ if(modalRoot){
   });
   observer.observe(modalRoot,{childList:true,subtree:true});
 }
+// v1.7.6: a library template is one object. Categorize it without splitting a
+// multi-stage project into ordinary task records. This filter participates in
+// the original table's selection logic (rather than merely hiding table rows).
+let libraryTypeFilterV176='all';
+const isProjectLibraryV176=t=>Boolean(t&&(t.libraryKindV175==='project'||(t.linkedSteps||[]).length>0));
+const visibleDbRowsV176Base=dbVisibleRowsV10;
+dbVisibleRowsV10=function(...args){
+  const rows=visibleDbRowsV176Base.apply(this,args);
+  return rows.filter(row=>{
+    const project=isProjectLibraryV176(row.root);
+    if(project&&row.kind!=='root')return false;
+    return libraryTypeFilterV176==='all'||(libraryTypeFilterV176==='project'?project:!project);
+  });
+};
+function ensureLibraryTypeFilterV176(){
+  const page=get('#dbPage');if(!page)return;
+  const toolbar=get('.toolbar',page),table=get('.tablewrap',page);
+  if(!toolbar||!table)return;
+  let holder=get('#libraryTypeFilterV176',page);
+  if(!holder){
+    holder=document.createElement('div');holder.id='libraryTypeFilterV176';
+    holder.className='library-type-filter-v176';
+    holder.setAttribute('role','group');holder.setAttribute('aria-label','업무 라이브러리 종류');
+    toolbar.insertAdjacentElement('afterend',holder);
+  }
+  const projects=(state.templates||[]).filter(isProjectLibraryV176).length;
+  const general=(state.templates||[]).length-projects;
+  const counts={all:projects+general,general,project:projects};
+  holder.innerHTML=[['all','전체'],['general','일반업무'],['project','프로젝트']].map(([key,label])=>
+    `<button type="button" data-library-type-v176="${key}" class="${key===libraryTypeFilterV176?'active':''}" aria-pressed="${key===libraryTypeFilterV176}">${label} <span class="library-type-count-v176">${counts[key]}</span></button>`
+  ).join('');
+  getAll('[data-library-type-v176]',holder).forEach(button=>button.onclick=()=>{
+    libraryTypeFilterV176=button.dataset.libraryTypeV176;
+    renderDbTable();
+  });
+}
+function decorateLibraryTypesV176(){
+  const body=get('#dbTableBody');if(!body)return;
+  getAll('tr',body).forEach(row=>{
+    const ref=get('[data-dbref]',row)?.dataset.dbref;
+    if(!ref)return;
+    const rootId=String(ref).split('|')[1];
+    const template=(state.templates||[]).find(t=>String(t.id)===rootId);
+    if(!template)return;
+    const project=isProjectLibraryV176(template);
+    const kind=project?'project':'general';
+    const label=project?'프로젝트':'일반업무';
+    row.classList.add('library-row-type-v176',`library-row-${kind}-v176`);
+    const title=row.cells[3];
+    if(title&&!get('.library-type-chip-v176',title)){
+      title.insertAdjacentHTML('beforeend',`<span class="library-type-chip-v176 ${kind}">${label}</span>`);
+    }
+    // An obsolete auto-registration status must never be mistaken for a type.
+    if(row.cells[6])row.cells[6].innerHTML=`<span class="library-type-chip-v176 ${kind}">${label}</span>`;
+    if(project&&row.cells[5])row.cells[5].textContent='—';
+    if(!project&&row.cells[7])row.cells[7].textContent='—';
+  });
+  const headings=getAll('#dbPage .datatable thead th');
+  if(headings[6])headings[6].textContent='유형';
+  if(headings[7])headings[7].textContent='단계 구성';
+}
+const renderDbTableV176Base=renderDbTable;
+renderDbTable=function(...args){
+  const result=renderDbTableV176Base.apply(this,args);
+  ensureLibraryTypeFilterV176();
+  decorateLibraryTypesV176();
+  return result;
+};
+ensureLibraryTypeFilterV176();
+if(get('#dbPage.active'))renderDbTable();
+
 window.WorkManagerReformV17={isLibrarySchedule,lookupLibraryRef,updateSplit,renameVisible,compactTaskBoardV172,stableLibraryLabelV172};
 requestAnimationFrame(()=>{renameVisible();stableLibraryLabelV172();ensureCreateMenu();if(get('#taskListPage.active'))renderTaskTable();if(get('#dbPage.active'))renderDbTable()});
 })();
