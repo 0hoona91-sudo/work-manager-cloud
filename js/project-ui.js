@@ -994,6 +994,8 @@ installRollingRecurrencesV181();
 
 
 function installNavAndHomeHolidayEnhancementsV182(){
+  // v1.8.2 HOTFIX: never observe and rewrite the entire document on every style change.
+  // That previously produced an endless MutationObserver -> style -> observer cycle.
   const iconMap={
     home:'home.png',
     inprogress:'in-progress.png',
@@ -1002,87 +1004,104 @@ function installNavAndHomeHolidayEnhancementsV182(){
     holiday:'holiday-db.png',
     settings:'settings-backup.png'
   };
-  const assetUrl=name=>{
-    try{
-      const src=document.currentScript?.src||Array.from(document.scripts||[]).map(s=>s.src).filter(Boolean).find(s=>/project-ui\.js(?:\?|$)/.test(s))||'';
-      return src?new URL('../assets/nav-icons/'+name,src).href:'assets/nav-icons/'+name;
-    }catch{return 'assets/nav-icons/'+name;}
-  };
+  const assetBase=(()=>{
+    const script=Array.from(document.scripts||[]).find(s=>/\/project-ui\.js(?:\?|$)/.test(s.src||''));
+    try{return script?.src?new URL('../assets/nav-icons/',script.src).href:'assets/nav-icons/';}
+    catch{return 'assets/nav-icons/';}
+  })();
   const navType=button=>{
-    const raw=((button?.textContent)||'').replace(/\s+/g,'').toLowerCase();
+    // Only use the menu label, not the icon's text, so repainting cannot change its identity.
+    const raw=(button?.textContent||'').replace(/\s+/g,'').toLowerCase();
     if(raw.includes('홈'))return 'home';
     if(raw.includes('진행업무'))return 'inprogress';
     if(raw.includes('완료업무'))return 'completed';
-    if(raw.includes('라이브러리')||raw.includes('업무db')||raw.includes('db'))return 'library';
+    if(raw.includes('라이브러리')||raw.includes('업무db'))return 'library';
     if(raw.includes('휴일db')||raw.includes('휴일'))return 'holiday';
     if(raw.includes('설정및백업')||raw.includes('설정'))return 'settings';
     return '';
   };
   const applyNavIcons=()=>{
     document.querySelectorAll('.side .navbtn').forEach(button=>{
-      const kind=navType(button);if(!kind||!iconMap[kind])return;
+      const kind=navType(button);
+      if(!kind||!iconMap[kind])return;
       let icon=button.querySelector('.nav-icon');
-      if(!icon){icon=document.createElement('span');icon.className='nav-icon';button.insertAdjacentElement('afterbegin',icon);}
-      const src=assetUrl(iconMap[kind]);
-      icon.style.setProperty('background-image',`url("${src}")`,'important');
-      icon.style.setProperty('background-position','center','important');
-      icon.style.setProperty('background-repeat','no-repeat','important');
-      icon.style.setProperty('background-size','contain','important');
-      icon.style.setProperty('display','inline-block','important');
-      icon.style.setProperty('width','1.65em','important');
-      icon.style.setProperty('height','1.65em','important');
-      icon.style.setProperty('min-width','1.65em','important');
-      icon.style.setProperty('vertical-align','middle','important');
-      icon.textContent='';
-      button.dataset.navIconV182=kind;
+      if(!icon){
+        icon=document.createElement('span');
+        icon.className='nav-icon';
+        button.insertAdjacentElement('afterbegin',icon);
+      }
+      const url=assetBase+iconMap[kind];
+      // Only write when something actually changed; avoids unrelated DOM churn.
+      if(button.dataset.navIconV182!==kind||icon.dataset.navIconSrcV182!==url){
+        icon.style.setProperty('background-image',`url("${url}")`,'important');
+        icon.style.setProperty('background-position','center','important');
+        icon.style.setProperty('background-repeat','no-repeat','important');
+        icon.style.setProperty('background-size','contain','important');
+        icon.style.setProperty('display','inline-block','important');
+        icon.style.setProperty('width','1.65em','important');
+        icon.style.setProperty('height','1.65em','important');
+        icon.style.setProperty('min-width','1.65em','important');
+        icon.style.setProperty('vertical-align','middle','important');
+        icon.dataset.navIconSrcV182=url;
+        button.dataset.navIconV182=kind;
+      }
+      if(icon.textContent)icon.textContent='';
     });
-    if(typeof applyProjectThemeIcon==='function')applyProjectThemeIcon();
+    // The standalone project tab has a separate icon/theme implementation.
   };
   const isoFromAny=text=>{
     const m=String(text||'').match(/(20\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
     if(!m)return '';
-    return `${m[1]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[3])).padStart(2,'0')}`;
+    const yy=Number(m[1]),mm=Number(m[2]),dd=Number(m[3]);
+    const d=new Date(yy,mm-1,dd,12);
+    if(d.getFullYear()!==yy||d.getMonth()+1!==mm||d.getDate()!==dd)return '';
+    return `${m[1]}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
   };
   const holidayName=iso=>{
-    const item=(state.holidays||[]).find(h=>(h.date||h.day)===iso);
-    return item?.name||item?.title||item?.label||item?.holidayName||item?.summary||'';
+    const h=(state.holidays||[]).find(item=>(item.date||item.day)===iso);
+    return String(h?.name||h?.title||h?.label||h?.holidayName||h?.summary||'').trim();
   };
   const isWeekend=iso=>{
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return false;
-    const d=new Date(iso+'T12:00:00');
-    const day=d.getDay();
+    if(!isoFromAny(iso))return false;
+    const day=new Date(iso+'T12:00:00').getDay();
     return day===0||day===6;
   };
-  const findDateFromNode=node=>{
-    const attrs=['data-date','data-day','data-iso','data-full-date','data-home-date','data-value','date','datetime','title','aria-label'];
-    let cur=node;
-    for(let depth=0;cur&&depth<6;depth++,cur=cur.parentElement){
+  const dateForLabel=node=>{
+    let el=node.parentElement;
+    // Never scan a whole calendar/container's textContent; date must belong to this day.
+    for(let depth=0;el&&depth<6;depth++,el=el.parentElement){
+      const attrs=['data-date','data-day','data-iso','data-full-date','data-home-date','datetime','title','aria-label'];
       for(const attr of attrs){
-        const value=cur.getAttribute?.(attr);
-        const iso=isoFromAny(value);
+        const iso=isoFromAny(el.getAttribute(attr));
         if(iso)return iso;
       }
-      const ds=cur.dataset||{};
-      for(const key of Object.keys(ds)){
-        const iso=isoFromAny(ds[key]);
+      const text=(el.childElementCount<=2?el.textContent||'':'').trim();
+      if(text.length<=80){
+        const iso=isoFromAny(text);
         if(iso)return iso;
       }
-      const iso=isoFromAny(cur.textContent||'');
-      if(iso)return iso;
+      if(el.id==='homePage')break;
     }
     return '';
   };
   const decorateHomeHolidayLabels=()=>{
     const home=document.querySelector('#homePage');
     if(!home)return;
-    home.querySelectorAll('*').forEach(el=>{
-      const txt=(el.textContent||'').trim();
-      if(txt!=='휴일' && txt!=='대체휴일' && !/^휴일/.test(txt))return;
-      const iso=findDateFromNode(el);if(!iso)return;
+    // Visiting text nodes once avoids repeated O(n^2) textContent reads from ancestors.
+    const walker=document.createTreeWalker(home,NodeFilter.SHOW_TEXT);
+    const matches=[];
+    let node;
+    while((node=walker.nextNode())){
+      const label=(node.nodeValue||'').trim();
+      if(label==='휴일'||label==='대체휴일')matches.push(node);
+    }
+    for(const textNode of matches){
+      const iso=dateForLabel(textNode);
+      if(!iso)continue;
       const name=holidayName(iso);
-      if(name){el.textContent=name;el.style.removeProperty('display');return;}
-      if(isWeekend(iso)){el.textContent='';el.style.setProperty('display','none','important');}
-    });
+      if(name)textNode.nodeValue=name;
+      else if(isWeekend(iso))textNode.nodeValue='';
+    }
   };
   if(typeof renderHome==='function' && !renderHome.__homeHolidayPatchedV182){
     const base=renderHome;
@@ -1094,15 +1113,26 @@ function installNavAndHomeHolidayEnhancementsV182(){
     wrapped.__homeHolidayPatchedV182=true;
     renderHome=wrapped;
   }
-  const observer=new MutationObserver(()=>{applyNavIcons();decorateHomeHolidayLabels();});
-  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-v7-theme','style']});
+  if(typeof showPage==='function' && !showPage.__navIconsPatchedV182){
+    const base=showPage;
+    const wrapped=function(...args){
+      const result=base.apply(this,args);
+      setTimeout(()=>{applyNavIcons();if(args[0]==='homePage')decorateHomeHolidayLabels();},0);
+      return result;
+    };
+    wrapped.__navIconsPatchedV182=true;
+    showPage=wrapped;
+  }
+  // No document-wide MutationObserver. Click and render hooks are sufficient.
+  document.addEventListener('click',event=>{
+    if(event.target?.closest?.('.side .navbtn'))setTimeout(applyNavIcons,0);
+  },true);
   applyNavIcons();
-  setTimeout(()=>decorateHomeHolidayLabels(),0);
+  setTimeout(()=>{applyNavIcons();decorateHomeHolidayLabels();},0);
   window.WMHolidayInfoV182={
-    isWeekend,
-    holidayName,
-    recognizes(date){
-      const iso=/^\d{4}-\d{2}-\d{2}$/.test(String(date||''))?date:isoFromAny(date);
+    isWeekend,holidayName,
+    recognizes(value){
+      const iso=isoFromAny(value);
       return Boolean(iso&&(isWeekend(iso)||(state.holidays||[]).some(h=>(h.date||h.day)===iso)));
     }
   };
