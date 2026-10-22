@@ -196,29 +196,49 @@ function projectMatches(p,q,cat,scope){
   if(!q)return true;
   const basic=[p.name,p.category,p.manager].join(' ').toLowerCase();
   if(basic.includes(q))return true;
-  return scope==='all'&&projectStages(p).some(({s,t})=>[s.title,t?.name,t?.notes].join(' ').toLowerCase().includes(q));
+  // A completed stage must remain discoverable by its own name, even when
+  // the sidebar search is in the "title only" mode.
+  return projectStages(p).some(({s,t})=>
+    [s.title,t?.name,...(scope==='all'?[t?.notes]:[])].join(' ').toLowerCase().includes(q));
 }
 function stageMarkup({s,i,t}){
   const label=done(t)?'완료':t?'진행':'미등록';
   return `<button type="button" class="workflow-stage-v17" data-workflow-step="${html(t?.id||'')}" ${!t?'disabled':''}><span>${i+1}단계 · ${html(s.title||t?.name||'업무명 미정')}</span><small>${html(t?.start||s.start||'-')} ~ ${html(t?.end||'-')} · ${label}</small></button>`;
 }
-function renderProjectCards(){
-  const root=get('#workflowProjectListV17');if(!root)return;
-  const q=clean(get('#taskSearch')?.value),pref=window.__LOCAL_SEARCH_PREF_V15__?.task||{},cat=pref.category||'all',scope=pref.scope||'title';
-  const pList=(state.projects||[]).filter(p=>{
+function visibleProjectListV173(completed){
+  const q=clean(get('#taskSearch')?.value);
+  const pref=window.__LOCAL_SEARCH_PREF_V15__?.task||{};
+  const cat=pref.category||'all',scope=pref.scope||'title';
+  return (state.projects||[]).filter(p=>{
     if(!projectMatches(p,q,cat,scope))return false;
-    return projectStages(p).some(({t})=>t&&!done(t));
+    const steps=projectStages(p);
+    return completed?steps.some(({t})=>done(t)):steps.some(({t})=>t&&!done(t));
   });
-  root.innerHTML=pList.length?pList.map(p=>{
-    const steps=projectStages(p),finished=steps.filter(({t})=>done(t)).length;
+}
+function renderProjectCards(completed=false){
+  const root=get('#workflowProjectListV17');if(!root)return;
+  const projects=visibleProjectListV173(completed);
+  root.innerHTML=projects.length?projects.map(p=>{
+    const steps=projectStages(p),finishedSteps=steps.filter(({t})=>done(t));
+    const finished=finishedSteps.length;
     const pending=steps.filter(({t})=>t&&!done(t));
     const active=pending[0];
     const percent=steps.length?Math.round(finished/steps.length*100):0;
+    const fullyDone=steps.length>0&&steps.every(({t})=>done(t));
     const expand=reopenedProjects.has(p.id);
     const schedule=[p.start||'',p.end||''].filter(Boolean).join(' ~ ')||'일정 미정';
     const manager=p.manager||'담당자 미지정';
-    return `<article class="workflow-project-card-v17">
-      <div class="workflow-project-top-v171"><span class="workflow-project-category-v171">${html(p.category||'미분류')}</span><span class="workflow-project-status-v171">진행 중</span></div>
+    const status=completed?(fullyDone?'완료':'일부 완료'):'진행 중';
+    const lastFinished=finishedSteps[finishedSteps.length-1];
+    const latestDate=finishedSteps.map(({t})=>t?.actualComplete||'').filter(Boolean).sort().pop()||'';
+    const highlight=completed
+      ?(fullyDone?`완료일 · ${latestDate||'미기록'}`:`완료 단계 · ${lastFinished?.i+1||'-'}단계 ${lastFinished?.s.title||lastFinished?.t?.name||''}`)
+      :(active?`${active.i+1}단계 · ${active.s.title||active.t?.name||'업무명 미정'}`:'진행 중인 단계 없음');
+    // On the completed screen show only finished stages, never duplicate the
+    // same project's stages in the right-hand general-work table.
+    const shownSteps=completed?finishedSteps:steps;
+    return `<article class="workflow-project-card-v17 ${completed?'workflow-project-completed-v173':''}${completed&&!fullyDone?' workflow-project-partial-v173':''}">
+      <div class="workflow-project-top-v171"><span class="workflow-project-category-v171">${html(p.category||'미분류')}</span><span class="workflow-project-status-v171">${status}</span></div>
       <button type="button" class="workflow-project-title-v17" data-workflow-expand="${html(p.id)}" aria-expanded="${expand}">
         <span class="workflow-project-mark-v17" aria-hidden="true">▤</span>
         <span class="workflow-project-copy-v17"><b>${html(p.name||'프로젝트명 미정')}</b><small>${html(schedule)}</small></span>
@@ -226,50 +246,80 @@ function renderProjectCards(){
       </button>
       <div class="workflow-project-info-v171"><span>총괄 ${html(manager)}</span><span>${finished}/${steps.length}단계 완료</span></div>
       <div class="workflow-project-progress-v171" role="progressbar" aria-label="프로젝트 진행률" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${percent}%"></span></div>
-      <div class="workflow-project-next-v171"><span class="workflow-project-next-label-v171">다음 단계</span><strong>${html(active?`${active.i+1}단계 · ${active.s.title||active.t?.name||'업무명 미정'}`:'진행 중인 단계 없음')}</strong></div>
-      <div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${steps.map(stageMarkup).join('')}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div>
+      <div class="workflow-project-next-v171"><span class="workflow-project-next-label-v171">${completed?(fullyDone?'프로젝트 완료':'완료된 단계'):'다음 단계'}</span><strong>${html(highlight)}</strong></div>
+      <div class="workflow-project-steps-v17" ${expand?'':'hidden'}>${shownSteps.map(stageMarkup).join('')}<button type="button" class="workflow-project-edit-v17" data-workflow-project-edit="${html(p.id)}">프로젝트 수정</button></div>
     </article>`;
-  }).join(''):'<p class="workflow-empty-v17">표시할 진행 프로젝트가 없습니다.</p>';
+  }).join(''):`<p class="workflow-empty-v17">${completed?'완료된 프로젝트 단계가 없습니다.':'표시할 진행 프로젝트가 없습니다.'}</p>`;
 }
 function ensureSplit(){
   const page=get('#taskListPage');if(!page)return;
   const table=page.querySelector(':scope > .tablewrap');
   if(!get('#workflowSplitV17')){
     const split=document.createElement('div');split.id='workflowSplitV17';split.className='workflow-split-v17';
-    split.innerHTML=`<section class="workflow-column-v17" aria-label="프로젝트 목록"><header><h3>프로젝트 목록</h3><span>프로젝트별 단계 관리</span></header><div id="workflowProjectListV17"></div></section><section class="workflow-column-v17 workflow-general-v17" aria-label="일반업무 목록"><header><h3>일반업무 목록</h3><span>직접 등록 · 라이브러리 등록 업무</span></header><div id="workflowGeneralMountV17"></div></section>`;
+    split.innerHTML=`<section class="workflow-column-v17" aria-label="프로젝트 목록"><header><h3 id="workflowProjectsHeadingV173">프로젝트 목록</h3><span id="workflowProjectsSubheadingV173">프로젝트별 단계 관리</span></header><div id="workflowProjectListV17"></div></section><section class="workflow-column-v17 workflow-general-v17" aria-label="일반업무 목록"><header><h3 id="workflowGeneralHeadingV173">일반업무 목록</h3><span id="workflowGeneralSubheadingV173">직접 등록 · 라이브러리 등록 업무</span></header><div id="workflowGeneralMountV17"></div></section>`;
     table?.insertAdjacentElement('beforebegin',split);
     get('#workflowGeneralMountV17',split)?.appendChild(table);
     get('#workflowProjectListV17',split)?.addEventListener('click',e=>{
       const expand=e.target.closest('[data-workflow-expand]');
-      if(expand){const id=expand.dataset.workflowExpand;reopenedProjects.has(id)?reopenedProjects.delete(id):reopenedProjects.add(id);renderProjectCards();return;}
+      if(expand){const id=expand.dataset.workflowExpand;reopenedProjects.has(id)?reopenedProjects.delete(id):reopenedProjects.add(id);renderProjectCards(currentTaskViewV35?.()==='completed');return;}
       const edit=e.target.closest('[data-workflow-project-edit]');if(edit){window.WMProjectUI?.openEditor(edit.dataset.workflowProjectEdit);return;}
       const step=e.target.closest('[data-workflow-step]');if(step&&step.dataset.workflowStep){openChecklist(step.dataset.workflowStep);}
     });
   }
   return get('#workflowSplitV17');
 }
+function bindVisibleSelectAllV173(){
+  // The legacy handler selects from *all* filtered tasks, including project
+  // stages which are no longer part of the right-hand table. That can cause
+  // "delete selected" to delete invisible project stages. Replace its handler.
+  const selectAll=get('#selectAllTasks'),body=get('#taskTableBody');
+  if(!selectAll||!body)return;
+  const visible=getAll('input[data-task-select]',body);
+  const visibleIds=new Set(visible.map(input=>input.dataset.taskSelect));
+  if(typeof selectedTaskIdsV2!=='undefined'&&selectedTaskIdsV2 instanceof Set){
+    for(const id of [...selectedTaskIdsV2])if(!visibleIds.has(id))selectedTaskIdsV2.delete(id);
+  }
+  selectAll.checked=visible.length>0&&visible.every(input=>input.checked);
+  selectAll.onchange=()=>{
+    for(const input of getAll('input[data-task-select]',body)){
+      input.checked=selectAll.checked;
+      if(typeof selectedTaskIdsV2!=='undefined'&&selectedTaskIdsV2 instanceof Set){
+        if(selectAll.checked)selectedTaskIdsV2.add(input.dataset.taskSelect);
+        else selectedTaskIdsV2.delete(input.dataset.taskSelect);
+      }
+    }
+    if(typeof updateBulkV2==='function')updateBulkV2();
+  };
+  if(typeof updateBulkV2==='function')updateBulkV2();
+}
 function updateSplit(){
   const page=get('#taskListPage');if(!page)return;
   const split=ensureSplit();if(!split)return;
   const completed=(typeof currentTaskViewV35==='function'&&currentTaskViewV35()==='completed');
-  if(completed){
-    page.classList.remove('workflow-split-enabled-v17');split.hidden=true;
-    // Existing completed table uses the original tbody and all task actions.
-    const table=get('#workflowGeneralMountV17 .tablewrap');
-    if(table)split.insertAdjacentElement('beforebegin',table);
-  }else{
-    const table=page.querySelector(':scope > .tablewrap');if(table)get('#workflowGeneralMountV17')?.appendChild(table);
-    page.classList.add('workflow-split-enabled-v17');split.hidden=false;
-    // Keep the original table and existing event handlers; only remove displayed project rows.
-    const root=get('#taskTableBody');
-    getAll('tr',root||document).forEach(tr=>{
-      const id=tr.querySelector('[data-task]')?.dataset.task;
-      const t=id&&state.tasks.find(x=>x.id===id);
-      if(t?.projectId)tr.remove();
-    });
-    renderProjectCards();
-  }
+  const generalMount=get('#workflowGeneralMountV17');
+  const table=page.querySelector(':scope > .tablewrap');
+  if(table)generalMount?.appendChild(table);
+  page.classList.add('workflow-split-enabled-v17');
+  page.classList.toggle('workflow-completed-split-v173',completed);
+  split.hidden=false;
+  get('#workflowProjectsHeadingV173').textContent=completed?'완료된 프로젝트':'프로젝트 목록';
+  get('#workflowProjectsSubheadingV173').textContent=completed?'완료 또는 일부 완료된 단계':'프로젝트별 단계 관리';
+  get('#workflowGeneralHeadingV173').textContent=completed?'완료된 일반업무':'일반업무 목록';
+  get('#workflowGeneralSubheadingV173').textContent=completed?'완료 처리된 일반업무 기록':'직접 등록 · 라이브러리 등록 업무';
+  // Retain an orphaned stage in the general table instead of making it
+  // disappear if its project definition was removed independently.
+  const registeredProjects=new Set((state.projects||[]).map(p=>p.id));
+  const body=get('#taskTableBody');
+  getAll('tr',body||document).forEach(tr=>{
+    const id=tr.querySelector('[data-task]')?.dataset.task
+      ||tr.querySelector('[data-task-select]')?.dataset.taskSelect;
+    const task=id&&state.tasks.find(t=>t.id===id);
+    if(task?.projectId&&registeredProjects.has(task.projectId))tr.remove();
+  });
+  renderProjectCards(completed);
+  bindVisibleSelectAllV173();
 }
+
 function ensureCreateMenu(){
   const trigger=get('#newTaskBtn');if(!trigger||trigger.dataset.workflowMenuV17)return;
   trigger.dataset.workflowMenuV17='1';
