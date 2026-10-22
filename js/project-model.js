@@ -76,6 +76,43 @@
     }
     return end;
   }
+  // Stages 2+ are scheduled relative to the previous stage's END, not fixed dates.
+  // Legacy absolute dates are converted once to offsets so the first edit does not shift them.
+  function dayDifference(from,to){
+    const a=date(from),b=date(to);
+    if(!a||!b)return 0;
+    return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
+  }
+  function initializeRelativeDates(project,holidayCheck){
+    if(!project?.stages)return project;
+    for(let i=1;i<project.stages.length;i++){
+      const previous=project.stages[i-1],stage=project.stages[i];
+      const baseline=stageEnd(previous,holidayCheck)||previous.start||project.start;
+      if(!Number.isFinite(Number(stage.relativeStartDays))||stage.relativeStartDays===undefined||stage.relativeStartDays===null)
+        stage.relativeStartDays=dayDifference(baseline,stage.start||baseline);
+      if(!Number.isFinite(Number(stage.relativeEndDays))||stage.relativeEndDays===undefined||stage.relativeEndDays===null)
+        stage.relativeEndDays=dayDifference(baseline,stageEnd(stage,holidayCheck)||stage.start||baseline);
+    }
+    return project;
+  }
+  function applyRelativeDates(project,holidayCheck){
+    initializeRelativeDates(project,holidayCheck);
+    for(let i=1;i<(project.stages||[]).length;i++){
+      const previous=project.stages[i-1],stage=project.stages[i];
+      const baseline=stageEnd(previous,holidayCheck)||previous.start||project.start;
+      stage.start=dateAfter(baseline,Number(stage.relativeStartDays)||0,true,holidayCheck);
+      // Offset can be negative in older projects: preserve it rather than silently changing the schedule.
+      if(Number(stage.relativeStartDays)<0){
+        const d=new Date(baseline+'T12:00:00');d.setDate(d.getDate()+Number(stage.relativeStartDays));
+        stage.start=date(d.toISOString().slice(0,10));
+      }
+      const endOffset=Number(stage.relativeEndDays)||0;
+      stage.endType='date';
+      if(endOffset>=0)stage.endDate=dateAfter(baseline,endOffset,true,holidayCheck);
+      else {const d=new Date(baseline+'T12:00:00');d.setDate(d.getDate()+endOffset);stage.endDate=date(d.toISOString().slice(0,10));}
+    }
+    return project;
+  }
   function sanitizeResources(resources){
     return (resources||[]).map(({data,objectUrl,blobUrl,previewUrl,...item})=>clone(item));
   }
@@ -89,6 +126,7 @@
     if(!p.start)throw new Error('프로젝트 시작일을 입력해 주세요.');
     if(p.end&&p.end<p.start)throw new Error('프로젝트 종료일은 시작일 이후여야 합니다.');
     if(!p.stages?.length)throw new Error('단계를 추가해 주세요.');
+    applyRelativeDates(p,holidayCheck);
     const ids=new Set(), taskIds=new Set();
     p.stages=p.stages.map((step,i)=>{
       const s=clone(step);s.id||=id('stage');s.taskId||=id('project-task');
@@ -182,5 +220,5 @@
     projects:(state.projects||[]).filter(p=>p.id!==projectId),
     tasks:(state.tasks||[]).filter(t=>t.projectId!==projectId)
   };}
-  return {id,clone,date,freshStep,freshProject,addStep,removeStep,moveStep,stageEnd,normalizeProject,visibleStage,checksForEdit,buildStageTask,reconcile,setCheck,removeProject};
+  return {id,clone,date,freshStep,freshProject,addStep,removeStep,moveStep,stageEnd,initializeRelativeDates,applyRelativeDates,normalizeProject,visibleStage,checksForEdit,buildStageTask,reconcile,setCheck,removeProject};
 });
