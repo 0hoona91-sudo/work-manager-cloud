@@ -184,11 +184,11 @@ function stageEditor(){
     <div class="prj-stage-tools"><div><b>${activeStage+1}단계 설정</b><small>단계를 끌어서 순서를 바꾸거나 화살표로 이동할 수 있습니다.</small></div><div class="prj-stage-actions"><button type="button" class="prj-move" id="prj-move-left" ${activeStage===0?'disabled':''}>← 앞 단계</button><button type="button" class="prj-move" id="prj-move-right" ${activeStage===editor.stages.length-1?'disabled':''}>뒤 단계 →</button><button type="button" class="prj-delete-step" id="prj-remove-stage">이 단계 삭제</button></div></div>
     <div class="prj-field prj-full"><label>세부 업무명 *</label><input data-stage-field="title" value="${escp(s.title)}" placeholder="단계에서 수행할 업무명을 입력하세요"></div>
     <div class="prj-field prj-full"><label>참여자 <span class="prj-hint">여러 명 선택 가능</span></label><div class="prj-people">${state.owners.map(owner=>`<label><input type="checkbox" data-person="${escp(owner)}" ${s.participants.includes(owner)?'checked':''}><span>${escp(owner)}</span></label>`).join('')||'<p>먼저 설정에서 담당자를 등록해 주세요.</p>'}</div></div>
-    <div class="prj-schedule"><h4>일정</h4><div class="prj-date-row">${dateField('stageStart','시작일',s.start||editor.start,{required:true})}<div class="prj-field"><label>종료일 방식</label><div class="prj-end-options">${[['same','당일 마무리'],['date','날짜 지정'],['after','며칠 후']].map(([v,label])=>`<label><input type="radio" name="prjEndMode" value="${v}" ${s.endType===v?'checked':''}> ${label}</label>`).join('')}</div></div></div>
+    ${activeStage>0?`<div class="prj-schedule"><h4>일정 · 상위 업무 기준</h4><div class="prj-relative-date-v177"><p>이전 단계 종료일을 기준으로 자동 계산합니다.</p><label>시작일: 상위 업무 후 <input type="number" id="prj-relative-start-v177" step="1" value="${Number(s.relativeStartDays)||0}">일</label><label>종료일: 상위 업무 후 <input type="number" id="prj-relative-end-v177" step="1" value="${Number(s.relativeEndDays)||0}">일</label><p>계산 결과: ${escp(s.start||'-')} ~ ${escp(M.stageEnd(s,holidayCheck)||'-')}</p></div></div>`:`<div class="prj-schedule"><h4>일정</h4><div class="prj-date-row">${dateField('stageStart','시작일',s.start||editor.start,{required:true})}<div class="prj-field"><label>종료일 방식</label><div class="prj-end-options">${[['same','당일 마무리'],['date','날짜 지정'],['after','며칠 후']].map(([v,label])=>`<label><input type="radio" name="prjEndMode" value="${v}" ${s.endType===v?'checked':''}> ${label}</label>`).join('')}</div></div></div>
       <div class="prj-end-details">${s.endType==='date'?dateField('stageEnd','종료일',s.endDate):s.endType==='after'?`<div class="prj-field"><label>시작일 이후</label><div class="prj-inline"><input type="number" id="prj-after-days" min="0" max="9999" value="${Number(s.afterDays)||0}"><span>일 후</span></div></div><label class="prj-small-check"><input type="checkbox" id="prj-count-holidays" ${s.includeHolidays?'checked':''}> 주말·휴일 포함</label>`:''}
        ${s.endType!=='same'?`<div class="prj-field"><label>종료일이 휴일이면</label><select id="prj-holiday-shift">${[['keep','그대로'],['prev','이전 근무일'],['next','다음 근무일']].map(([v,label])=>`<option value="${v}" ${s.holidayShift===v?'selected':''}>${label}</option>`).join('')}</select></div>`:''}
       </div>
-    </div>
+    </div>`}
     <div class="prj-block"><div class="prj-block-header"><h4>체크리스트</h4><span>체크항목별 담당자와 마감일을 지정합니다.</span></div><div class="prj-check-head"><span></span><span>체크할 내용</span><span>담당자</span><span>마감일</span><span></span></div><div id="prj-check-list">${checkRows(s)}</div><button type="button" id="prj-add-check" class="prj-soft-btn">＋ 체크항목</button></div>
     <div class="prj-block"><div class="prj-block-header"><h4>진행자료</h4><span>사진·문서 원본은 기존 Google Drive 연결을 사용합니다.</span></div><div id="prj-resources">${resourceRows(s)}</div><button type="button" id="prj-add-resource" class="prj-soft-btn">＋ 자료 추가</button><input hidden id="prj-file-picker" type="file" multiple></div>
   </div>`;
@@ -213,6 +213,7 @@ function openEditor(id=null,stageId=null){
   editor=existing?M.clone(existing):M.freshProject(todayISO());
   // 실제 담당자 목록에 혼자만 등록되어 있는 환경에서는 모든 단계와 체크항목 담당자 자동 고정.
   if(state.owners.length===1 && !editor.manager)editor.manager=state.owners[0];
+  M.initializeRelativeDates(editor,holidayCheck);
   editor.stages.forEach(s=>{
     s.checklist=M.checksForEdit(s,projectStageTask(editor.id,s.id));s.resources||=[];s.participants||=[];s.endType||='same';
     if(state.owners.length===1 && !s.participants.length)s.participants=[state.owners[0]];
@@ -243,6 +244,9 @@ function refreshCheckOwners(root,step){
 function updateDateField(key,value){
   const map={projectStart:()=>{editor.start=value;},projectEnd:()=>{editor.end=value;},stageStart:()=>{editor.stages[activeStage].start=value;},stageEnd:()=>{editor.stages[activeStage].endDate=value;}};
   if(map[key])map[key]();
+  if((key==='projectStart'||key==='stageStart') && /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))){
+    try{M.applyRelativeDates(editor,holidayCheck);}catch(error){console.debug('날짜 입력 중 계산 보류',error);}
+  }
   else if(key.startsWith('check_')){
     const i=Number(key.split('_')[1]);const item=editor.stages[activeStage].checklist?.[i];if(item)item.dueDate=value;
   }
@@ -287,7 +291,8 @@ function bindEditorHeader(root){
   $$p('[data-project-root]',root).forEach(field=>field.addEventListener('input',()=>{
     editor[field.dataset.projectRoot]=field.value;
     if(field.dataset.projectRoot==='manager' && state.owners.length===1){
-      editor.stages.forEach(s=>{if(!s.participants.length)s.participants=[field.value];normalizeCheckAssignments(s);});
+      M.initializeRelativeDates(editor,holidayCheck);
+   editor.stages.forEach(s=>{if(!s.participants.length)s.participants=[field.value];normalizeCheckAssignments(s);});
       renderStage();
     }
     setDirty();
@@ -310,7 +315,11 @@ function bindTabs(root){
 }
 function bindStageControls(root){
   const s=editor.stages[activeStage];if(!s)return;
-  $$p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
+  for(const [id,key] of [['prj-relative-start-v177','relativeStartDays'],['prj-relative-end-v177','relativeEndDays']]){
+    const input=$p('#'+id,root);
+    if(input)input.oninput=()=>{s[key]=Number(input.value)||0;M.applyRelativeDates(editor,holidayCheck);setDirty();};
+  }
+  $p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
   $$p('[data-person]',root).forEach(input=>input.onchange=()=>{
     s.participants=state.owners.filter(o=>$$p('[data-person]:checked',root).some(x=>x.dataset.person===o));
     refreshCheckOwners(root,s);setDirty();
@@ -384,6 +393,7 @@ async function saveEditor(){
   let before=null;
   try{
     // 정확하지 않은 날짜나 빈 단계명으로 원본 업로드를 시작하지 않는다.
+    M.applyRelativeDates(editor,holidayCheck);
     M.normalizeProject(editor,holidayCheck);
     await uploadPendingResources();
     const project=M.normalizeProject(editor,holidayCheck);
