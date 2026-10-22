@@ -145,6 +145,20 @@
     const allTasks=state.tasks||[], oldProjects=state.projects||[];
     const oldProject=oldProjects.find(p=>p.id===project.id);
     const projectTaskSet=new Map(allTasks.filter(t=>t.projectId===project.id).map(t=>[t.projectStageId,t]));
+    // Completed stages are historical records: preserve dates even if the
+    // project's overall schedule or a template is edited afterwards.
+    const oldStageMap=new Map((oldProject?.stages||[]).map(step=>[step.id,step]));
+    for(const step of project.stages){
+      const previousTask=projectTaskSet.get(step.id);
+      const originalStage=oldStageMap.get(step.id);
+      if(!previousTask||!(previousTask.status==='done'||previousTask.actualComplete)||!originalStage)continue;
+      step.start=originalStage.start;
+      step.endType=originalStage.endType;
+      step.endDate=originalStage.endDate;
+      step.afterDays=originalStage.afterDays;
+      step.includeHolidays=originalStage.includeHolidays;
+      step.holidayShift=originalStage.holidayShift;
+    }
     const stageIds=new Set(project.stages.map(s=>s.id));
     const deleted=allTasks.filter(t=>t.projectId===project.id&&!stageIds.has(t.projectStageId));
     const updated=project.stages.map((step,index)=>buildStageTask(project,step,index,projectTaskSet.get(step.id),holidayCheck));
