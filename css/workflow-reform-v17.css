@@ -1,6 +1,6 @@
 /* 업무관리시스템 개편 1차 · 기존 컬러 테마 변수를 그대로 사용 */
 .workflow-hint-v17{margin:12px 0;padding:12px 14px;border:1px solid var(--line,#dbe4ef);border-radius:12px;background:var(--accent-softer,#f4f8fc);font-size:12px;line-height:1.65;color:var(--text,#42586e)}
-.workflow-split-v17{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.17fr);gap:16px;align-items:start;margin:12px 0}
+.workflow-split-v17{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:16px;align-items:start;margin:12px 0}
 .workflow-split-v17[hidden]{display:none!important}
 .workflow-column-v17{min-width:0;border:1px solid var(--line,#dbe4ef);border-radius:16px;background:var(--panel,#fff);box-shadow:0 8px 26px rgba(30,45,70,.045);overflow:hidden}
 .workflow-column-v17>header{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;align-items:baseline;padding:15px 16px;background:var(--accent-softer,#f4f8fc);border-bottom:1px solid var(--line,#dbe4ef)}
@@ -19,10 +19,44 @@
 .workflow-general-v17 .tablewrap{margin:0;max-width:100%;border:0;box-shadow:none;border-radius:0;overflow-x:auto}
 .workflow-general-v17 .datatable{min-width:620px}.workflow-general-v17 .datatable th,.workflow-general-v17 .datatable td{font-size:11px;padding:10px 7px}
 #taskListPage.workflow-split-enabled-v17>.tablewrap{display:none}
-#taskListPage .pagehead{position:relative}#workflowCreateMenuV17{position:absolute;z-index:90;right:0;top:calc(100% + 4px);display:grid;gap:5px;min-width:210px;padding:7px;border:1px solid var(--line,#d9e5ee);border-radius:12px;background:var(--card,#fff);box-shadow:0 12px 30px rgba(0,0,0,.15)}
+#workflowCreateMenuV17{position:fixed;z-index:2147483000;display:grid;gap:5px;min-width:188px;padding:7px;border:1px solid var(--line,#d9e5ee);border-radius:12px;background:var(--card,#fff);box-shadow:0 12px 30px rgba(0,0,0,.15)}
 #workflowCreateMenuV17[hidden]{display:none!important}#workflowCreateMenuV17 button{width:100%;padding:12px 13px;border:0;border-radius:8px;text-align:left;background:transparent;color:var(--text,#263a4c);font-size:13px;font-weight:750;cursor:pointer}#workflowCreateMenuV17 button:hover{background:var(--accent-softer,#f4f8fb)}
 .workflow-lock-note-v17{margin:0 0 13px;padding:11px 12px;background:var(--accent-softer,#f5f8fc);border:1px solid var(--line,#d9e4ed);border-radius:10px;color:var(--accent-deep,#3f6585);font-size:12px;line-height:1.5}
 .workflow-locked-date-v17{opacity:.75!important;cursor:not-allowed!important}.workflow-auto-hidden-v17{display:none!important}
 #dbAutomationSettings[hidden],#repairRepeatsSetting[hidden],#syncDbSchedules[hidden],.navbtn[data-page="projectPage"]{display:none!important}
-@media(max-width:1080px){.workflow-split-v17{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:980px){.workflow-split-v17{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){.workflow-split-v17{gap:10px;margin:9px 0}.workflow-column-v17>header{padding:12px}.workflow-general-v17 .datatable{min-width:520px}#workflowCreateMenuV17{right:0;top:100%;min-width:190px}}
+
+/* V1.7.1: Hide the deprecated tab even against the stronger v21 desktop rules. */
+body.app-v21:not(.mobile-ui-v17) .side .navbtn[data-page="projectPage"],
+body.app-v21.mobile-ui-v17 .side .navbtn[data-page="projectPage"],
+.side .navbtn[data-page="projectPage"],
+#projectPage{display:none!important}
+[data-nav-toggle-v33="projectPage"],
+[data-nav-toggle-local-v12="projectPage"]{display:none!important}
+
+/* Compact project tiles take 1/3; general work takes 2/3 of the available width. */
+.workflow-split-v17{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.workflow-project-card-v17{padding:14px;border-radius:16px;box-shadow:0 3px 12px rgba(28,52,81,.045)}
+.workflow-project-top-v171{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.workflow-project-category-v171,.workflow-project-status-v171{display:inline-flex;align-items:center;min-height:23px;padding:3px 8px;border-radius:7px;font-size:10px;font-weight:800}
+.workflow-project-category-v171{background:var(--accent-softer,#eef4fb);color:var(--accent-deep,#386d9b)}
+.workflow-project-status-v171{background:#e9f7ef;color:#24794e}
+.workflow-project-title-v17{min-height:0;padding:0 0 9px;gap:10px;border-radius:9px}
+.workflow-project-title-v17:hover{background:transparent}
+.workflow-project-title-v17:hover .workflow-project-copy-v17 b{text-decoration:underline;text-underline-offset:3px}
+.workflow-project-copy-v17 b{font-size:14px;line-height:1.4;letter-spacing:-.012em}
+.workflow-project-mark-v17{width:37px;height:37px;flex-basis:37px;border-radius:11px}
+.workflow-project-chevron-v171{font-size:13px;color:var(--muted,#687a90)}
+.workflow-project-info-v171{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 10px;margin-top:4px;font-size:11px;color:var(--muted,#6e7f92)}
+.workflow-project-progress-v171{height:7px;margin:10px 0 12px;border-radius:20px;background:var(--accent-softer,#e9eef5);overflow:hidden}
+.workflow-project-progress-v171>span{display:block;height:100%;border-radius:20px;background:var(--accent,#3778bf);transition:width .18s ease}
+.workflow-project-next-v171{display:grid;gap:5px;border-radius:10px;padding:10px 11px;background:var(--accent-softer,#f3f7fc)}
+.workflow-project-next-label-v171{font-size:10px;font-weight:800;color:var(--accent-deep,#37668e)}
+.workflow-project-next-v171 strong{font-size:11px;font-weight:750;line-height:1.5;overflow-wrap:anywhere;color:var(--text,#24364a)}
+.workflow-project-steps-v17{margin-top:12px;padding:12px 0 0}
+.workflow-stage-v17{background:var(--card,#fff)}
+/* Body-level popover remains visible above search panels and scroll containers. */
+#workflowCreateMenuV17{position:fixed!important;z-index:2147483000!important;max-width:calc(100vw - 16px)}
+@media(max-width:980px){.workflow-split-v17{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){.workflow-project-card-v17{padding:12px}}
