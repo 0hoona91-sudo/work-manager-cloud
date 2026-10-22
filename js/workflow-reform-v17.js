@@ -656,6 +656,40 @@ function decorateLibraryTypesV176(){
   if(headings[6])headings[6].textContent='유형';
   if(headings[7])headings[7].textContent='단계 구성';
 }
+// v1.7.7: One library project, with every stage shown in a handover-style detail.
+function libraryProjectDetailV177(template){
+  const steps=[{title:template.name||template.title||'1단계',checklist:template.checklist||[],method:template.method||'',methodBlocks:template.methodBlocks||[]},...(template.linkedSteps||[])];
+  const stageText=steps.map((step,index)=>{
+    const start=index===0?'프로젝트 기준일':('상위 업무 후 '+String(step.startOffsetDays??step.startOffset??step.startAfterDays??step.afterDays??0)+'일');
+    const end=index===0?'단계 종료일':('상위 업무 후 '+String(step.endOffsetDays??step.endOffset??step.endAfterDays??step.deadlineOffset??0)+'일');
+    const checks=(step.checklist||[]).map(c=>'<li>'+html(typeof c==='string'?c:c.text||c.title||'')+'</li>').join('');
+    return '<section class="library-project-step-v177"><h4>'+html(index+1)+'단계 · '+html(step.title||step.name||step.taskName||'업무명 미정')+'</h4><p>'+html(start)+' ~ '+html(end)+'</p>'+ (checks?'<ul>'+checks+'</ul>':'')+'</section>';
+  }).join('');
+  const blocks=(template.methodBlocks||[]).map(b=>typeof b==='string'?b:(b.text||b.content||b.value||'')).filter(Boolean);
+  const methods=[template.method||'',...blocks].filter(Boolean).join('\n\n');
+  return '<div class="library-project-detail-v177"><div class="library-project-steps-v177">'+stageText+'</div><section class="library-project-method-v177"><h3>업무 수행방법</h3><div style="white-space:pre-wrap">'+html(methods||'등록된 업무 수행방법이 없습니다.')+'</div></section></div>';
+}
+function enhanceLibraryProjectDetailV177(){
+  const dlg=get('#modalRoot .modal');if(!dlg)return;
+  const body=get('.modal-body',dlg);if(!body||get('#libraryProjectDetailV177',dlg))return;
+  const activeId=window.__libraryProjectDetailIdV177;
+  const template=(state.templates||[]).find(t=>String(t.id)===String(activeId));
+  if(!isProjectLibraryV176(template))return;
+  const section=document.createElement('section');section.id='libraryProjectDetailV177';
+  section.innerHTML=libraryProjectDetailV177(template);
+  body.prepend(section);
+}
+if(typeof openDbDetailV6==='function'){
+  const originalLibraryDetailV177=openDbDetailV6;
+  openDbDetailV6=function(ref,...args){
+    const parts=String(ref||'').split('|');
+    const root=parts[0]==='root'?(state.templates||[]).find(t=>String(t.id)===parts[1]):null;
+    window.__libraryProjectDetailIdV177=isProjectLibraryV176(root)?root.id:null;
+    const result=originalLibraryDetailV177.call(this,ref,...args);
+    if(root)enhanceLibraryProjectDetailV177();
+    return result;
+  };
+}
 const renderDbTableV176Base=renderDbTable;
 renderDbTable=function(...args){
   const result=renderDbTableV176Base.apply(this,args);
