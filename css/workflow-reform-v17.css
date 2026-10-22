@@ -106,3 +106,12 @@ body.app-v21.mobile-ui-v17 #taskListPage .workflow-board-v172 #taskTableBody tr 
 body.app-v21.mobile-ui-v17 #taskListPage .workflow-board-v172 #taskTableBody tr td:nth-child(4){
   display:table-cell!important;padding:10px 9px!important;
 }
+
+/* v1.7.3 — Completed projects share the same 1:2 layout as active projects. */
+#taskListPage.workflow-completed-split-v173 #workflowSplitV17{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,2fr)!important}
+#taskListPage.workflow-completed-split-v173 .workflow-column-v17{min-width:0}
+#taskListPage .workflow-project-completed-v173 .workflow-project-status-v171{background:#e7f6ed;color:#24704b}
+#taskListPage .workflow-project-partial-v173 .workflow-project-status-v171{background:#fff5e3;color:#8b5c17}
+#taskListPage .workflow-project-completed-v173 .workflow-project-next-v171{background:var(--accent-softer,#f4f8fc)}
+#taskListPage.workflow-completed-split-v173 .workflow-general-v17 .tablewrap{width:100%;min-width:0;overflow-x:auto}
+@media(max-width:980px){#taskListPage.workflow-completed-split-v173 #workflowSplitV17{grid-template-columns:minmax(0,1fr)!important}}
