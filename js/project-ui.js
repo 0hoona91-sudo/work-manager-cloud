@@ -213,6 +213,7 @@ function openEditor(id=null,stageId=null){
   editor=existing?M.clone(existing):M.freshProject(todayISO());
   // 실제 담당자 목록에 혼자만 등록되어 있는 환경에서는 모든 단계와 체크항목 담당자 자동 고정.
   if(state.owners.length===1 && !editor.manager)editor.manager=state.owners[0];
+  M.initializeRelativeDates(editor,holidayCheck);
   editor.stages.forEach(s=>{
     s.checklist=M.checksForEdit(s,projectStageTask(editor.id,s.id));s.resources||=[];s.participants||=[];s.endType||='same';
     if(state.owners.length===1 && !s.participants.length)s.participants=[state.owners[0]];
@@ -243,6 +244,9 @@ function refreshCheckOwners(root,step){
 function updateDateField(key,value){
   const map={projectStart:()=>{editor.start=value;},projectEnd:()=>{editor.end=value;},stageStart:()=>{editor.stages[activeStage].start=value;},stageEnd:()=>{editor.stages[activeStage].endDate=value;}};
   if(map[key])map[key]();
+  if((key==='projectStart'||key==='stageStart') && /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))){
+    try{M.applyRelativeDates(editor,holidayCheck);}catch(error){console.debug('날짜 입력 중 계산 보류',error);}
+  }
   else if(key.startsWith('check_')){
     const i=Number(key.split('_')[1]);const item=editor.stages[activeStage].checklist?.[i];if(item)item.dueDate=value;
   }
@@ -311,7 +315,11 @@ function bindTabs(root){
 }
 function bindStageControls(root){
   const s=editor.stages[activeStage];if(!s)return;
-  $$p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
+  for(const [id,key] of [['prj-relative-start-v177','relativeStartDays'],['prj-relative-end-v177','relativeEndDays']]){
+    const input=$p('#'+id,root);
+    if(input)input.oninput=()=>{s[key]=Number(input.value)||0;M.applyRelativeDates(editor,holidayCheck);setDirty();};
+  }
+  $p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
   $$p('[data-person]',root).forEach(input=>input.onchange=()=>{
     s.participants=state.owners.filter(o=>$$p('[data-person]:checked',root).some(x=>x.dataset.person===o));
     refreshCheckOwners(root,s);setDirty();
@@ -385,6 +393,7 @@ async function saveEditor(){
   let before=null;
   try{
     // 정확하지 않은 날짜나 빈 단계명으로 원본 업로드를 시작하지 않는다.
+    M.applyRelativeDates(editor,holidayCheck);
     M.normalizeProject(editor,holidayCheck);
     await uploadPendingResources();
     const project=M.normalizeProject(editor,holidayCheck);
