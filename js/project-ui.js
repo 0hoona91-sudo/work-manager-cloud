@@ -432,17 +432,11 @@ function projectTaskModal(task){
     <h4>진행자료</h4><div class="prj-task-resources">${(stage.resources||[]).map(r=>`<button type="button" class="prj-soft-btn" data-task-resource="${escp(r.id)}">${escp(r.name)}</button>`).join('')||'<small>등록된 진행자료 없음</small>'}</div>
     <label class="prj-soft-btn prj-stage-add-resource-v175">＋ 관련 자료 추가<input type="file" id="prjTaskAddResourceV175" multiple hidden></label>
     <small class="prj-resource-hint-v175">현재 단계에만 파일이 추가되며 다른 단계에는 영향을 주지 않습니다.</small>
-    ${project.libraryTemplateIdV175?'<p class="prj-library-link-v175"><button type="button" class="prj-soft-btn" id="prjLibraryViewV175">업무수행방법 · 라이브러리 자료 보기</button></p>':''}
     </div>`;
   const footer=`<button type="button" class="btn" id="prjEditFromTask">프로젝트 수정</button>${!checks.length?`<button type="button" class="btn primary" id="prjManualComplete">${effectiveStatus(task)==='done'?'진행업무로 되돌리기':'이 단계 완료'}</button>`:''}<button type="button" class="btn" data-close>닫기</button>`;
   modal(escp(task.name),body,footer,'small prj-task-modal');
   $p('#prjEditFromTask').onclick=()=>openEditor(project.id,stage.id);
   $$p('[data-task-resource]').forEach(b=>b.onclick=()=>{const ref=stage.resources.find(r=>r.id===b.dataset.taskResource);if(ref)void openResource(ref);});
-  const libraryView=$p('#prjLibraryViewV175');if(libraryView)libraryView.onclick=()=>{
-    const tpl=state.templates?.find(x=>x.id===project.libraryTemplateIdV175);
-    if(tpl&&typeof openDbDetailV6==='function')openDbDetailV6(`root|${tpl.id}`);
-    else alert('연결된 업무 라이브러리를 찾지 못했습니다.');
-  };
   const addResource=$p('#prjTaskAddResourceV175');if(addResource)addResource.onchange=async event=>{
     const files=[...(event.target.files||[])];if(!files.length)return;
     addResource.disabled=true;
@@ -527,5 +521,476 @@ ensureSettingsControl();
 // theme 버튼은 이미지를 별도 요소로 겹치지 않고 nav-icon의 background만 사용한다.
 const observer=new MutationObserver(()=>applyProjectThemeIcon());
 observer.observe(document.body,{attributes:true,attributeFilter:['data-v7-theme']});
+
+// v1.8.1: Project/library UI improvements. Kept within project-ui.js so only the
+// changed file needs to be uploaded on the existing GitHub Pages deployment.
+function installLibraryAndProjectEnhancementsV181(){
+  const html=escp;
+  const safeDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''))?String(s):'';
+  const templateById=id=>(state.templates||[]).find(t=>String(t.id)===String(id));
+  const isProjectTemplate=t=>Boolean(t&&(t.libraryKindV175==='project'||(t.linkedSteps||[]).length));
+  const isHoliday=s=>{
+    const date=safeDate(s);if(!date)return false;
+    const d=new Date(date+'T12:00:00');
+    return d.getDay()===0||d.getDay()===6||(state.holidays||[]).some(h=>h.date===date||h.day===date);
+  };
+  const shiftDate=(iso,shift)=>{
+    if(!safeDate(iso)||!['prev','next'].includes(shift))return iso;
+    let d=new Date(iso+'T12:00:00'),count=0;
+    while(isHoliday(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'))&&count++<370){
+      d.setDate(d.getDate()+(shift==='prev'?-1:1));
+    }
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  };
+  function openSource(ref){
+    if(ref?.driveFileId && window.cloudSync?.openDriveFile)
+      return void window.cloudSync.openDriveFile(ref.driveFileId,ref.name||'자료',ref.mimeType||'');
+    if(ref?.localFileId && typeof openOrDownloadLocalFile==='function')
+      return void openOrDownloadLocalFile(ref.localFileId,ref.name||'자료',ref.mimeType||'');
+    if(ref?.data && /^data:image\//.test(ref.data)){
+      const w=window.open();if(w)w.document.write('<img alt="첨부 이미지" style="max-width:100%" src="'+html(ref.data)+'">');
+      return;
+    }
+    alert('연결된 파일 원본이 없거나 접근할 수 없습니다.');
+  }
+  function resourceButtons(list,stage){
+    return (list||[]).map((ref,index)=>'<button type="button" class="prj-soft-btn" data-library-resource-v181="'+html(stage+':'+index)+'">'+html(ref.name||ref.title||'첨부자료 '+(index+1))+'</button>').join('');
+  }
+  function methodMarkup(template){
+    const blocks=template.methodBlocks?.length?template.methodBlocks:template.method?[{type:'text',text:template.method}]:[];
+    const all=blocks.map((b,i)=>{
+      if(b.type==='image'){
+        const src=b.data&&/^data:image\//.test(b.data)?b.data: b.previewUrl&&/^https:\/\//.test(b.previewUrl)?b.previewUrl:'';
+        return '<div class="library-method-block-v181">'+(src?'<img class="library-method-image-v181" src="'+html(src)+'" alt="'+html(b.name||'업무 사진')+'">':'')+
+          '<button class="prj-soft-btn" type="button" data-library-method-v181="'+i+'">사진'+(b.name?' · '+html(b.name):'')+' 열기</button></div>';
+      }
+      return '<div class="library-method-block-v181" style="white-space:pre-wrap">'+html(b.text||b.content||b.value||'')+'</div>';
+    }).join('');
+    return all||'<p class="muted">등록된 업무 수행방법이 없습니다.</p>';
+  }
+  function showProjectLibraryV181(template,{methodOnly=false}={}){
+    if(!template)return alert('연결된 프로젝트 라이브러리를 찾지 못했습니다.');
+    const steps=[template,...(template.linkedSteps||[])];
+    const cards=steps.map((s,i)=>{
+      const checklist=(s.checklist||[]).map(c=>'<label class="library-check-static-v181"><input type="checkbox" disabled> '+html(typeof c==='string'?c:c.text||'')+'</label>').join('');
+      const rule=i?'<span>상위 업무 기준 · '+html(s.startOffset??s.startOffsetDays??s.startAfterDays??s.afterDays??'설정값 확인')+'일 후</span>':
+        '<span>프로젝트 첫 단계</span>';
+      return '<article class="library-stage-card-v181"><div class="library-stage-head-v181"><span class="library-stage-label-v181">'+(i+1)+'단계 · 예정</span><b>'+html(s.title||s.name||s.taskName||(i===0?template.name:'단계 '+(i+1)))+'</b></div><div class="library-stage-fields-v181">'+
+        '<div><small>담당자 / 참여자</small><strong>'+html((s.participants||[]).join(', ')||s.owner||template.owner||template.manager||'-')+'</strong></div>'+
+        '<div><small>예정 일정 규칙</small><strong>'+rule+'</strong></div></div>'+
+        (checklist?'<h5>체크리스트</h5>'+checklist:'')+
+        ((s.attachments||s.resources||[]).length?'<h5>관련 양식 / 자료</h5>'+resourceButtons(s.attachments||s.resources,i):'')+'</article>';
+    }).join('');
+    const body='<div class="library-project-full-v181" id="libraryProjectDetailV177">'+
+      (methodOnly?'':'<section><h3>단계별 수행내용</h3><div class="library-stage-grid-v181">'+cards+'</div></section>')+
+      '<section class="library-project-method-v181"><h3>업무 수행방법</h3>'+methodMarkup(template)+'</section>'+
+      '<section class="library-project-attachments-v181"><h3>첨부자료 (양식)</h3>'+
+      (template.attachments?.length?resourceButtons(template.attachments,'root'):'<p class="muted">등록된 첨부자료가 없습니다.</p>')+'</section></div>';
+    const footer='<button type="button" class="btn" id="libraryProjectCloseV181">닫기</button>'+
+      (methodOnly?'':'<button type="button" class="btn" id="libraryProjectEditV181">라이브러리 수정</button><button type="button" class="btn primary" id="libraryProjectRegisterV181">진행업무 등록 화면</button>');
+    modal(methodOnly?'업무수행방법 · '+html(template.name||'프로젝트'):html(template.name||'프로젝트 상세'),body,footer,'library-project-view-v181');
+    $p('#libraryProjectCloseV181').onclick=()=>closeModal();
+    const edit=$p('#libraryProjectEditV181');if(edit)edit.onclick=()=>openDbForm(template.id);
+    const reg=$p('#libraryProjectRegisterV181');if(reg)reg.onclick=()=>{
+      // Preserve the original registration workflow; no task creation is invented here.
+      if(typeof originalLibraryDetailV181==='function')originalLibraryDetailV181('root|'+template.id);
+    };
+    $$p('[data-library-resource-v181]').forEach(btn=>btn.onclick=()=>{
+      const [slot,idx]=btn.dataset.libraryResourceV181.split(':');const stage=slot==='root'?null:steps[Number(slot)];
+      const refs=slot==='root'?template.attachments:(stage?.attachments||stage?.resources||[]);
+      openSource(refs?.[Number(idx)]);
+    });
+    $$p('[data-library-method-v181]').forEach(btn=>btn.onclick=()=>openSource(template.methodBlocks?.[Number(btn.dataset.libraryMethodV181)]));
+  }
+  // Retain the legacy renderer as an escape hatch for registering a project.
+  const originalLibraryDetailV181=typeof openDbDetailV6==='function'?openDbDetailV6:null;
+  if(originalLibraryDetailV181){
+    openDbDetailV6=function(ref,...args){
+      const parts=String(ref||'').split('|'),root=parts[0]==='root'?templateById(parts[1]):null;
+      if(isProjectTemplate(root)){showProjectLibraryV181(root);return;}
+      return originalLibraryDetailV181.call(this,ref,...args);
+    };
+  }
+  // The project list is re-rendered by workflow-reform-v17.js. Patch its newly
+  // inserted footer in place; original close/edit handlers remain delegated.
+  function decorateProjectActions(){
+    $$p('#workflowProjectListV17 .workflow-project-card-v17').forEach(card=>{
+      const actions=$p('.workflow-project-actions-v174',card);
+      if(!actions||actions.dataset.projectActionsV181)return;
+      const title=$p('[data-workflow-expand]',card);
+      const id=title?.dataset.workflowExpand,project=projectById(id);
+      if(!project)return;
+      actions.dataset.projectActionsV181='1';
+      const btn=document.createElement('button');btn.type='button';btn.className='workflow-project-method-v181';
+      btn.textContent='업무수행방법';btn.onclick=event=>{
+        event.stopPropagation();const current=projectById(id),tpl=templateById(current?.libraryTemplateIdV175);
+        if(tpl)showProjectLibraryV181(tpl,{methodOnly:true});
+        else alert('이 프로젝트에 연결된 라이브러리 수행방법이 없습니다.');
+      };
+      const edit=$p('[data-workflow-project-edit]',actions),close=$p('[data-workflow-project-close]',actions);
+      actions.replaceChildren(btn,...[edit,close].filter(Boolean));
+      if(edit)edit.textContent='프로젝트 수정';
+      if(close)close.textContent='프로젝트 완료(종료)';
+    });
+  }
+  // Editor buttons are limited to Save / Cancel / Delete. Do not delete inputs
+  // or the original save handler, which retains versioning and upload behavior.
+  function tidyLibraryForm(){
+    const dlg=$p('#modalRoot .db-form-modal');if(!dlg)return;
+    const footer=$p('.modal-foot',dlg);if(footer){
+      $$p('button',footer).forEach(b=>{
+        const t=(b.textContent||'').trim();
+        if(!/^(저장|취소|삭제)$/.test(t)&&!b.hasAttribute('data-close'))b.remove();
+      });
+    }
+    // Make checklist text fields fill their available grid/flex space.
+    $$p('fieldset',dlg).forEach(fs=>{
+      const legend=$p('legend',fs);if(!legend||!legend.textContent.includes('체크리스트'))return;
+      $$p('input[type="text"]',fs).forEach(input=>{
+        input.style.minWidth='0';input.style.width='100%';input.style.maxWidth='none';
+        input.style.boxSizing='border-box';
+        const parent=input.parentElement;
+        if(parent && parent.children.length===1){parent.style.flex='1 1 auto';parent.style.minWidth='0';}
+      });
+    });
+  }
+  // Add the missing holiday handling option to ordinary library schedules.
+  function installHolidayShiftField(templateId){
+    const dlg=$p('#modalRoot .db-form-modal');if(!dlg||$p('#libraryHolidayShiftV181',dlg))return;
+    const all=[...dlg.querySelectorAll('fieldset')];
+    const schedule=all.find(fs=>/수행 주기|수행주기|반복 주기/.test(fs.querySelector('legend')?.textContent||''));
+    const anchor=schedule||dlg.querySelector('#dfAutoSchedule')?.closest('fieldset');
+    const field=document.createElement('div');field.id='libraryHolidayShiftV181';field.className='library-holiday-shift-v181';
+    field.innerHTML='<label for="libraryHolidaySelectV181"><b>업무 종료일이 공휴일·주말인 경우</b></label><select id="libraryHolidaySelectV181"><option value="keep">그대로 진행</option><option value="prev">이전 근무일</option><option value="next">다음 근무일</option></select><p class="muted">1일 업무는 시작일과 종료일을 함께 이동합니다. 진행업무 등록 시 적용됩니다.</p>';
+    if(anchor)anchor.insertAdjacentElement('afterend',field);else dlg.querySelector('.modal-body')?.appendChild(field);
+    const existing=templateById(templateId);const select=$p('#libraryHolidaySelectV181',field);
+    select.value=existing?.holidayShiftV181||'keep';
+    const button=$p('#saveDb',dlg);if(!button||button.dataset.holidaySaveV181)return;
+    button.dataset.holidaySaveV181='1';
+    const base=button.onclick;
+    if(typeof base==='function')button.onclick=async function(event){
+      const value=select.value,oldIds=new Set((state.templates||[]).map(t=>t.id));
+      const result=await base.call(this,event);
+      const saved=templateById(templateId)||(state.templates||[]).find(t=>!oldIds.has(t.id));
+      if(saved&&!isProjectTemplate(saved)&&saved.holidayShiftV181!==value){
+        saved.holidayShiftV181=value;
+        await saveState({reason:'라이브러리 휴일 처리 규칙 저장'});
+      }
+      return result;
+    };
+  }
+  const baseLibraryEditorV181=typeof openDbForm==='function'?openDbForm:null;
+  if(baseLibraryEditorV181){
+    openDbForm=function(...args){
+      const result=baseLibraryEditorV181.apply(this,args);
+      tidyLibraryForm();installHolidayShiftField(args[0]);return result;
+    };
+  }
+  const style=document.createElement('style');style.id='projectLibraryStyleV181';
+  style.textContent=`
+    .workflow-project-actions-v174{display:flex;flex-wrap:wrap;gap:8px}
+    .workflow-project-method-v181{background:#e7effa;border:1px solid #d1e0f5;color:#254875;border-radius:8px;padding:9px 12px;font-weight:650;cursor:pointer}
+    .library-project-full-v181{padding:4px 0 10px;color:var(--text,#263b56)}
+    .library-project-full-v181 section{margin:0 0 22px}
+    .library-project-full-v181 h3{margin:8px 0 14px;font-size:1rem}
+    .library-stage-grid-v181{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .library-stage-card-v181{border:1px solid #d2dfef;border-radius:17px;padding:16px;min-width:0;background:var(--surface,#fff)}
+    .library-stage-head-v181{display:flex;align-items:flex-start;flex-direction:column;gap:7px;margin-bottom:14px}
+    .library-stage-label-v181{border-radius:14px;background:#edf1f5;padding:4px 9px;font-size:.77rem;font-weight:650}
+    .library-stage-head-v181 b{font-size:.94rem;overflow-wrap:anywhere}
+    .library-stage-fields-v181{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    .library-stage-fields-v181>div{border:1px solid #d8e2ed;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:4px;min-width:0}
+    .library-stage-fields-v181 small{color:#738299;font-size:.72rem}
+    .library-stage-fields-v181 strong{overflow-wrap:anywhere;font-size:.82rem}
+    .library-stage-card-v181 h5{margin:16px 0 7px;font-size:.85rem}
+    .library-check-static-v181{display:block;padding:8px 10px;border-radius:9px;background:#f4f6f9;margin-bottom:4px}
+    .library-project-method-v181,.library-project-attachments-v181{border-top:1px solid #dae3ed;padding-top:15px}
+    .library-method-block-v181{margin:8px 0;line-height:1.6;overflow-wrap:anywhere}
+    .library-method-image-v181{display:block;max-width:100%;max-height:480px;object-fit:contain;border-radius:10px;margin:5px 0}
+    .library-holiday-shift-v181{padding:13px;border:1px solid #d8e2ed;border-radius:13px;margin:12px 0}
+    .library-holiday-shift-v181 select{display:block;width:min(100%,340px);margin:8px 0;padding:9px;border:1px solid #cbd8e8;border-radius:8px}
+    #modalRoot .db-form-modal fieldset input[type="text"]{box-sizing:border-box;max-width:100%}
+    @media(max-width:720px){.library-stage-grid-v181,.library-stage-fields-v181{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(style);
+  const projectRoot=$p('#taskListPage')||document.body;
+  let pending=false;
+  const observer=new MutationObserver(()=>{
+    if(pending)return;pending=true;
+    queueMicrotask(()=>{pending=false;decorateProjectActions();tidyLibraryForm();});
+  });
+  observer.observe(projectRoot,{childList:true,subtree:true});
+  const modalRoot=$p('#modalRoot');if(modalRoot&&modalRoot!==projectRoot)observer.observe(modalRoot,{childList:true,subtree:true});
+  decorateProjectActions();tidyLibraryForm();
+  window.WMProjectEnhancementsV181={showProjectLibrary:showProjectLibraryV181,shiftDate,decorateProjectActions};
+}
+installLibraryAndProjectEnhancementsV181();
+
+
+// v1.8.1: Conservative rolling scheduler for *manually registered* library
+// general tasks and the end-date override of an existing repeated occurrence.
+// It does not re-schedule completed work or legacy linked/project task chains.
+function installRollingRecurrencesV181(){
+  const parseDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''))?String(s):'';
+  const utcDate=s=>new Date(s+'T12:00:00Z');
+  const isoDate=d=>d.toISOString().slice(0,10);
+  const addDays=(s,n)=>{const d=utcDate(s);d.setUTCDate(d.getUTCDate()+n);return isoDate(d);};
+  const addMonths=(s,n,day)=>{
+    const d=utcDate(s),target=day||d.getUTCDate();
+    d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);
+    const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+    d.setUTCDate(Math.min(target,last));return isoDate(d);
+  };
+  const freqFrom=value=>{
+    const v=typeof value==='object'?(value?.frequency||value?.freq||value?.type||value?.unit||value?.cycle||''):String(value||'');
+    const t=String(v).toLowerCase().trim();
+    if(/주별|매주|weekly|week/.test(t))return 'weekly';
+    if(/월별|매월|monthly|month/.test(t))return 'monthly';
+    if(/분기별|분기|quarter/.test(t))return 'quarterly';
+    if(/반기별|반기|semi.?annual|half.?year/.test(t))return 'semiannual';
+    if(/연간|매년|연별|yearly|annual|year/.test(t))return 'yearly';
+    return '';
+  };
+  const scheduleKind=(task,template)=>{
+    for(const source of [template,task]){
+      if(!source)continue;
+      for(const key of ['repeatFrequency','frequency','freq','cycle','cycleType','repeatType','period','repeat','recurrence','schedule','interval','repeatUnit']){
+        const out=freqFrom(source[key]);if(out)return out;
+      }
+    }
+    return '';
+  };
+  const weekDay=raw=>{
+    if(raw===null||raw===undefined||raw==='')return null;
+    if(typeof raw==='number'&&raw>=0&&raw<=6)return raw;
+    const t=String(raw).trim().toLowerCase();
+    const mapping={'일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'sun':0,'mon':1,'tue':2,'wed':3,'thu':4,'fri':5,'sat':6};
+    for(const [k,v] of Object.entries(mapping))if(t.startsWith(k))return v;
+    if(/^\d$/.test(t)&&Number(t)<=6)return Number(t);
+    return null;
+  };
+  const configuredWeekDay=t=>{
+    if(!t)return null;
+    for(const key of ['weekday','weekDay','weekDays','dayOfWeek','repeatWeekday','scheduledWeekday','daysOfWeek','repeatDays']){
+      const v=t[key];if(v!==undefined){const day=weekDay(Array.isArray(v)?v[0]:v);if(day!==null)return day;}
+    }
+    return null;
+  };
+  const configuredMonths=t=>{
+    const raw=t?.executionMonths||t?.scheduledMonths||t?.selectedMonths||t?.monthlyMonths||t?.monthList||t?.repeatMonths||t?.months||t?.runMonths;
+    if(!raw)return null;
+    const arr=Array.isArray(raw)?raw:String(raw).split(/[,，\s]+/);
+    const values=[...new Set(arr.map(Number).filter(n=>Number.isInteger(n)&&n>=1&&n<=12))];
+    return values.length?values:null;
+  };
+  const dueShift=(s,policy)=>{
+    if(!parseDate(s)||!['prev','next'].includes(policy))return s;
+    let d=utcDate(s),n=0;
+    while(n++<365){
+      const day=d.getUTCDay(),current=isoDate(d);
+      if(day!==0&&day!==6&&!(state.holidays||[]).some(h=>h.date===current||h.day===current))break;
+      d.setUTCDate(d.getUTCDate()+(policy==='next'?1:-1));
+    }
+    return isoDate(d);
+  };
+  const templateFor=task=>(state.templates||[]).find(t=>String(t.id)===String(task.dbManualRootTemplateId||task.dbSourceTemplateId||task.autoSourceTemplateId||task.templateId));
+  const completed=task=>task.status==='done'||Boolean(task.actualComplete);
+  const sourceRoot=task=>task.repeatOriginV181||task.id;
+  const seriesRoot=task=>{
+    const origin=sourceRoot(task);
+    return (state.tasks||[]).find(t=>t.id===origin)||task;
+  };
+  let pendingEnd=null;
+  let registrationSnapshotV181=null;
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('button');
+    if(!button)return;
+    const text=(button.textContent||'').replace(/\s+/g,'');
+    const source=button.closest('#dbPage,#modalRoot');
+    if(source && /(진행업무|업무).*등록|등록.*(진행업무|업무)/.test(text)){
+      registrationSnapshotV181=new Set((state.tasks||[]).map(t=>t.id));
+    }
+  },true);
+  // Select whether a recurring task has an end date, while keeping existing
+  // native task-form fields intact. Applies to newly created and edited tasks.
+  function attachRecurrenceEndChoice(id){
+    const dlg=document.querySelector('#modalRoot .modal');
+    if(!dlg||dlg.classList.contains('project-editor-modal')||dlg.querySelector('#taskRepeatChoiceV181'))return;
+    const task=id?(state.tasks||[]).find(t=>t.id===id):null;
+    if(task?.projectId)return;
+    const schedules=[...dlg.querySelectorAll('label,legend')].filter(x=>/반복|주기/.test(x.textContent||''));
+    if(!schedules.length && !task?.repeat && !task?.repeatOriginV181 && !task?.seriesId)return;
+    const root=task?seriesRoot(task):null;
+    const existing=root?.repeatUntilV181||'';
+    const box=document.createElement('div');box.id='taskRepeatChoiceV181';box.className='library-holiday-shift-v181';
+    box.innerHTML='<label><input type="checkbox" id="taskRepeatHasEndV181" '+(existing?'checked':'')+'> 반복 종료일 설정</label>'+
+      '<input type="date" id="taskRepeatEndDateV181" value="'+existing+'" '+(existing?'':'disabled')+' style="margin:9px 8px;padding:8px;border:1px solid #cad6e5;border-radius:8px">'+
+      '<p class="muted">종료일을 지정하지 않으면 3개월 앞까지 일정이 생성되며, 이후에도 필요할 때 연장됩니다.</p>';
+    const foot=dlg.querySelector('.modal-foot');if(foot)foot.insertAdjacentElement('beforebegin',box);
+    else dlg.querySelector('.modal-body')?.appendChild(box);
+    const enabled=box.querySelector('#taskRepeatHasEndV181'),end=box.querySelector('#taskRepeatEndDateV181');
+    enabled.onchange=()=>{end.disabled=!enabled.checked;};
+    // The application's original Save handler calls saveState; only that actual
+    // save will apply this choice. Closing/cancelling does not mutate state.
+    dlg.addEventListener('click',event=>{
+      const b=event.target.closest('button');if(!b||!(b.id==='saveTask'||b.id==='saveTaskBtn'||/^(저장|수정 저장)$/.test((b.textContent||'').trim())))return;
+      if(enabled.checked&&!parseDate(end.value)){
+        event.preventDefault();event.stopImmediatePropagation();alert('반복 종료일을 선택해 주세요.');return;
+      }
+      pendingEnd={taskId:id||'',until:enabled.checked?end.value:null};
+    },true);
+  }
+  const baseTaskFormV181=typeof openTaskForm==='function'?openTaskForm:null;
+  if(baseTaskFormV181){
+    openTaskForm=function(id=null,...args){
+      const result=baseTaskFormV181.call(this,id,...args);
+      attachRecurrenceEndChoice(id);return result;
+    };
+  }
+  function applyEndChoice(){
+    if(!pendingEnd)return false;
+    const {taskId,until}=pendingEnd;pendingEnd=null;
+    let target=(state.tasks||[]).find(t=>t.id===taskId);
+    if(!target && !taskId){
+      const list=(state.tasks||[]).filter(t=>!t.projectId&&(t.repeat||t.repeatOriginV181)).slice(-1);
+      target=list[0];
+    }
+    if(!target)return false;
+    const root=seriesRoot(target);root.repeatUntilV181=until||'';
+    let dirty=true;
+    // Existing series generated by the application are left intact; only
+    // records created by this rolling generator are removed beyond the limit.
+    for(let i=(state.tasks||[]).length-1;i>=0;i--){
+      const item=state.tasks[i];
+      if(item.repeatOriginV181!==root.id)continue;
+      item.repeatUntilV181=until||'';
+      if(until&&item.start>until&&!completed(item)){state.tasks.splice(i,1);}
+    }
+    return dirty;
+  }
+  function adjustHolidayIfNeeded(task,template){
+    const policy=template?.holidayShiftV181||'keep';
+    if(task.holidayAppliedV181||!['prev','next'].includes(policy)||!parseDate(task.end||task.start)||completed(task))return false;
+    const oldEnd=task.end||task.start,newEnd=dueShift(oldEnd,policy);
+    task.holidayAppliedV181=true;
+    if(newEnd===oldEnd)return true;
+    if(task.start===oldEnd)task.start=newEnd;
+    if(task.end)task.end=newEnd;
+    if(task.deadline===oldEnd)task.deadline=newEnd;
+    return true;
+  }
+  function ensureOccurrences(){
+    let count=0;
+    const today=isoDate(new Date()),origins=(state.tasks||[]).filter(t=>{
+      if(t.projectId||t.repeatGeneratedV181||t.parentAutoRootId||t.link||completed(t))return false;
+      if(!t.dbManualRootTemplateId&&!t.dbSourceTemplateId)return false;
+      return Boolean(scheduleKind(t,templateFor(t))&&parseDate(t.start));
+    });
+    for(const root of origins){
+      const tpl=templateFor(root);
+      if(!tpl||tpl.libraryKindV175==='project'||(tpl.linkedSteps||[]).length)continue;
+      const freq=scheduleKind(root,tpl);
+      if(!freq)continue;
+      const weekday=configuredWeekDay(tpl);
+      const months=configuredMonths(tpl);
+      const rawStart=parseDate(root.start);
+      let base=parseDate(root.repeatAnchorDateV181)||rawStart;
+      if(freq==='weekly'&&weekday!==null){
+        const delta=(weekday-utcDate(base).getUTCDay()+7)%7;
+        base=addDays(base,delta);
+      }else if(months&&['monthly','quarterly','semiannual','yearly'].includes(freq)){
+        for(let i=0;i<12&&!months.includes(Number(base.slice(5,7)));i++)base=addMonths(base,1,utcDate(rawStart).getUTCDate());
+      }
+      if(!root.repeatOriginV181)root.repeatOriginV181=root.id;
+      if(!root.repeatAnchorDateV181)root.repeatAnchorDateV181=base;
+      if(base!==rawStart&&!root.repeatStartAlignedV181){
+        const days=parseDate(root.end)?Math.max(0,Math.round((utcDate(root.end)-utcDate(rawStart))/86400000)):0;
+        root.start=base;root.end=addDays(base,days);
+        if(!root.deadline||root.deadline===root.end||root.deadline===rawStart)root.deadline=root.end;
+        root.repeatStartAlignedV181=true;count++;
+      }
+      const limit=root.repeatUntilV181||parseDate(root.repeat?.until||root.repeat?.endDate||root.repeatEndDate||root.recurrenceEndDate)||'';
+      let horizon=addMonths(today,3),seed=addMonths(base,3);
+      if(seed>horizon)horizon=seed;
+      if(limit&&limit<horizon)horizon=limit;
+      if(horizon<=base)continue;
+      const duration=(parseDate(root.end||root.start)?Math.max(0,Math.round((utcDate(root.end||root.start)-utcDate(base))/86400000)):0);
+      const known=new Set((state.tasks||[]).filter(t=>t.id===root.id||t.repeatOriginV181===root.id).map(t=>t.repeatScheduledDateV181||t.start));
+      // Also recognize pre-existing native occurrences from the same template.
+      for(const t of state.tasks||[]){
+        if(t.id!==root.id&&t.dbManualRootTemplateId===root.dbManualRootTemplateId&&t.start)known.add(t.start);
+      }
+      let emitted=0;
+      for(let n=1;n<=120&&emitted<40&&count<100;n++){
+        let start='';
+        if(freq==='weekly'){
+          const initial=weekday===null?utcDate(base).getUTCDay():weekday;
+          const delta=(initial-utcDate(base).getUTCDay()+7)%7;
+          start=addDays(base,delta+7*(n-1));
+        }else{
+          const interval={monthly:1,quarterly:3,semiannual:6,yearly:12}[freq];
+          start=addMonths(base,interval*n,utcDate(base).getUTCDate());
+        }
+        if(start>horizon)break;
+        if(start<=base||known.has(start))continue;
+        if(months&&!months.includes(Number(start.slice(5,7))))continue;
+        if(limit&&start>limit)break;
+        const end=addDays(start,Math.max(0,duration));
+        const clone=M.clone(root);
+        clone.id=projectUid('task');clone.start=start;clone.end=end;clone.deadline=end;
+        clone.repeatGeneratedV181=true;clone.repeatOriginV181=root.id;clone.repeatScheduledDateV181=start;
+        clone.repeatUntilV181=limit;clone.status='planned';clone.actualComplete=null;
+        clone.manualOverride=true;clone.scheduleOverride=true;
+        clone.checklist=(clone.checklist||[]).map(c=>({...c,id:projectUid('check'),done:false}));
+        // Avoid linking new occurrences to a legacy series id with unknown
+        // synchronization semantics; group locally with repeatOriginV181.
+        clone.seriesId=null;clone.groupId=null;clone.autoGeneratedV181=true;
+        adjustHolidayIfNeeded(clone,tpl);
+        state.tasks.push(clone);known.add(start);count++;emitted++;
+      }
+      if(adjustHolidayIfNeeded(root,tpl))count++;
+    }
+    return count;
+  }
+  const baseSaveV181=saveState;
+  let nesting=false;
+  saveState=async function(...args){
+    if(!nesting){
+      nesting=true;
+      try{
+        applyEndChoice();
+        if(registrationSnapshotV181){
+          for(const task of state.tasks||[]){
+            if(registrationSnapshotV181.has(task.id)||task.projectId||task.parentAutoRootId||task.link||completed(task))continue;
+            const tpl=templateFor(task);
+            if(tpl && tpl.libraryKindV175!=='project' && !(tpl.linkedSteps||[]).length)adjustHolidayIfNeeded(task,tpl);
+          }
+          registrationSnapshotV181=null;
+        }
+        ensureOccurrences();
+      }
+      catch(error){console.error('반복업무 보강 실패: 기존 업무는 보존됩니다.',error);}
+      finally{nesting=false;}
+    }
+    return baseSaveV181.apply(this,args);
+  };
+  const baseRenderTaskTableV181=renderTaskTable;
+  let repairing=false;
+  renderTaskTable=function(...args){
+    const result=baseRenderTaskTableV181.apply(this,args);
+    if(!repairing&&Array.isArray(state?.tasks)&&state.tasks.length){
+      repairing=true;
+      try{
+        const count=ensureOccurrences();
+        if(count)void saveState({reason:'반복업무 3개월 일정 자동 보충'}).catch(e=>console.error('반복업무 자동 보충 저장 실패',e));
+      }catch(e){console.error('반복일정 갱신 보류',e);}
+      finally{repairing=false;}
+    }
+    return result;
+  };
+  window.WMTaskRecurrenceV181={scheduleKind,addMonths,configuredWeekDay,configuredMonths,ensureOccurrences,dueShift};
+}
+installRollingRecurrencesV181();
+
 window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility};
 })();
