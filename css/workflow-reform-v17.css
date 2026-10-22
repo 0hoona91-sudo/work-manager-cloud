@@ -1,0 +1,28 @@
+/* 업무관리시스템 개편 1차 · 기존 컬러 테마 변수를 그대로 사용 */
+.workflow-hint-v17{margin:12px 0;padding:12px 14px;border:1px solid var(--line,#dbe4ef);border-radius:12px;background:var(--accent-softer,#f4f8fc);font-size:12px;line-height:1.65;color:var(--text,#42586e)}
+.workflow-split-v17{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.17fr);gap:16px;align-items:start;margin:12px 0}
+.workflow-split-v17[hidden]{display:none!important}
+.workflow-column-v17{min-width:0;border:1px solid var(--line,#dbe4ef);border-radius:16px;background:var(--panel,#fff);box-shadow:0 8px 26px rgba(30,45,70,.045);overflow:hidden}
+.workflow-column-v17>header{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;align-items:baseline;padding:15px 16px;background:var(--accent-softer,#f4f8fc);border-bottom:1px solid var(--line,#dbe4ef)}
+.workflow-column-v17>header h3{font-size:16px;margin:0;color:var(--accent-deep,#274f79)}
+.workflow-column-v17>header span{font-size:11px;color:var(--muted,#78869a)}
+#workflowProjectListV17{padding:11px;display:grid;gap:10px}
+.workflow-project-card-v17{border:1px solid var(--line,#dbe4ef);border-radius:14px;overflow:hidden;background:var(--card,#fff)}
+.workflow-project-title-v17{width:100%;display:flex;align-items:center;gap:11px;min-height:73px;text-align:left;padding:12px;border:0;background:transparent;color:var(--text,#22374a);cursor:pointer}
+.workflow-project-title-v17:hover{background:var(--accent-softer,#f4f8fc)}
+.workflow-project-copy-v17{min-width:0;flex:1;display:grid;gap:4px}.workflow-project-copy-v17 b{font-size:13px;overflow-wrap:anywhere}.workflow-project-copy-v17 small{font-size:11px;line-height:1.4;color:var(--muted,#7c899a)}
+.workflow-project-mark-v17{display:grid;place-items:center;flex:0 0 35px;width:35px;height:35px;border-radius:10px;background:var(--accent-soft,#e5f0fb);color:var(--accent-deep,#386d9b);font-size:21px}
+.workflow-project-steps-v17{display:grid;gap:7px;padding:8px 12px 12px;border-top:1px solid var(--line,#e4ebf2)}.workflow-project-steps-v17[hidden]{display:none}
+.workflow-stage-v17{width:100%;display:grid;text-align:left;gap:5px;padding:9px 11px;border:1px solid var(--line,#dee5ed);border-radius:10px;background:var(--accent-softer,#f8fafc);color:var(--text,#24364a);cursor:pointer}.workflow-stage-v17:disabled{opacity:.6;cursor:default}.workflow-stage-v17 span{font-size:12px;font-weight:750}.workflow-stage-v17 small{font-size:11px;color:var(--muted,#778599)}
+.workflow-project-edit-v17{justify-self:end;padding:7px 10px;border:1px solid var(--line,#d6e1ef);border-radius:9px;background:var(--card,#fff);color:var(--accent-deep,#355f8d);cursor:pointer;font-size:12px;font-weight:800}
+.workflow-empty-v17{padding:25px 10px;text-align:center;color:var(--muted,#8695a8);font-size:13px}
+.workflow-general-v17 .tablewrap{margin:0;max-width:100%;border:0;box-shadow:none;border-radius:0;overflow-x:auto}
+.workflow-general-v17 .datatable{min-width:620px}.workflow-general-v17 .datatable th,.workflow-general-v17 .datatable td{font-size:11px;padding:10px 7px}
+#taskListPage.workflow-split-enabled-v17>.tablewrap{display:none}
+#taskListPage .pagehead{position:relative}#workflowCreateMenuV17{position:absolute;z-index:90;right:0;top:calc(100% + 4px);display:grid;gap:5px;min-width:210px;padding:7px;border:1px solid var(--line,#d9e5ee);border-radius:12px;background:var(--card,#fff);box-shadow:0 12px 30px rgba(0,0,0,.15)}
+#workflowCreateMenuV17[hidden]{display:none!important}#workflowCreateMenuV17 button{width:100%;padding:12px 13px;border:0;border-radius:8px;text-align:left;background:transparent;color:var(--text,#263a4c);font-size:13px;font-weight:750;cursor:pointer}#workflowCreateMenuV17 button:hover{background:var(--accent-softer,#f4f8fb)}
+.workflow-lock-note-v17{margin:0 0 13px;padding:11px 12px;background:var(--accent-softer,#f5f8fc);border:1px solid var(--line,#d9e4ed);border-radius:10px;color:var(--accent-deep,#3f6585);font-size:12px;line-height:1.5}
+.workflow-locked-date-v17{opacity:.75!important;cursor:not-allowed!important}.workflow-auto-hidden-v17{display:none!important}
+#dbAutomationSettings[hidden],#repairRepeatsSetting[hidden],#syncDbSchedules[hidden],.navbtn[data-page="projectPage"]{display:none!important}
+@media(max-width:1080px){.workflow-split-v17{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){.workflow-split-v17{gap:10px;margin:9px 0}.workflow-column-v17>header{padding:12px}.workflow-general-v17 .datatable{min-width:520px}#workflowCreateMenuV17{right:0;top:100%;min-width:190px}}
