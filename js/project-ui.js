@@ -419,11 +419,51 @@ function projectTaskModal(task){
   const body=`<div class="prj-task-view"><p><b>${escp(project.name)}</b> · ${i+1}단계 · ${escp(task.start)} ~ ${escp(task.end||'')}</p>
     <div id="prj-task-status" class="prj-task-status">${checks.length?`${checks.filter(c=>c.done).length}/${checks.length}개 완료`:'체크리스트 없음'}</div>
     ${checks.length?`<div class="prj-task-checks">${checks.map(c=>`<label class="prj-task-check ${c.done?'checked':''}"><input type="checkbox" data-prj-complete="${escp(c.id)}" ${c.done?'checked':''}><span><b>${escp(c.text)}</b><small>담당자: ${escp(c.owner||'미정')} · 마감일: ${escp(c.dueDate||'미정')}</small></span></label>`).join('')}</div>`:'<p class="muted">체크리스트를 추가하면 모두 완료 시 이 단계만 자동 완료됩니다. 체크항목이 없는 단계는 수동으로 완료할 수 있습니다.</p>'}
-    <h4>진행자료</h4><div class="prj-task-resources">${(stage.resources||[]).map(r=>`<button type="button" class="prj-soft-btn" data-task-resource="${escp(r.id)}">${escp(r.name)}</button>`).join('')||'<small>등록된 진행자료 없음</small>'}</div></div>`;
+    <h4>진행자료</h4><div class="prj-task-resources">${(stage.resources||[]).map(r=>`<button type="button" class="prj-soft-btn" data-task-resource="${escp(r.id)}">${escp(r.name)}</button>`).join('')||'<small>등록된 진행자료 없음</small>'}</div>
+    <label class="prj-soft-btn prj-stage-add-resource-v175">＋ 관련 자료 추가<input type="file" id="prjTaskAddResourceV175" multiple hidden></label>
+    <small class="prj-resource-hint-v175">현재 단계에만 파일이 추가되며 다른 단계에는 영향을 주지 않습니다.</small>
+    ${project.libraryTemplateIdV175?'<p class="prj-library-link-v175"><button type="button" class="prj-soft-btn" id="prjLibraryViewV175">업무수행방법 · 라이브러리 자료 보기</button></p>':''}
+    </div>`;
   const footer=`<button type="button" class="btn" id="prjEditFromTask">프로젝트 수정</button>${!checks.length?`<button type="button" class="btn primary" id="prjManualComplete">${effectiveStatus(task)==='done'?'진행업무로 되돌리기':'이 단계 완료'}</button>`:''}<button type="button" class="btn" data-close>닫기</button>`;
   modal(escp(task.name),body,footer,'small prj-task-modal');
   $p('#prjEditFromTask').onclick=()=>openEditor(project.id,stage.id);
   $$p('[data-task-resource]').forEach(b=>b.onclick=()=>{const ref=stage.resources.find(r=>r.id===b.dataset.taskResource);if(ref)void openResource(ref);});
+  const libraryView=$p('#prjLibraryViewV175');if(libraryView)libraryView.onclick=()=>{
+    const tpl=state.templates?.find(x=>x.id===project.libraryTemplateIdV175);
+    if(tpl&&typeof openDbDetailV6==='function')openDbDetailV6(`root|${tpl.id}`);
+    else alert('연결된 업무 라이브러리를 찾지 못했습니다.');
+  };
+  const addResource=$p('#prjTaskAddResourceV175');if(addResource)addResource.onchange=async event=>{
+    const files=[...(event.target.files||[])];if(!files.length)return;
+    addResource.disabled=true;
+    const savedBefore=M.clone(stage.resources||[]);
+    const oldTaskFiles=M.clone(task.projectResources||[]);
+    try{
+      for(const file of files){
+        if(Number(file.size||0)<=0||Number(file.size)>50*1024*1024)throw new Error('파일은 1바이트 이상, 50MB 이하만 추가할 수 있습니다.');
+        const rid=projectUid('resource');const type=file.type?.startsWith('image/')?'image':'file';
+        let stored;
+        if(window.cloudSync?.mode==='cloud'){
+          stored=type==='image'&&window.cloudSync.createImageBlock
+            ?await window.cloudSync.createImageBlock(file,rid)
+            :await window.cloudSync.createFileBlock(file,rid);
+        }else{
+          const local=await storeLocalFile(file,rid);
+          stored={id:rid,type,name:local.name,mimeType:local.mimeType,size:local.size,localFileId:local.id};
+        }
+        const {data,objectUrl,previewUrl,...meta}=stored;
+        stage.resources||=[];stage.resources.push({...meta,id:rid,type,name:file.name});
+      }
+      task.projectResources=M.clone(stage.resources);
+      await saveState({reason:'프로젝트 단계 진행자료 추가'});
+      renderTaskTable();renderProjectPage();projectTaskModal(task);
+      toast(`${files.length}개 자료를 현재 단계에 추가했습니다.`);
+    }catch(error){
+      stage.resources=savedBefore;task.projectResources=oldTaskFiles;
+      console.error('프로젝트 단계 파일 업로드 실패',error);
+      alert(`진행자료를 저장하지 못했습니다.\n${error?.message||error}`);
+    }finally{addResource.disabled=false;}
+  };
   $$p('[data-prj-complete]').forEach(input=>input.onchange=()=>{
     M.setCheck(task,input.dataset.prjComplete,input.checked,todayISO());
     input.closest('.prj-task-check')?.classList.toggle('checked',input.checked);
