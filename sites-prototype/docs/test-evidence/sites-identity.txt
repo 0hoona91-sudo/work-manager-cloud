@@ -1,0 +1,13 @@
+✔ documented platform paths (0.795078ms)
+✔ untrusted forged identity headers fail closed (29.902336ms)
+✔ signed out platform request has no identity (0.447775ms)
+✔ verified boundary maps documented headers and uses email fallback (0.421245ms)
+✔ separate site namespaces and malformed headers (0.267733ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.615828

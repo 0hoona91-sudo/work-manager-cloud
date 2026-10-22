@@ -1,0 +1,36 @@
+/workspace/work-manager-cloud/sites-prototype/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+test_01_shell_and_fail_closed (test_api.API.test_01_shell_and_fail_closed) ... ok
+test_02_task_create_read_update_and_persistence (test_api.API.test_02_task_create_read_update_and_persistence) ... ok
+test_03_two_users_cannot_read_update_or_attach (test_api.API.test_03_two_users_cannot_read_update_or_attach) ... ok
+test_04_attachment_roundtrip_and_idor (test_api.API.test_04_attachment_roundtrip_and_idor) ... ok
+test_05_owner_spoofing_and_input_validation (test_api.API.test_05_owner_spoofing_and_input_validation) ... ok
+test_06_csrf_and_origin (test_api.API.test_06_csrf_and_origin) ... ok
+test_07_logout_invalidates_session (test_api.API.test_07_logout_invalidates_session) ... ok
+test_08_expired_session_and_hashed_storage (test_api.API.test_08_expired_session_and_hashed_storage) ... ok
+test_09_composite_foreign_key_blocks_owner_mismatch (test_api.API.test_09_composite_foreign_key_blocks_owner_mismatch) ... ok
+test_10_file_size_and_filename_limits (test_api.API.test_10_file_size_and_filename_limits) ... ok
+test_11_no_fake_login_routes (test_api.API.test_11_no_fake_login_routes) ... ok
+test_12_google_pkce_scopes_and_redirect (test_api.API.test_12_google_pkce_scopes_and_redirect) ... ok
+test_13_oauth_cross_session_replay_and_cancel (test_api.API.test_13_oauth_cross_session_replay_and_cancel) ... ok
+test_14_expired_oauth_state (test_api.API.test_14_expired_oauth_state) ... ok
+test_15_invalid_identity_claims (test_api.API.test_15_invalid_identity_claims) ... ok
+test_16_scope_denial_and_missing_refresh_token (test_api.API.test_16_scope_denial_and_missing_refresh_token) ... ok
+test_17_encrypted_tokens_and_owner_binding (test_api.API.test_17_encrypted_tokens_and_owner_binding) ... ok
+test_18_same_google_account_cannot_link_two_users (test_api.API.test_18_same_google_account_cannot_link_two_users) ... ok
+test_19_reconnect_keeps_folder_and_refresh_token (test_api.API.test_19_reconnect_keeps_folder_and_refresh_token) ... ok
+test_20_drive_roundtrip_refresh_and_cross_user_block (test_api.API.test_20_drive_roundtrip_refresh_and_cross_user_block) ... ok
+test_21_failed_folder_can_be_retried (test_api.API.test_21_failed_folder_can_be_retried) ... ok
+test_22_identity_oidc_protocol_not_chatgpt (test_api.API.test_22_identity_oidc_protocol_not_chatgpt) ... ok
+test_23_unconfigured_provider_stays_unconnected (test_api.API.test_23_unconfigured_provider_stays_unconnected) ... ok
+test_24_production_has_secure_cookies_and_no_test_storage (test_api.API.test_24_production_has_secure_cookies_and_no_test_storage) ... ok
+test_25_dev_public_origin_is_rejected (test_api.API.test_25_dev_public_origin_is_rejected) ... ok
+test_26_spoofed_sites_headers_are_not_authentication (test_api.API.test_26_spoofed_sites_headers_are_not_authentication) ... ok
+test_27_chunked_json_body_limit (test_api.API.test_27_chunked_json_body_limit) ... ok
+test_28_d1_candidate_sql_parses_and_is_repeatable_locally (test_api.API.test_28_d1_candidate_sql_parses_and_is_repeatable_locally) ... ok
+test_29_forged_signature_is_rejected (test_api.API.test_29_forged_signature_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.446s
+
+OK

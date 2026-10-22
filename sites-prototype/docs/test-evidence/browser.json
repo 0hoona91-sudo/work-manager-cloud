@@ -1,0 +1,14 @@
+{
+  "passed": 7,
+  "failed": 0,
+  "checks": [
+    "Signed-out desktop/mobile: no fake login, protected actions disabled, no overflow",
+    "A creates a task through UI; database record survives reload",
+    "A uploads, safely views text, and downloads identical bytes with Korean filename",
+    "Status update and completed count verified in browser",
+    "Separate browser B cannot list/read/update A's task or read/download A's attachment",
+    "Logout clears session; former attachment URL returns 401",
+    "No JavaScript page errors in guest/A/B flows"
+  ],
+  "limitations": "Test fixture identities and local storage only; no ChatGPT or Google production login tested."
+}
