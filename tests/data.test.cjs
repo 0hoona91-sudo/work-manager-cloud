@@ -44,12 +44,12 @@ module.exports = ({ test, known }) => {
     assert.deepEqual(plain(C.mergeById(current, incoming)), [a, b]);
     assert.deepEqual(plain([current, incoming]), before);
   });
-  known('BUG-07', 'Backup conflict must not silently overwrite completed history', () => {
+  test('BUG-07', 'Backup conflict must not silently overwrite completed history', () => {
     const C = loadCloud();
     const next = C.mergeById([{ id: 'fixture-task', status: 'done', actualComplete: '2026-10-01' }],
       [{ id: 'fixture-task', status: 'planned', actualComplete: null }]);
-    return [next[0].status, next[0].actualComplete];
-  }, ['done', '2026-10-01'], ['planned', null], source);
+    assert.deepEqual([next[0].status, next[0].actualComplete], ['done', '2026-10-01']);
+  });
   known('BUG-08', 'Object-form template checklist must retain text instead of string coercion', () => {
     const C = loadCloud(), input = schema11();
     input.templates[0].checklist = [{ id: 'fixture-check', text: 'First', done: false }];

@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-10-23T10:23:50.126Z",
+  "checkoutHead": "25f0bf06132a697d4784155b6cdc7c96df17e19e",
+  "total": 1,
+  "counts": {
+    "PASS": 0,
+    "XFAIL": 1,
+    "XPASS": 0,
+    "FAIL": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BUG-07",
+      "title": "Backup conflict must not silently overwrite completed history",
+      "expected": [
+        "done",
+        "2026-10-01"
+      ],
+      "observed": [
+        "planned",
+        null
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    }
+  ]
+}

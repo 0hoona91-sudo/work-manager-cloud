@@ -97,6 +97,8 @@ let recordMaps = makeRecordMaps();
 let shadowMaps = makeRecordMaps();
 let active = false;
 let saving = false;
+let backupImporting = false;
+let backupRecoveryRequired = false;
 let queuedState = null;
 let queuedResolvers = [];
 let queuedVersion = 0;
@@ -850,6 +852,8 @@ function controller() {
     activate,
     save,
     importState,
+    previewImport,
+    get backupWriteBlocked() { return backupImporting || backupRecoveryRequired; },
     createImageBlock,
     createFileBlock,
     openDriveFile,
@@ -1115,7 +1119,7 @@ function appModalOpenForRemoteApply() {
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
-    if (saving || queuedState || appModalOpenForRemoteApply()) return scheduleRemoteApply();
+    if (saving || queuedState || backupImporting || backupRecoveryRequired || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
     renderRemote?.();
@@ -1123,6 +1127,7 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
+  if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (localOnly || !active) {
     queuedState = clone(snapshot);
     return;
@@ -1252,8 +1257,18 @@ function chunkChanges(changes, maps, maxWrites = 320) {
 
 async function commitOnlineChunks(changes, maps, metadata) {
   const chunks = chunkChanges(changes, maps);
+  const backupBaseMaps = metadata.backupImport ? mapClone(shadowMaps) : null;
   for (let index = 0; index < chunks.length; index++) {
-    await commitTransaction(chunks[index], maps, { ...metadata, reason: chunks.length > 1 ? `${metadata.reason || "데이터 변경"} (${index + 1}/${chunks.length})` : metadata.reason });
+    try {
+      await commitTransaction(chunks[index], maps, { ...metadata, backupBaseMaps, reason: chunks.length > 1 ? `${metadata.reason || "데이터 변경"} (${index + 1}/${chunks.length})` : metadata.reason });
+      if (backupBaseMaps) for (const change of chunks[index]) {
+        if (change.type === "delete") backupBaseMaps[change.collection].delete(change.id);
+        else backupBaseMaps[change.collection].set(change.id, clone(change.after));
+      }
+    } catch (error) {
+      if (metadata.backupImport) { error.committedChunks = index; error.totalChunks = chunks.length; }
+      throw error;
+    }
   }
 }
 
@@ -1269,10 +1284,40 @@ async function commitTransaction(changes, nextMaps, metadata) {
   const generatedCreates = changes.filter((change) => change.collection === "generatedKeys" && change.type === "create");
   await runTransaction(db, async (transaction) => {
     const snapshots = new Map();
-    // 수정 충돌과 자동생성 잠금에 필요한 문서만 읽는다. 생성·삭제는 현재 상태를 다시 읽어도 결과가 달라지지 않는다.
-    for (const change of [...writeChanges.filter((item) => item.type === "update"), ...generatedCreates]) {
+    // 일반 저장은 기존 읽기 범위를 유지한다. 백업은 생성·삭제도 기준값을 재검사한다.
+    const readChanges = metadata.backupImport ? [...changes] : [...writeChanges.filter((item) => item.type === "update"), ...generatedCreates];
+    if (metadata.backupImport) {
+      const base = metadata.backupBaseMaps || shadowMaps;
+      const guarded = new Set(readChanges.map(change => `${change.collection}/${change.id}`));
+      const guardTask = id => {
+        if (!id || guarded.has(`tasks/${id}`)) return;
+        readChanges.push({ collection: "tasks", id, before: base.tasks.get(id) || null });guarded.add(`tasks/${id}`);
+      };
+      for (const change of changes) {
+        const value = change.after || change.before || {};
+        if (change.collection === "checklistItems" && value.parentType === "task") guardTask(value.parentId);
+        if (change.collection === "taskLinks") guardTask(value.taskId || change.id);
+        if (["projects", "templates"].includes(change.collection)) {
+          for (const [id,task] of base.tasks) {
+            if (change.collection === "projects" ? task.projectId === change.id : [task.templateId,task.autoSourceTemplateId,task.dbManualRootTemplateId,task.dbSourceTemplateId,task.sourceTemplateId].includes(change.id)) guardTask(id);
+          }
+        }
+      }
+    }
+    for (const change of readChanges) {
       const ref = doc(db, change.collection, change.id);
       snapshots.set(`${change.collection}/${change.id}`, await transaction.get(ref));
+    }
+    if (metadata.backupImport) {
+      for (const change of readChanges) {
+        const snap = snapshots.get(`${change.collection}/${change.id}`);
+        const remote = snap?.exists() ? withoutSyncFields(snap.data()) : null;
+        if (!window.WMBackupSafety.equal(remote, change.before)) {
+          const error = new Error("저장 직전 원격 데이터가 변경되었습니다. 복구본과 서버 상태를 확인한 뒤 새 미리보기를 만드세요.");
+          error.code = "backup/remote-conflict";
+          throw error;
+        }
+      }
     }
     const skippedTaskIds = new Set();
     for (const lockChange of generatedCreates) {
@@ -1371,32 +1416,90 @@ function inferReason(summaries) {
   return `${entities.slice(0, 3).join(" · ")} 변경`;
 }
 
-async function importState(incoming, { replace = false } = {}) {
-  if (!incoming?.tasks || !incoming?.templates) throw new Error("올바른 v10 백업 파일이 아닙니다.");
-  const next = clone(incoming);
-  next.settings ||= {};
-  next.settings.holidayApiKey = stateRef.settings?.holidayApiKey || next.settings.holidayApiKey || "";
-  if (!replace) {
-    const current = clone(stateRef);
-    next.tasks = mergeById(current.tasks || [], next.tasks || []);
-    next.projects = mergeById(current.projects || [], next.projects || []);
-    next.templates = mergeById(current.templates || [], next.templates || []);
-    next.holidays = mergeById(current.holidays || [], next.holidays || []);
-    next.categories = [...new Set([...(current.categories || []), ...(next.categories || [])])];
-    next.owners = [...new Set([...(current.owners || []), ...(next.owners || [])])];
-    next.settings = { ...(current.settings || {}), ...(next.settings || {}) };
+function backupContextVersion() {
+  const records = Object.fromEntries(DATA_COLLECTIONS.map(name => [name, [...recordMaps[name]].sort(([a],[b]) => a.localeCompare(b))]));
+  return window.WMBackupSafety.version({ records, uid: currentUser?.uid || "", googleUid: buildingUser?.uid || "", workspace: workspaceProfile?.workspace?.firebaseConfig?.projectId || "" });
+}
+
+function assertBackupReady() {
+  if (!active || localOnly || !currentUser || !navigator.onLine) throw new Error("클라우드 백업 가져오기는 로그인·온라인 동기화 완료 후에만 가능합니다.");
+  if (backupImporting || backupRecoveryRequired || saving || queuedState) throw new Error("저장/복구 확인이 진행 중입니다. 완료 후 미리보기를 다시 열어 주세요.");
+  if (!recordMapsEqual(recordMaps, shadowMaps)) throw new Error("미리보기 기준에 원격 변경이 도착했습니다. 취소 후 화면 갱신을 기다려 다시 확인해 주세요.");
+}
+
+function previewImport(incoming, options = {}) {
+  assertBackupReady();
+  const B = window.WMBackupSafety;
+  const plan = B.prepare(stateRef, incoming, { ...options, locks: [...recordMaps.generatedKeys.values()], contextVersion: backupContextVersion() });
+  if (!plan.errors.length) {
+    const decoded = deserializeState(serializeState(plan.next), plan.next.settings);
+    // Audit logs remain in their existing collection, not imported from JSON.
+    const missing = B.missingFields({ ...plan.next, changeLogs: [] }, { ...decoded, changeLogs: [] });
+    if (missing.length) plan.errors.push("기존 저장 변환에서 필드 손실이 예상되어 가져오기를 차단합니다: " + missing.slice(0,30).join(", "));
   }
-  next.projects ||= [];
-  await ensureImageUploads(next, true);
-  replaceState(stateRef, next);
-  await save(stateRef, { reason: replace ? "백업 전체 복원" : "v10 백업 병합 가져오기" });
-  renderRemote?.();
+  return plan;
+}
+
+function checkedImportMaps(changes, nextMaps) {
+  const B = window.WMBackupSafety, observed = mapClone(recordMaps);
+  for (const change of changes) {
+    const seen = observed[change.collection].get(change.id) || null;
+    if (!B.equal(seen, change.before) && !B.equal(seen, change.after)) throw new Error("백업 저장 도중 원격 데이터가 다시 변경되었습니다. 복구 확인이 필요합니다.");
+    if (change.type === "delete") observed[change.collection].delete(change.id);
+    else observed[change.collection].set(change.id, clone(change.after));
+  }
+  for (const name of DATA_COLLECTIONS) {
+    if (!B.equal([...observed[name]].sort(([a],[b]) => a.localeCompare(b)), [...nextMaps[name]].sort(([a],[b]) => a.localeCompare(b)))) throw new Error("백업 저장 도중 미리보기에 없던 원격 변경이 도착했습니다. 복구 확인이 필요합니다.");
+  }
+  return observed;
+}
+
+async function importState(incoming, options = {}) {
+  assertBackupReady();
+  const B = window.WMBackupSafety, review = options.review;
+  if (!review || !B.equal(incoming, review.incoming) || typeof options.persistRecovery !== "function") throw new Error("백업 미리보기·명시적 확인·복구본 저장이 필요합니다.");
+  const fresh = previewImport(incoming, review);
+  if (fresh.errors.length) throw new Error(fresh.errors.join("\n"));
+  if (!B.equal(fresh.next, review.next)) throw new Error("미리보기의 충돌 처리 결과가 변경되었습니다. 새 미리보기를 확인해 주세요.");
+  try {
+    const result = await B.execute(review, {
+      getCurrent: () => stateRef,
+      getVersion: backupContextVersion,
+      persistRecovery: options.persistRecovery,
+      write: async next => {
+        assertBackupReady();
+        backupImporting = true;
+        const identity = `${currentUser?.uid}/${buildingUser?.uid}`;
+        const nextMaps = serializeState(next);
+        const changes = diffMaps(shadowMaps, nextMaps);
+        await commitOnlineChunks(changes, nextMaps, { reason: review.mode === "replace" ? "검토된 백업 전체 복원" : "검토된 백업 병합", backupImport: true });
+        checkedImportMaps(changes, nextMaps);
+        if (identity !== `${currentUser?.uid}/${buildingUser?.uid}`) throw new Error("백업 저장 중 연결 계정이 변경되었습니다. 복구 확인이 필요합니다.");
+        // Write the exact reviewed state, without generation or attachment upload.
+        await window.WMBackupUI.writeImportedCache(next);
+        const observed = checkedImportMaps(changes, nextMaps);
+        if (identity !== `${currentUser?.uid}/${buildingUser?.uid}`) throw new Error("백업 저장 중 연결 계정이 변경되었습니다. 복구 확인이 필요합니다.");
+        shadowMaps = mapClone(nextMaps);
+        for (const name of DATA_COLLECTIONS) recordMaps[name] = observed[name];
+      },
+      publish: next => replaceState(stateRef, next),
+    }, options);
+    setSyncStatus("online", "검토된 백업 저장됨");
+    renderRemote?.();
+    return result;
+  } catch (error) {
+    if (error.recoveryRequired) {
+      backupRecoveryRequired = true;
+      setSyncStatus("error", "백업 일부 저장 가능 · 복구 확인 필요");
+    }
+    throw error;
+  } finally { backupImporting = false; }
 }
 
 function mergeById(current, incoming) {
-  const map = new Map(current.map((item) => [item.id, item]));
-  for (const item of incoming) map.set(item.id, item);
-  return [...map.values()];
+  const out = current.map(clone), seen = new Set(current.map(item => item.id));
+  for (const item of incoming) if (!seen.has(item.id)) { out.push(clone(item)); seen.add(item.id); }
+  return out;
 }
 
 async function ensureDriveAccess() {
