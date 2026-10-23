@@ -50,6 +50,8 @@ let buildingAuthorization = null;
 let driveAccessToken = "";
 let driveAccessTokenExpiresAt = 0;
 let driveAccessTokenUid = "";
+let identityObserverInstalled = false;
+let identityCleanup = Promise.resolve();
 
 // Firebase Firestore는 같은 app 인스턴스에 서로 다른 옵션으로 initializeFirestore()를
 // 두 번 호출할 수 없습니다. 설정 화면에서 연결 확인을 재시도해도 같은 인스턴스를
@@ -106,11 +108,15 @@ function profileFileQuery() {
 }
 
 function driveHeaders(token = driveAccessToken) {
-  if (!token) throw new Error("Google Drive 권한 토큰이 없습니다.");
+  if (!token || token !== restoreDriveToken(buildingUser)) throw new Error("Google Drive 권한 토큰이 없습니다.");
   return { Authorization: `Bearer ${token}` };
 }
 
 function rememberDriveToken(token, user = buildingUser) {
+  if (typeof token !== "string" || !token || !user?.uid || user.uid !== buildingAuth?.currentUser?.uid) {
+    clearDriveToken();
+    return "";
+  }
   driveAccessToken = String(token || "");
   if (!driveAccessToken) return "";
   driveAccessTokenExpiresAt = Date.now() + DRIVE_TOKEN_LIFETIME_MS;
@@ -128,15 +134,17 @@ function rememberDriveToken(token, user = buildingUser) {
 function restoreDriveToken(user = buildingUser) {
   const now = Date.now();
   const userUid = user?.uid || "";
+  if (!userUid || userUid !== buildingAuth?.currentUser?.uid) { clearDriveToken(); return ""; }
   if (driveAccessToken) {
-    const validTime = driveAccessTokenExpiresAt > now;
-    const validUser = !driveAccessTokenUid || !userUid || driveAccessTokenUid === userUid;
+    const validTime = Number.isFinite(driveAccessTokenExpiresAt) && driveAccessTokenExpiresAt > now;
+    const validUser = driveAccessTokenUid === userUid;
     if (validTime && validUser) return driveAccessToken;
     clearDriveToken();
   }
   try {
     const saved = JSON.parse(sessionStorage.getItem(DRIVE_TOKEN_KEY) || "null");
-    if (!saved?.token || Number(saved.expiresAt || 0) <= now || (saved.uid && userUid && saved.uid !== userUid)) {
+    if (typeof saved?.token !== "string" || !saved.token || !Number.isFinite(saved.expiresAt)
+      || saved.expiresAt <= now || saved.expiresAt > now + DRIVE_TOKEN_LIFETIME_MS || saved.uid !== userUid) {
       sessionStorage.removeItem(DRIVE_TOKEN_KEY);
       return "";
     }
@@ -144,6 +152,7 @@ function restoreDriveToken(user = buildingUser) {
     driveAccessTokenExpiresAt = Number(saved.expiresAt || 0);
     driveAccessTokenUid = saved.uid || "";
   } catch {
+    clearDriveToken();
     return "";
   }
   return driveAccessToken;
@@ -197,31 +206,79 @@ function getRememberedBuildingEmail() {
 }
 
 function rememberWorkspaceProfileCache(profile) {
-  if (!validateWorkspaceProfile(profile)) return null;
-  const snapshot = clone(profile);
-  try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(snapshot)); } catch {}
+  const snapshot = workspaceConnectionMetadata(profile);
+  if (!snapshot || !workspaceProfileMatchesUser(snapshot, buildingUser)) return null;
+  try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(snapshot)); }
+  catch { clearWorkspaceProfileCache(); }
   rememberBuildingEmail(snapshot?.google?.email || "");
   return snapshot;
 }
 
 function readWorkspaceProfileCache(user = buildingUser) {
   try {
-    const cached = JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || "null");
-    if (!validateWorkspaceProfile(cached)) return null;
-    const cachedUid = String(cached?.google?.uid || "");
-    const cachedEmail = normalizeEmail(cached?.google?.email || "");
-    const userUid = String(user?.uid || "");
-    const userEmail = normalizeEmail(user?.email || "");
-    if (cachedUid && userUid && cachedUid != userUid) return null;
-    if (cachedEmail && userEmail && cachedEmail != userEmail) return null;
-    return cached;
+    const cached = workspaceConnectionMetadata(JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || "null"));
+    if (!cached || !workspaceProfileMatchesUser(cached, user)) { clearWorkspaceProfileCache(); return null; }
+    return rememberWorkspaceProfileCache(cached);
   } catch {
+    clearWorkspaceProfileCache();
     return null;
   }
 }
 
 function clearWorkspaceProfileCache() {
   try { localStorage.removeItem(PROFILE_CACHE_KEY); } catch {}
+}
+
+function workspaceProfileMatchesUser(profile, user) {
+  return hasVerifiedGoogleIdentity(user) && profile?.google?.uid === user.uid
+    && normalizeEmail(profile.google.email) === normalizeEmail(user.email);
+}
+
+function workspaceConnectionMetadata(profile) {
+  if (!validateWorkspaceProfile(profile, { allowMissingPassword: true })) return null;
+  const config = profile.workspace.firebaseConfig;
+  const firebaseConfig = {};
+  for (const key of ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId", "measurementId"]) {
+    if (typeof config[key] === "string" && config[key]) firebaseConfig[key] = config[key];
+  }
+  return { app: APP_ID, schemaVersion: PROFILE_SCHEMA_VERSION,
+    google: { uid: profile.google.uid, email: normalizeEmail(profile.google.email) },
+    workspace: { firebaseConfig, auth: { email: profile.workspace.auth.email, uid: profile.workspace.auth.uid } } };
+}
+
+function migrateWorkspaceProfileCache() {
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!raw) return;
+    const metadata = workspaceConnectionMetadata(JSON.parse(raw));
+    if (metadata) localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(metadata));
+    else clearWorkspaceProfileCache();
+  } catch { clearWorkspaceProfileCache(); }
+}
+
+async function clearAccountCredentials() {
+  clearWorkspaceProfileCache();
+  clearDriveToken();
+  invalidateBuildingTasksToken();
+  buildingAuthorization = null;
+  try { localStorage.removeItem(BUILDING_EMAIL_HINT_KEY); } catch {}
+  // Notify the cloud adapter to drop its memory tokens and stop old subscriptions.
+  window.dispatchEvent(new Event("work-manager-credentials-cleared"));
+  const privateAuths = getApps().filter(app => app.name.startsWith("wm-private-") || app.name === "work-manager-legacy-drive-v122")
+    .map(app => getAuth(app)).filter(auth => auth.currentUser);
+  const results = await Promise.allSettled(privateAuths.map(auth => signOut(auth)));
+  if (results.some(result => result.status === "rejected")) throw new Error("개인 업무공간 로그아웃을 완료하지 못했습니다. 다시 시도해 주세요.");
+}
+
+function adoptBuildingUser(user) {
+  const changed = buildingUser?.uid && buildingUser.uid !== user?.uid;
+  buildingUser = user;
+  if (changed) {
+    identityCleanup = clearAccountCredentials();
+    // The caller awaits this barrier; the observer must not emit a raw SDK error.
+    identityCleanup.catch(() => {});
+  }
+  return identityCleanup;
 }
 
 function googleProvider(selectAccount = false, includeDrive = false) {
@@ -254,7 +311,11 @@ export async function initBuildingIdentity() {
     buildingDb = getFirestore(buildingApp);
     await setPersistence(buildingAuth, browserLocalPersistence);
   }
-  buildingUser = buildingAuth.currentUser || await waitForAuthState(buildingAuth);
+  await adoptBuildingUser(buildingAuth.currentUser || await waitForAuthState(buildingAuth));
+  if (!identityObserverInstalled) {
+    identityObserverInstalled = true;
+    onAuthStateChanged(buildingAuth, user => { void adoptBuildingUser(user); });
+  }
   if (buildingUser?.email) rememberBuildingEmail(buildingUser.email);
   restoreDriveToken(buildingUser);
   return { user: buildingUser, hasDriveToken: Boolean(driveAccessToken) };
@@ -263,7 +324,7 @@ export async function initBuildingIdentity() {
 export async function signInBuildingGoogle({ selectAccount = true } = {}) {
   await initBuildingIdentity();
   const result = await signInWithPopup(buildingAuth, googleProvider(selectAccount, false));
-  buildingUser = result.user;
+  await adoptBuildingUser(result.user);
   buildingAuthorization = null;
   clearDriveToken();
   // Firebase 로그인 이후 서버의 소유자 전용 허용 문서를 확인합니다.
@@ -333,9 +394,14 @@ export async function ensureBuildingDriveAccess({ forceRefresh = false } = {}) {
   }
   if (forceRefresh) clearDriveToken();
   if (restoreDriveToken(buildingUser)) return buildingUser;
+  const expectedUid = buildingUser.uid;
   const result = await reauthenticateWithPopup(buildingUser, googleProvider(false, true));
+  if (result.user?.uid !== expectedUid || buildingAuth.currentUser?.uid !== expectedUid || buildingUser?.uid !== expectedUid) {
+    clearDriveToken();
+    throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
+  }
   const credential = GoogleAuthProvider.credentialFromResult(result);
-  rememberDriveToken(credential?.accessToken || "", buildingUser);
+  if (!rememberDriveToken(credential?.accessToken || "", buildingUser)) throw new Error("Google Drive 권한 토큰을 받지 못했습니다.");
   return buildingUser;
 }
 
@@ -344,12 +410,16 @@ export function invalidateBuildingDriveAccessToken() {
 }
 
 export async function signOutBuilding() {
-  invalidateBuildingTasksToken();
-  await initBuildingIdentity();
-  clearDriveToken();
-  if (buildingAuth.currentUser) await signOut(buildingAuth);
+  const results = await Promise.allSettled([clearAccountCredentials(), (async () => {
+    await initBuildingIdentity();
+    if (buildingAuth.currentUser) await signOut(buildingAuth);
+  })()]);
   buildingUser = null;
   buildingAuthorization = null;
+  clearWorkspaceProfileCache();
+  clearDriveToken();
+  try { localStorage.removeItem(BUILDING_EMAIL_HINT_KEY); } catch {}
+  if (results.some(result => result.status === "rejected")) throw new Error("로그아웃을 완료하지 못했습니다. 다시 시도해 주세요.");
 }
 
 async function listProfileFiles() {
@@ -377,12 +447,14 @@ async function readProfileFile(fileId) {
   return response.json();
 }
 
-export function validateWorkspaceProfile(profile) {
+export function validateWorkspaceProfile(profile, { allowMissingPassword = false } = {}) {
   const config = profile?.workspace?.firebaseConfig;
   const auth = profile?.workspace?.auth;
+  const text = value => typeof value === "string" && value.trim().length > 0;
   if (profile?.app !== APP_ID || Number(profile?.schemaVersion) !== PROFILE_SCHEMA_VERSION) return false;
-  if (!config?.apiKey || !config?.projectId || !config?.authDomain || !config?.appId) return false;
-  if (!auth?.email || !auth?.password || !auth?.uid) return false;
+  if (![config?.apiKey, config?.projectId, config?.authDomain, config?.appId, auth?.email, auth?.uid,
+    profile?.google?.uid, profile?.google?.email].every(text)) return false;
+  if (!(allowMissingPassword && auth.password === undefined) && !text(auth.password)) return false;
   return true;
 }
 
@@ -393,11 +465,11 @@ export async function loadWorkspaceProfile() {
     try {
       const profile = await readProfileFile(file.id);
       if (!validateWorkspaceProfile(profile)) continue;
-      if (profile.google?.uid && buildingUser?.uid && profile.google.uid !== buildingUser.uid) continue;
+      if (!workspaceProfileMatchesUser(profile, buildingUser)) continue;
       rememberWorkspaceProfileCache(profile);
       return { profile, file };
     } catch (error) {
-      console.warn("업무공간 설정 파일을 읽지 못했습니다.", file?.id, error);
+      console.warn("업무공간 설정 파일을 읽지 못했습니다.");
     }
   }
   return null;
@@ -562,7 +634,7 @@ export async function finalizeWorkspaceProvision(provisioned) {
 export async function connectPrivateWorkspace(profile) {
   await initBuildingIdentity();
   assertPersonalOwner(buildingUser);
-  if (!validateWorkspaceProfile(profile)) throw new Error("업무공간 설정이 올바르지 않습니다.");
+  if (!validateWorkspaceProfile(profile, { allowMissingPassword: true })) throw new Error("업무공간 설정이 올바르지 않습니다.");
   if (profile.google?.uid && profile.google.uid !== buildingUser.uid) {
     throw new Error("현재 Google 계정과 업무공간 소유자의 UID가 일치하지 않습니다.");
   }
@@ -574,8 +646,15 @@ export async function connectPrivateWorkspace(profile) {
   if (!privateApp) privateApp = initializeApp(profile.workspace.firebaseConfig, appName);
   const privateAuth = getAuth(privateApp);
   await setPersistence(privateAuth, browserLocalPersistence);
-  let privateUser = privateAuth.currentUser;
+  let privateUser = privateAuth.currentUser || await waitForAuthState(privateAuth);
   if (!privateUser || privateUser.uid !== profile.workspace.auth.uid) {
+    if (privateUser) await signOut(privateAuth);
+    if (!workspaceProfileMatchesUser(profile, buildingAuth.currentUser)) throw new Error("Google 계정이 변경되었습니다. 다시 연결해 주세요.");
+    if (!profile.workspace.auth.password) {
+      const error = new Error("개인 업무공간 로그인을 Google Drive 연결정보로 복원해야 합니다.");
+      error.code = "app/workspace-reauth-required";
+      throw error;
+    }
     const signedIn = await signInWithEmailAndPassword(
       privateAuth,
       profile.workspace.auth.email,
@@ -583,10 +662,13 @@ export async function connectPrivateWorkspace(profile) {
     );
     privateUser = signedIn.user;
   }
-  if (privateUser.uid !== profile.workspace.auth.uid) throw new Error("개인 업무공간 UID가 일치하지 않습니다.");
+  if (privateUser.uid !== profile.workspace.auth.uid || !workspaceProfileMatchesUser(profile, buildingAuth.currentUser)) {
+    await signOut(privateAuth);
+    throw new Error("개인 업무공간 또는 Google 계정이 일치하지 않습니다.");
+  }
   const privateDb = getOrInitFirestore(privateApp, { persistent: true });
-  rememberWorkspaceProfileCache(profile);
-  return { app: privateApp, auth: privateAuth, db: privateDb, user: privateUser };
+  const metadata = rememberWorkspaceProfileCache(profile);
+  return { app: privateApp, auth: privateAuth, db: privateDb, user: privateUser, profile: metadata };
 }
 
 export function loadCachedWorkspaceProfile(user = buildingUser) {
@@ -626,12 +708,13 @@ export function invalidateBuildingTasksToken() {
   try { sessionStorage.removeItem(TASKS_TOKEN_KEY_V15); } catch {}
 }
 export function getBuildingTasksToken() {
-  if (!isPersonalOwner(buildingAuth?.currentUser || buildingUser)) return "";
+  if (!isPersonalOwner(buildingAuth?.currentUser)) { invalidateBuildingTasksToken(); return ""; }
   const uid = buildingAuth?.currentUser?.uid || buildingUser?.uid || "";
   if (tasksTokenV15 && Date.now() < tasksExpiryV15 && uid && tasksUidV15 === uid) return tasksTokenV15;
   try {
     const saved = JSON.parse(sessionStorage.getItem(TASKS_TOKEN_KEY_V15) || "null");
-    if (uid && saved?.uid === uid && Number(saved.expiresAt) > Date.now() && saved.token) {
+    if (uid && saved?.uid === uid && Number.isFinite(saved.expiresAt) && saved.expiresAt > Date.now()
+      && saved.expiresAt <= Date.now() + DRIVE_TOKEN_LIFETIME_MS && typeof saved.token === "string" && saved.token) {
       tasksTokenV15 = saved.token; tasksExpiryV15 = saved.expiresAt; tasksUidV15 = uid;
       return tasksTokenV15;
     }
@@ -649,7 +732,7 @@ export async function authorizeBuildingTasks() {
   provider.addScope(TASKS_SCOPE_V15);
   // 팝업은 사용자 클릭에서만 호출합니다. 갱신 실패로 다른 API 권한은 폐기하지 않습니다.
   const result = await reauthenticateWithPopup(user, provider);
-  if (result.user?.uid !== user.uid) throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
+  if (result.user?.uid !== user.uid || buildingAuth.currentUser?.uid !== user.uid) throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
   const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken;
   if (!token) throw new Error("Google Tasks 권한 토큰을 받지 못했습니다.");
   tasksTokenV15 = token;
@@ -658,3 +741,6 @@ export async function authorizeBuildingTasks() {
   try { sessionStorage.setItem(TASKS_TOKEN_KEY_V15, JSON.stringify({token,uid:user.uid,expiresAt:tasksExpiryV15})); } catch {}
   return token;
 }
+
+// Remove legacy plaintext passwords immediately, even before a login is restored.
+migrateWorkspaceProfileCache();

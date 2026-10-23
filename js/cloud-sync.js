@@ -120,23 +120,22 @@ const TEMPLATE_VERSION_LIMIT = 10;
 const LEGACY_DRIVE_TOKEN_SESSION_KEY = "workManagerLegacyDriveSessionV122";
 const LEGACY_DRIVE_TOKEN_LIFETIME_MS = 50 * 60 * 1000;
 let legacyDriveAccessToken = "";
+let legacyDriveAccessTokenExpiresAt = 0;
+let legacyDriveAccessTokenUid = "";
+let legacyDriveAccessTokenEmail = "";
 let legacyDriveAuth = null;
 
-function rememberDriveAccessToken(token, user = currentUser) {
-  driveAccessToken = String(token || "");
-  if (!driveAccessToken) return "";
-  driveAccessTokenExpiresAt = Date.now() + DRIVE_TOKEN_LIFETIME_MS;
-  driveAccessTokenUid = user?.uid || "";
-  try {
-    sessionStorage.setItem(DRIVE_TOKEN_SESSION_KEY, JSON.stringify({
-      token: driveAccessToken,
-      uid: driveAccessTokenUid,
-      expiresAt: driveAccessTokenExpiresAt,
-    }));
-  } catch {
-    // iPad의 저장공간 제한 환경에서는 메모리 토큰만 사용한다.
+function rememberDriveAccessToken(token, user = getBuildingUser()) {
+  // workspace-profile owns the sole current Drive token cache and its expiry.
+  try { sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY); } catch {}
+  const current = getBuildingUser();
+  if (!current?.uid || user?.uid !== current.uid || !token || token !== getBuildingDriveAccessToken()) {
+    clearDriveAccessToken();
+    return "";
   }
-  return driveAccessToken;
+  driveAccessToken = token;
+  driveAccessTokenUid = current.uid;
+  return token;
 }
 
 function clearDriveAccessToken() {
@@ -147,28 +146,8 @@ function clearDriveAccessToken() {
   try { sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY); } catch {}
 }
 
-function restoreDriveAccessToken(user = currentUser) {
-  const now = Date.now();
-  const userUid = user?.uid || "";
-  if (driveAccessToken) {
-    const validTime = driveAccessTokenExpiresAt > now;
-    const validUser = !driveAccessTokenUid || !userUid || driveAccessTokenUid === userUid;
-    if (validTime && validUser) return driveAccessToken;
-    clearDriveAccessToken();
-  }
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(DRIVE_TOKEN_SESSION_KEY) || "null");
-    if (!saved?.token || Number(saved.expiresAt || 0) <= now || (saved.uid && userUid && saved.uid !== userUid)) {
-      sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY);
-      return "";
-    }
-    driveAccessToken = saved.token;
-    driveAccessTokenExpiresAt = Number(saved.expiresAt || 0);
-    driveAccessTokenUid = saved.uid || "";
-  } catch {
-    return "";
-  }
-  return driveAccessToken;
+function restoreDriveAccessToken(user = getBuildingUser()) {
+  return rememberDriveAccessToken(getBuildingDriveAccessToken(), user);
 }
 
 function legacyWorkspaceEligible() {
@@ -176,32 +155,52 @@ function legacyWorkspaceEligible() {
   return Boolean(currentProject && legacyFirebaseConfig?.projectId && currentProject === legacyFirebaseConfig.projectId);
 }
 
+function clearLegacyDriveToken() {
+  legacyDriveAccessToken = "";
+  legacyDriveAccessTokenExpiresAt = 0;
+  legacyDriveAccessTokenUid = "";
+  legacyDriveAccessTokenEmail = "";
+  try { sessionStorage.removeItem(LEGACY_DRIVE_TOKEN_SESSION_KEY); } catch {}
+}
+
 function rememberLegacyDriveToken(token) {
-  legacyDriveAccessToken = String(token || "");
-  if (!legacyDriveAccessToken) return "";
+  const user = getBuildingUser();
+  if (typeof token !== "string" || !token || !user?.uid || !user.email) { clearLegacyDriveToken(); return ""; }
+  legacyDriveAccessToken = token;
+  legacyDriveAccessTokenUid = user.uid;
+  legacyDriveAccessTokenEmail = user.email.trim().toLowerCase();
+  legacyDriveAccessTokenExpiresAt = Date.now() + LEGACY_DRIVE_TOKEN_LIFETIME_MS;
   try {
     sessionStorage.setItem(LEGACY_DRIVE_TOKEN_SESSION_KEY, JSON.stringify({
-      token: legacyDriveAccessToken,
-      email: String(buildingUser?.email || "").toLowerCase(),
-      expiresAt: Date.now() + LEGACY_DRIVE_TOKEN_LIFETIME_MS,
+      token, uid: legacyDriveAccessTokenUid, email: legacyDriveAccessTokenEmail,
+      expiresAt: legacyDriveAccessTokenExpiresAt,
     }));
   } catch {}
-  return legacyDriveAccessToken;
+  return token;
 }
 
 function restoreLegacyDriveToken() {
-  if (legacyDriveAccessToken) return legacyDriveAccessToken;
+  const user = getBuildingUser(), now = Date.now();
+  const email = String(user?.email || "").trim().toLowerCase();
+  if (!user?.uid || !email) { clearLegacyDriveToken(); return ""; }
+  if (legacyDriveAccessToken) {
+    if (legacyDriveAccessTokenUid === user.uid && legacyDriveAccessTokenEmail === email
+      && Number.isFinite(legacyDriveAccessTokenExpiresAt) && legacyDriveAccessTokenExpiresAt > now) return legacyDriveAccessToken;
+    clearLegacyDriveToken();
+    return "";
+  }
   try {
     const saved = JSON.parse(sessionStorage.getItem(LEGACY_DRIVE_TOKEN_SESSION_KEY) || "null");
-    const email = String(buildingUser?.email || "").toLowerCase();
-    if (!saved?.token || Number(saved.expiresAt || 0) <= Date.now() || (saved.email && email && saved.email !== email)) {
-      sessionStorage.removeItem(LEGACY_DRIVE_TOKEN_SESSION_KEY);
+    if (typeof saved?.token !== "string" || !saved.token || saved.uid !== user.uid || saved.email !== email
+      || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= now || saved.expiresAt > now + LEGACY_DRIVE_TOKEN_LIFETIME_MS) {
+      clearLegacyDriveToken();
       return "";
     }
     legacyDriveAccessToken = saved.token;
-  } catch {
-    return "";
-  }
+    legacyDriveAccessTokenUid = saved.uid;
+    legacyDriveAccessTokenEmail = saved.email;
+    legacyDriveAccessTokenExpiresAt = saved.expiresAt;
+  } catch { clearLegacyDriveToken(); return ""; }
   return legacyDriveAccessToken;
 }
 
@@ -216,7 +215,8 @@ async function ensureLegacyDriveAccess() {
   await setPersistence(legacyDriveAuth, browserLocalPersistence);
   const provider = new GoogleAuthProvider();
   provider.addScope("https://www.googleapis.com/auth/drive.file");
-  const hint = String(buildingUser?.email || "").trim();
+  const expectedUser = getBuildingUser();
+  const hint = String(expectedUser?.email || "").trim();
   if (hint) provider.setCustomParameters({ login_hint: hint });
   let result;
   try {
@@ -228,6 +228,12 @@ async function ensureLegacyDriveAccess() {
     }
   } catch (error) {
     throw new Error(`이전 Cloud의 Google Drive 권한을 확인하지 못했습니다. ${friendlyError(error)}`);
+  }
+  if (!expectedUser?.uid || getBuildingUser()?.uid !== expectedUser.uid
+    || String(result.user?.email || "").toLowerCase() !== hint.toLowerCase()) {
+    clearLegacyDriveToken();
+    if (legacyDriveAuth.currentUser) await signOut(legacyDriveAuth);
+    throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
   }
   const credential = GoogleAuthProvider.credentialFromResult(result);
   const token = credential?.accessToken || "";
@@ -690,10 +696,11 @@ async function authenticateBuildingAndWorkspace() {
       auth = cachedConnection.auth;
       db = cachedConnection.db;
       currentUser = cachedConnection.user;
+      workspaceProfile = cachedConnection.profile;
       buildingUser = getBuildingUser() || buildingUser;
       return cachedConnection;
     } catch (error) {
-      console.warn("기기 캐시 업무공간 연결에 실패해 Drive에서 다시 확인합니다.", error);
+      console.warn("기기 캐시 업무공간 연결에 실패해 Drive에서 다시 확인합니다.");
       workspaceProfile = null;
     }
   }
@@ -725,6 +732,7 @@ async function authenticateBuildingAndWorkspace() {
   auth = connection.auth;
   db = connection.db;
   currentUser = connection.user;
+  workspaceProfile = connection.profile;
   buildingUser = getBuildingUser() || buildingUser;
   const token = getBuildingDriveAccessToken();
   if (token) rememberDriveAccessToken(token, buildingUser);
@@ -759,7 +767,7 @@ async function configureAuthPersistence(authInstance) {
       return label;
     } catch (error) {
       lastError = error;
-      console.warn(`Firebase Auth persistence unavailable: ${label}`, error);
+      console.warn(`Firebase Auth persistence unavailable: ${label}`);
     }
   }
   throw lastError || new Error("Firebase 로그인 저장소를 준비하지 못했습니다.");
@@ -797,7 +805,6 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     clearDriveAccessToken();
     stopRealtime();
     try {
-      if (auth?.currentUser) await signOut(auth);
       await signOutBuilding();
       currentUser = null;
       buildingUser = null;
@@ -838,7 +845,7 @@ function controller() {
     get workspaceUser() { return currentUser; },
     get workspaceKey() { return workspaceProfile?.workspace?.firebaseConfig?.projectId || (localOnly ? "local-preview" : "workspace"); },
     get mode() { return localOnly ? "local" : "cloud"; },
-    hasDriveAccess() { return localOnly || hasBuildingDriveToken() || Boolean(driveAccessToken); },
+    hasDriveAccess() { return localOnly || hasBuildingDriveToken(); },
     stableTaskId: stableKeyId,
     activate,
     save,
@@ -1516,7 +1523,7 @@ async function cleanupFailedDriveFile(fileId) {
     });
     if (!response.ok && response.status !== 404) throw new Error(`Google Drive 임시 파일 정리 실패 (${response.status})`);
   } catch (error) {
-    console.warn("실패한 Drive 임시 파일 정리 실패", fileId, error);
+    console.warn("실패한 Drive 임시 파일 정리 실패");
   }
 }
 
@@ -1586,7 +1593,7 @@ async function ensureImageUploads(state, allowPrompt = false) {
     }
   }
   if (!pending.length) return;
-  if (!driveAccessToken && !allowPrompt) throw new Error("사진을 Google Drive에 저장하려면 Drive 연결 버튼을 먼저 눌러 주세요.");
+  if (!hasBuildingDriveToken() && !allowPrompt) throw new Error("사진을 Google Drive에 저장하려면 Drive 연결 버튼을 먼저 눌러 주세요.");
   await ensureDriveAccess();
   for (const block of pending) {
     const blob = await (await fetch(block.data)).blob();
@@ -1628,7 +1635,7 @@ async function hydrateImages(root = document) {
     image.onkeydown = (event) => {
       if (event.key === "Enter" || event.key === " ") void load(true);
     };
-    if (driveAccessToken) void load(false);
+    if (hasBuildingDriveToken()) void load(false);
   }
 }
 
@@ -1780,7 +1787,7 @@ async function repairLegacyDriveAttachments() {
       }
       repaired++;
     } catch (error) {
-      console.warn("이전 Cloud 첨부 복구 실패", oldId, error);
+      console.warn("이전 Cloud 첨부 복구 실패");
       failed++;
     }
   }
@@ -1822,3 +1829,19 @@ async function driveFetch(url, options = {}) {
 }
 
 window.addEventListener("beforeunload", stopRealtime);
+
+// Purge the obsolete duplicate token without touching Firebase SDK persistence.
+try { sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY); } catch {}
+window.addEventListener("work-manager-credentials-cleared", () => {
+  const wasConnected = Boolean(currentUser);
+  clearDriveAccessToken();
+  clearLegacyDriveToken();
+  stopRealtime();
+  currentUser = null;
+  buildingUser = null;
+  workspaceProfile = null;
+  if (wasConnected) {
+    setSyncStatus("offline", "계정 연결 해제됨");
+    showLoggedOutGateV2();
+  }
+});

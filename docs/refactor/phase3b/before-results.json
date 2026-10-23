@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-10-23T07:39:26.179Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "748db8132cfd24a5963c6f0187b9b0be628a3544",
+  "attachmentSourceSha256": "87b31ea5a425e800e3fd09d2e3fc54e93313474fe8cfb45f9e23c7d30e450172",
+  "checkoutHead": "468bf5a11ea807586c2ae0a1c6c234def6f43590",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 18,
+  "counts": {
+    "PASS": 3,
+    "FAIL": 15,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "AUTH-01",
+      "title": "MOCK Google login, Drive profile, private auth and Firestore binding remain usable",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "title": "MOCK reload restores the private SDK session without password or Drive prompt",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'SYNTHETIC_PASSWORD'\n- undefined\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:15:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-03",
+      "title": "MOCK expired private session falls back to existing Drive credentials",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "title": "Cache stores an allowlist without password, OAuth token or arbitrary profile fields",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!/SYNTHETIC_PASSWORD|SYNTHETIC_TOKEN|SYNTHETIC_REFRESH/.test(serialized))\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:30:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-05",
+      "title": "Legacy full-profile cache is sanitized on module load",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:35:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:46:27)"
+    },
+    {
+      "id": "AUTH-06",
+      "title": "MOCK logout clears caches and private SDK sessions; relogin still works",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '{\"app\":\"work-manager-cloud\",\"schemaVersion\":1,\"google\":{\"uid\":\"google-a\",\"email\":\"google-a@example.invalid\",\"displayName\":\"Synthetic\"},\"workspace\":{\"firebaseConfig\":{\"apiKey\":\"SYNTHETIC_CONFIG\",\"projectId\":\"fixture-project\",\"authDomain\":\"fixture.invalid\",\"appId\":\"fixture-app\"},\"auth\":{\"uid\":\"private-google-a\",\"email\":\"private-google-a@example.invalid\",\"password\":\"SYNTHETIC_PASSWORD\"}}}'\n- null\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:40:80)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-07",
+      "title": "MOCK Google account switch separates cache, tokens and private auth",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ {\n+   email: 'private-google-a@example.invalid',\n+   uid: 'private-google-a'\n+ }\n- null\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:49:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-08",
+      "title": "Profiles with wrong or missing Google owner are rejected before private login",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:56:43)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-09",
+      "title": "Malformed profile types are rejected",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:63:46)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:46:27)"
+    },
+    {
+      "id": "AUTH-10",
+      "title": "Drive token expires in memory and session storage",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "title": "Missing identity and malformed expiry cannot restore Drive tokens",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'SYNTHETIC_TOKEN'\n- ''\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:75:75)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-12",
+      "title": "Drive/Tasks tokens stay separate from password-free persistent profile",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:82:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-13",
+      "title": "MOCK Drive reauthentication rejects a different Google identity",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at async Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:87:5)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-14",
+      "title": "Logout clears app cache even when SDK signout fails",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '{\"app\":\"work-manager-cloud\",\"schemaVersion\":1,\"google\":{\"uid\":\"google-a\",\"email\":\"google-a@example.invalid\",\"displayName\":\"Synthetic\"},\"workspace\":{\"firebaseConfig\":{\"apiKey\":\"SYNTHETIC_CONFIG\",\"projectId\":\"fixture-project\",\"authDomain\":\"fixture.invalid\",\"appId\":\"fixture-app\"},\"auth\":{\"uid\":\"private-google-a\",\"email\":\"private-google-a@example.invalid\",\"password\":\"SYNTHETIC_PASSWORD\"}}}'\n- null\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:92:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-15",
+      "title": "Profile error logs omit arbitrary error payloads",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:97:51)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:46:16)"
+    },
+    {
+      "id": "AUTH-16",
+      "title": "Legacy Drive token expires even if still held in memory",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'SYNTHETIC_LEGACY'\n- ''\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:101:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:46:27)"
+    },
+    {
+      "id": "AUTH-17",
+      "title": "Legacy Drive token cannot cross Google accounts",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'SYNTHETIC_LEGACY'\n- ''\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:106:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:46:27)"
+    },
+    {
+      "id": "AUTH-18",
+      "title": "Cloud adapter does not persist a second copy of the current Drive token",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '{\"token\":\"SYNTHETIC_DRIVE_TOKEN\",\"uid\":\"google-a\",\"expiresAt\":1792727100000}'\n- null\n\n    at Object.run (/workspace/work-manager-cloud/tests/credential.test.cjs:111:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:46:27)"
+    }
+  ]
+}

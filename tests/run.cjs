@@ -29,8 +29,9 @@ async function main() {
     assert.throws(() => classify(2, 1, { observed: 0 }), assert.AssertionError);
   });
   const attachmentOnly = process.argv.includes('--attachments-only');
-  if (attachmentOnly) cases.length = 0;
-  for (const suite of (attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment'])) {
+  const credentialOnly = process.argv.includes('--credentials-only');
+  if (attachmentOnly || credentialOnly) cases.length = 0;
+  for (const suite of (credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -54,13 +55,14 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: '748db8132cfd24a5963c6f0187b9b0be628a3544',
+    refactorBase: '468bf5a11ea807586c2ae0a1c6c234def6f43590',
+    credentialSourceSha256: createHash('sha256').update(fs.readFileSync(path.join(root, 'js/workspace-profile.js'))).digest('hex'),
     attachmentSourceSha256: createHash('sha256').update(fs.readFileSync(path.join(root, 'js/cloud-sync.js'))).digest('hex'),
     checkoutHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, attachmentOnly ? 'attachment-results.json' : 'phase3a-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase3b-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }
