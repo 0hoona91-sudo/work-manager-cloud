@@ -1,0 +1,23 @@
+{
+  "base": "975dc630d97aa07b27ea6b0a4e9319f7afd249c4",
+  "sourceSha256": "60aa47c704ff798254dcdf27f1afad9df8fae6d75856cf1daaf73126e3838916",
+  "total": 1,
+  "counts": {
+    "PASS": 0,
+    "XFAIL": 1,
+    "XPASS": 0,
+    "FAIL": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BUG-06",
+      "status": "XFAIL",
+      "timezone": "Pacific/Kiritimati",
+      "expected": "2026-01-09",
+      "observed": "2026-01-08"
+    }
+  ],
+  "baselineReport": "../phase3d/after-results.json",
+  "note": "Existing 114-test report reused. Only BUG-06 reproduced before changes."
+}

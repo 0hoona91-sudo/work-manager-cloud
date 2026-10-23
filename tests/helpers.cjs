@@ -38,7 +38,10 @@ function blocks(tag, file = 'index.html') {
   }));
 }
 function loadModel() {
-  const ctx = context({ module: { exports: {} } });
+  const ctx = context({ module: { exports: {} }, require: name => {
+    assert.equal(name, './date-only.js');
+    return require('../js/date-only.js');
+  } });
   vm.runInContext(read('js/project-model.js'), ctx, { timeout: 2000 });
   return ctx.module.exports;
 }

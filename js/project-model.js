@@ -1,10 +1,12 @@
 /* 업무관리시스템 · 프로젝트 단계 모델. UI와 Firebase에 종속되지 않아 로컬 회귀테스트 가능. */
 (function (host, factory) {
-  const api = factory();
+  const dates = typeof module === 'object' && module.exports ? require('./date-only.js') : host?.WMDateOnly;
+  const api = factory(dates);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (host) host.WMProjectModel = api;
-})(typeof window !== 'undefined' ? window : null, function () {
+})(typeof window !== 'undefined' ? window : null, function (dates) {
   'use strict';
+  if (!dates) throw new Error('공통 날짜 엔진을 불러오지 못했습니다.');
   const id = (prefix) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,11)}`;
   const clone = (item) => JSON.parse(JSON.stringify(item));
   const isCompleted = task => Boolean(task && (task.status==='done'||task.actualComplete));
@@ -22,37 +24,11 @@
     task.status='progress';task.actualComplete=null;
     return true;
   }
-  // 프로젝트의 모든 날짜 입력에서 공통 사용. 내부 저장은 YYYY-MM-DD로 유지한다.
-  // YYYYMD(202691), YYYYMDD(2026926), YYYYMMDD 및 구분자 입력을 지원한다.
-  // 7자리의 10~12월(예: 2026101)은 두 자리 월을 우선한다.
-  const date = (input) => {
-    const text = String(input ?? '').trim();
-    if (!text) return '';
-    const separated = text.match(/^(\d{4})[-./]\s*(\d{1,2})[-./]\s*(\d{1,2})$/);
-    let candidates=[];
-    if (separated) {
-      candidates=[[Number(separated[1]),Number(separated[2]),Number(separated[3])]];
-    } else if (/^\d{6,8}$/.test(text)) {
-      const y=Number(text.slice(0,4)), tail=text.slice(4);
-      if(tail.length===2) candidates=[[y,Number(tail[0]),Number(tail[1])]];
-      else if(tail.length===4) candidates=[[y,Number(tail.slice(0,2)),Number(tail.slice(2))]];
-      else {
-        const oneMonth=[y,Number(tail.slice(0,1)),Number(tail.slice(1))];
-        const twoMonth=[y,Number(tail.slice(0,2)),Number(tail.slice(2))];
-        candidates=(Number(tail.slice(0,2))>=10 && Number(tail.slice(0,2))<=12)
-          ? [twoMonth,oneMonth] : [oneMonth,twoMonth];
-      }
-    } else {
-      throw new Error('날짜는 YYYY-MM-DD 또는 YYYYMMDD 형식으로 입력해 주세요.');
-    }
-    for(const [y,m,d] of candidates){
-      if(y<1000||y>9999||m<1||m>12||d<1||d>31)continue;
-      const check=new Date(y,m-1,d,12);
-      if(check.getFullYear()===y && check.getMonth()+1===m && check.getDate()===d)
-        return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    }
-    throw new Error('올바른 날짜를 입력해 주세요.');
-  };
+  // Keep optional blank dates in the legacy facade; arithmetic requires a real date.
+  const date = input => String(input ?? '').trim() ? dates.normalize(input) : '';
+  // Existing UI callbacks accept a local Date. Only this compatibility boundary
+  // constructs one; the engine itself receives canonical DateOnly strings.
+  const calendar = holidayCheck => ({weekendDays:[], isHoliday:value=>holidayCheck(new Date(`${value}T12:00:00`))});
   function freshStep() {
     return { id:id('stage'),taskId:id('project-task'),title:'',participants:[],start:'',endType:'same',endDate:'',afterDays:0,includeHolidays:true,holidayShift:'keep',checklist:[],resources:[] };
   }
@@ -74,21 +50,17 @@
   }
   function dateAfter(start,n,includeHolidays,holidayCheck) {
     if(!start) return '';
-    const d = new Date(`${start}T12:00:00`);
-    let count = Math.min(9999,Math.max(0,Number(n)||0));
-    while(count>0){d.setDate(d.getDate()+1);if(includeHolidays||!holidayCheck||!holidayCheck(d))count--;}
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const offset = Number(n ?? 0);
+    return includeHolidays || !holidayCheck ? dates.addDays(start,offset)
+      : dates.addBusinessDays(start,offset,calendar(holidayCheck));
   }
+
   function stageEnd(step,holidayCheck){
     const start = date(step.start);
     let end = step.endType==='date' ? date(step.endDate) : step.endType==='after' ? dateAfter(start,step.afterDays,step.includeHolidays,holidayCheck) : start;
     if(!end)end=start;
     if (end && step.holidayShift !== 'keep' && typeof holidayCheck==='function') {
-      const d=new Date(`${end}T12:00:00`);
-      const inc=step.holidayShift==='prev'?-1:1;
-      let guard=0;
-      while(holidayCheck(d) && guard++<40)d.setDate(d.getDate()+inc);
-      end=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      end=dates.shiftBusinessDay(end,step.holidayShift==='prev'?'prev':'next',calendar(holidayCheck),{maxIterations:40});
     }
     return end;
   }
@@ -97,7 +69,7 @@
   function dayDifference(from,to){
     const a=date(from),b=date(to);
     if(!a||!b)return 0;
-    return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
+    return dates.difference(a,b);
   }
   function initializeRelativeDates(project,holidayCheck){
     if(!project?.stages)return project;
@@ -117,15 +89,8 @@
       const previous=project.stages[i-1],stage=project.stages[i];
       const baseline=stageEnd(previous,holidayCheck)||previous.start||project.start;
       stage.start=dateAfter(baseline,Number(stage.relativeStartDays)||0,true,holidayCheck);
-      // Offset can be negative in older projects: preserve it rather than silently changing the schedule.
-      if(Number(stage.relativeStartDays)<0){
-        const d=new Date(baseline+'T12:00:00');d.setDate(d.getDate()+Number(stage.relativeStartDays));
-        stage.start=date(d.toISOString().slice(0,10));
-      }
-      const endOffset=Number(stage.relativeEndDays)||0;
       stage.endType='date';
-      if(endOffset>=0)stage.endDate=dateAfter(baseline,endOffset,true,holidayCheck);
-      else {const d=new Date(baseline+'T12:00:00');d.setDate(d.getDate()+endOffset);stage.endDate=date(d.toISOString().slice(0,10));}
+      stage.endDate=dateAfter(baseline,Number(stage.relativeEndDays)||0,true,holidayCheck);
     }
     return project;
   }

@@ -81,12 +81,13 @@ module.exports = ({ test, known }) => {
     assert.deepEqual(plain(state),before);
     assert.ok(state.tasks.some(t=>t.id==='task-b'&&t.status==='done'&&t.actualComplete==='2026-01-03'));
   });
-  known('BUG-06', 'Negative stage offsets must be timezone independent (UTC+14)', () => {
+  test('BUG-06', 'Negative stage offsets must be timezone independent (UTC+14)', () => {
     const script = `const {loadModel}=require('./tests/helpers.cjs');const {project}=require('./tests/fixtures.cjs');
       const M=loadModel(),p=project();p.stages[0].start=p.stages[0].endDate='2026-01-10';
       p.stages[1].relativeStartDays=p.stages[1].relativeEndDays=-1;
       process.stdout.write(M.applyRelativeDates(p).stages[1].start);`;
-    return execFileSync(process.execPath, ['-e', script], { cwd: require('./helpers.cjs').root,
+    const actual = execFileSync(process.execPath, ['-e', script], { cwd: require('./helpers.cjs').root,
       env: { ...process.env, TZ: 'Pacific/Kiritimati' }, timeout: 5000, encoding: 'utf8' });
-  }, '2026-01-09', '2026-01-08', 'js/project-model.js / phase1 evidence/timezone-result.json');
+    assert.equal(actual, '2026-01-09');
+  });
 };
