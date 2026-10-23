@@ -1,0 +1,1040 @@
+file,line,endLine,block,scope,kind,name,valueReferenceCount
+index.html,1676,1676,(no id),,ArrowFunctionExpression,$,958
+index.html,1676,1676,(no id),,ArrowFunctionExpression,$$,211
+index.html,1677,1677,(no id),,ArrowFunctionExpression,clone,97
+index.html,1678,1678,(no id),,ArrowFunctionExpression,todayISO,99
+index.html,1679,1679,(no id),,ArrowFunctionExpression,iso,51
+index.html,1680,1680,(no id),,ArrowFunctionExpression,dateOf,79
+index.html,1681,1681,(no id),,ArrowFunctionExpression,addDays,41
+index.html,1682,1682,(no id),,ArrowFunctionExpression,endOfMonth,17
+index.html,1683,1683,(no id),,ArrowFunctionExpression,uid,81
+index.html,1684,1684,(no id),,ArrowFunctionExpression,fmtDate,66
+index.html,1685,1685,(no id),,ArrowFunctionExpression,esc,340
+index.html,1686,1686,(no id),,ArrowFunctionExpression,statusLabel,4
+index.html,1703,1703,(no id),program,declaration,openDb,5
+index.html,1705,1705,(no id),program,declaration,fallbackLocalRead,1
+index.html,1706,1706,(no id),program,declaration,fallbackLocalWrite,1
+index.html,1707,1707,(no id),program,declaration,readLocalMeta,6
+index.html,1708,1708,(no id),program,declaration,writeLocalMeta,4
+index.html,1709,1709,(no id),program,declaration,readLocalState,0
+index.html,1710,1710,(no id),program,declaration,writeLocalState,3
+index.html,1711,1711,(no id),program,declaration,storeLocalFile,4
+index.html,1712,1712,(no id),program,declaration,readLocalFile,3
+index.html,1713,1713,(no id),program,declaration,localFileObjectUrl,1
+index.html,1714,1714,(no id),program,declaration,hydrateLocalImages,1
+index.html,1715,1715,(no id),program,declaration,openOrDownloadLocalFile,5
+index.html,1716,1716,(no id),program,declaration,clearAllLocalData,1
+index.html,1717,1717,(no id),program,declaration,localStableTaskId,1
+index.html,1718,1718,(no id),program,declaration,localSaveTrashEntry,1
+index.html,1719,1719,(no id),program,declaration,localListTrashEntries,1
+index.html,1720,1720,(no id),program,declaration,localRemoveTrashEntry,1
+index.html,1721,1721,(no id),program,declaration,localSaveTemplateVersion,1
+index.html,1722,1722,(no id),program,declaration,localListTemplateVersions,1
+index.html,1723,1723,(no id),program,declaration,localCloudShim,0
+index.html,1724,1734,(no id),program,declaration,loadState,1
+index.html,1736,1746,(no id),program,declaration,saveState,121
+index.html,1747,1747,(no id),program,declaration,seed,16
+index.html,1750,1750,(no id),program,declaration,isHoliday,11
+index.html,1751,1751,(no id),program,declaration,shiftWorkday,21
+index.html,1752,1752,(no id),program,declaration,addBusinessDays,4
+index.html,1753,1753,(no id),program,declaration,calcEnd,5
+index.html,1754,1754,(no id),program,declaration,effectiveStatus,117
+index.html,1755,1755,(no id),program,declaration,taskRange,1
+index.html,1756,1756,(no id),program,declaration,taskMatchesRange,10
+index.html,1757,1757,(no id),program,declaration,periodBounds,6
+index.html,1758,1758,(no id),program,declaration,periodName,2
+index.html,1759,1759,(no id),program,declaration,selectedHomeTasks,1
+index.html,1760,1760,(no id),program,declaration,recalcLinks,42
+index.html,1762,1762,(no id),program,declaration,toast,137
+index.html,1763,1763,(no id),program,declaration,showPage,24
+index.html,1765,1765,(no id),program,declaration,initSelectors,3
+index.html,1766,1766,(no id),program,declaration,renderCategoryMulti,11
+index.html,1768,1768,(no id),program,declaration,renderHome,106
+index.html,1769,1769,(no id),program,declaration,statusBadge,9
+index.html,1770,1770,(no id),program,declaration,renderVisual,2
+index.html,1771,1788,(no id),program,declaration,renderGantt,7
+index.html,1789,1789,(no id),program,declaration,renderCalendar,6
+index.html,1790,1790,(no id),program,declaration,bindTaskLinks,20
+index.html,1792,1792,(no id),program,declaration,renderTaskTable,108
+index.html,1793,1793,(no id),program,declaration,periodFromDate,23
+index.html,1794,1794,(no id),program,declaration,renderDbTable,57
+index.html,1795,1795,(no id),program,declaration,templatePeriodLabel,22
+index.html,1797,1797,(no id),program,declaration,renderHolidays,10
+index.html,1798,1798,(no id),renderSettings,declaration,chips,4
+index.html,1798,1798,(no id),program,declaration,renderSettings,54
+index.html,1800,1800,(no id),program,declaration,historyActionLabel,2
+index.html,1801,1801,(no id),program,declaration,historyTime,1
+index.html,1802,1812,(no id),program,declaration,renderHistory,9
+index.html,1814,1814,(no id),program,declaration,modal,39
+index.html,1815,1815,(no id),program,declaration,closeModal,40
+index.html,1817,1817,(no id),program,declaration,openChecklist,21
+index.html,1819,1834,(no id),program,declaration,taskFormHtml,2
+index.html,1837,1837,(no id),openTaskForm,declaration,renderChecks,8
+index.html,1838,1838,(no id),openTaskForm,declaration,renderSteps,9
+index.html,1840,1840,(no id),openTaskForm,declaration,toggleDbSearch,2
+index.html,1841,1841,(no id),openTaskForm,declaration,toggleLink,2
+index.html,1842,1842,(no id),openTaskForm,declaration,toggleEnd,4
+index.html,1836,1844,(no id),program,declaration,openTaskForm,25
+index.html,1846,1846,(no id),program,declaration,openDbDetail,3
+index.html,1848,1848,(no id),openDbForm,declaration,rchecks,13
+index.html,1848,1848,(no id),openDbForm,declaration,rphotos,3
+index.html,1848,1848,(no id),openDbForm,declaration,rcycle,8
+index.html,1848,1848,(no id),program,declaration,openDbForm,27
+index.html,1849,1849,(no id),program,declaration,fileData,1
+index.html,1850,1857,(no id),program,declaration,methodImageHtml,3
+index.html,1858,1863,(no id),program,declaration,makeMethodImageBlock,3
+index.html,1864,1868,(no id),program,declaration,makeMethodFileBlock,1
+index.html,1869,1869,(no id),program,declaration,fileSizeLabelV23,2
+index.html,1870,1878,(no id),program,declaration,methodFileHtmlV23,2
+index.html,1879,1879,(no id),program,declaration,stableGeneratedTaskId,2
+index.html,1880,1880,(no id),program,declaration,stableGeneratedCheckId,2
+index.html,1882,1882,(no id),program,declaration,monthsForTemplate,4
+index.html,1883,1883,(no id),program,declaration,templateDateForMonth,2
+index.html,1884,1884,(no id),program,declaration,createFromTemplate,2
+index.html,1888,1888,(no id),,ArrowFunctionExpression,addCopy,2
+index.html,1885,1889,(no id),program,declaration,generateRepeats,1
+index.html,1890,1890,(no id),,ArrowFunctionExpression,stripBlock,3
+index.html,1890,1890,(no id),program,declaration,exportJson,2
+index.html,1891,1891,(no id),program,declaration,download,3
+index.html,1892,1892,(no id),program,declaration,csvValue,1
+index.html,1893,1893,(no id),program,declaration,exportCsv,4
+index.html,1895,1895,(no id),program,declaration,bind,12
+index.html,1901,1917,(no id),program,declaration,migrateStateV2,10
+index.html,1918,1918,(no id),program,declaration,effectiveStatus,117
+index.html,1919,1919,(no id),program,declaration,selectedHomeTasksV2,1
+index.html,1920,1931,(no id),program,declaration,renderHome,106
+index.html,1932,1932,(no id),program,declaration,renderVisual,2
+index.html,1933,1933,(no id),program,declaration,renderHomeListV2,1
+index.html,1934,1934,(no id),program,declaration,ganttUnitsV2,2
+index.html,1937,1937,(no id),,ArrowFunctionExpression,pct,28
+index.html,1938,1938,(no id),,ArrowFunctionExpression,widthPct,10
+index.html,1935,1947,(no id),program,declaration,renderGantt,7
+index.html,1948,1953,(no id),program,declaration,renderCalendar,6
+index.html,1954,1954,(no id),program,declaration,repeatLabelV2,5
+index.html,1955,1955,(no id),program,declaration,updateBulkV2,16
+index.html,1956,1956,(no id),program,declaration,statusSelectV2,4
+index.html,1957,1962,(no id),program,declaration,renderTaskTable,108
+index.html,1963,1963,(no id),program,declaration,deleteTasksByIdsV2,2
+index.html,1964,1964,(no id),program,declaration,deleteSeriesV2,2
+index.html,1965,1971,(no id),program,declaration,taskEndRuleV32,2
+index.html,1972,2006,(no id),program,declaration,taskFormHtml,2
+index.html,2007,2029,(no id),program,declaration,recurrenceDatesV2,3
+index.html,2030,2030,(no id),program,declaration,cloneOccurrenceV2,4
+index.html,2033,2033,(no id),openTaskForm,declaration,renderChecks,8
+index.html,2078,2078,(no id),,ArrowFunctionExpression,update,2
+index.html,2034,2084,(no id),openTaskForm,declaration,renderSteps,9
+index.html,2085,2085,(no id),openTaskForm,declaration,renderRepeatExtra,3
+index.html,2088,2088,(no id),openTaskForm,declaration,toggleDb,2
+index.html,2090,2090,(no id),openTaskForm,declaration,endTypeFromCurrent,1
+index.html,2090,2090,(no id),openTaskForm,declaration,toggleEnd,4
+index.html,2031,2098,(no id),program,declaration,openTaskForm,25
+index.html,2099,2106,(no id),program,declaration,taskStepChecksV11,2
+index.html,2108,2108,(no id),,ArrowFunctionExpression,read,21
+index.html,2107,2111,(no id),program,declaration,taskStepLinkV11,1
+index.html,2112,2119,(no id),program,declaration,taskStepDefsFromDomV11,2
+index.html,2120,2123,(no id),program,declaration,taskStepTemplateV11,1
+index.html,2124,2127,(no id),program,declaration,normalizeTaskStepLinkV12,2
+index.html,2128,2137,(no id),program,declaration,createLinkedStepsV2,3
+index.html,2138,2151,(no id),program,declaration,syncLinkedStepsForEditedV2,2
+index.html,2152,2152,(no id),program,declaration,renderMethodBlocksViewV2,3
+index.html,2153,2153,(no id),program,declaration,openDbDetail,3
+index.html,2157,2157,(no id),openDbForm,declaration,rchecks,13
+index.html,2158,2158,(no id),openDbForm,declaration,rblocks,18
+index.html,2159,2159,(no id),openDbForm,declaration,rcycle,8
+index.html,2154,2162,(no id),program,declaration,openDbForm,27
+index.html,2163,2163,(no id),program,declaration,renderDbTable,57
+index.html,2164,2164,(no id),program,declaration,renderHolidays,10
+index.html,2165,2165,(no id),program,declaration,koreanHolidayNameV2,0
+index.html,2166,2166,(no id),program,declaration,fetchKasiHolidaysV2,0
+index.html,2167,2167,(no id),program,declaration,fetchNagerHolidaysV2,0
+index.html,2168,2168,(no id),program,declaration,importNationalHolidaysV2,1
+index.html,2169,2169,(no id),renderSettings,declaration,chips,4
+index.html,2169,2169,(no id),program,declaration,renderSettings,54
+index.html,2170,2176,(no id),program,declaration,bind,12
+index.html,2180,2180,(no id),program,declaration,selectedHomeTasksV3,4
+index.html,2181,2181,(no id),program,declaration,monthBoundsV3,5
+index.html,2182,2182,(no id),program,declaration,defaultCalendarMonthV3,3
+index.html,2183,2183,(no id),program,declaration,filteredOverdueV3,3
+index.html,2184,2197,(no id),program,declaration,renderHome,106
+index.html,2198,2198,(no id),program,declaration,renderVisual,2
+index.html,2201,2201,(no id),,ArrowFunctionExpression,pct,28
+index.html,2202,2202,(no id),,ArrowFunctionExpression,widthPct,10
+index.html,2209,2209,(no id),,ArrowFunctionExpression,jump,6
+index.html,2209,2209,(no id),,ArrowFunctionExpression,up,6
+index.html,2199,2211,(no id),program,declaration,renderGantt,7
+index.html,2212,2212,(no id),program,declaration,recurrenceKeyV3,1
+index.html,2213,2213,(no id),program,declaration,preserveOccurrenceV3,2
+index.html,2214,2224,(no id),program,declaration,rebuildRepeatSeriesV3,1
+index.html,2225,2227,(no id),program,declaration,repairLegacyRepeatsV3,2
+index.html,2257,2263,(no id),program,declaration,ganttWindowV4,2
+index.html,2264,2268,(no id),program,declaration,ganttTasksV4,3
+index.html,2269,2282,(no id),program,declaration,ganttUnitsV4,2
+index.html,2288,2288,(no id),,ArrowFunctionExpression,pct,28
+index.html,2289,2289,(no id),,ArrowFunctionExpression,widthPct,10
+index.html,2308,2308,(no id),,ArrowFunctionExpression,jump,6
+index.html,2309,2309,(no id),,ArrowFunctionExpression,goDate,6
+index.html,2315,2315,(no id),,ArrowFunctionExpression,up,6
+index.html,2283,2320,(no id),program,declaration,renderGantt,7
+index.html,2321,2332,(no id),program,declaration,renderHome,106
+index.html,2350,2354,(no id),program,declaration,v5AddMonths,7
+index.html,2355,2355,(no id),program,declaration,v5MonthStart,3
+index.html,2356,2356,(no id),program,declaration,v5MaxDate,4
+index.html,2357,2357,(no id),program,declaration,v5MinDate,4
+index.html,2358,2368,(no id),program,declaration,v5EnsureSettings,10
+index.html,2369,2369,(no id),program,declaration,categoryColorV5,13
+index.html,2370,2370,(no id),program,declaration,rgbaV5,2
+index.html,2372,2384,(no id),program,declaration,migrateV5Data,2
+index.html,2388,2441,(no id),program,declaration,ensureV5Ui,10
+index.html,2443,2450,(no id),program,declaration,applyHomeLayoutV5,4
+index.html,2452,2457,(no id),program,declaration,renderCategoryColorsV5,4
+index.html,2458,2466,(no id),program,declaration,diagnoseDbV5,1
+index.html,2480,2486,(no id),program,declaration,renderCategoryMulti,11
+index.html,2487,2489,(no id),program,declaration,ganttCategoryFilterHtmlV5,1
+index.html,2490,2495,(no id),program,declaration,bindGanttCategoryFilterV5,2
+index.html,2497,2500,(no id),program,declaration,v5DefaultAutoRange,8
+index.html,2501,2526,(no id),program,declaration,templateOccurrenceSpecsV5,5
+index.html,2527,2530,(no id),program,declaration,preserveChecklistV5,3
+index.html,2531,2542,(no id),program,declaration,taskFromDbTemplateV5,4
+index.html,2543,2549,(no id),program,declaration,stepTaskTemplateV5,1
+index.html,2550,2572,(no id),program,declaration,ensureDbLinkedChildrenV5,5
+index.html,2573,2606,(no id),program,declaration,syncTemplateScheduleV5,9
+index.html,2607,2612,(no id),program,declaration,ensureAutoSchedulesV5,7
+index.html,2614,2628,(no id),program,declaration,recalcLinks,42
+index.html,2630,2638,(no id),program,declaration,changeTaskStartV5,5
+index.html,2640,2657,(no id),program,declaration,renderTaskTable,108
+index.html,2659,2672,(no id),program,declaration,v5StepEditorHtml,1
+index.html,2704,2704,(no id),openDbForm,declaration,rchecks,13
+index.html,2705,2705,(no id),openDbForm,declaration,rblocks,18
+index.html,2706,2706,(no id),openDbForm,declaration,rcycle,8
+index.html,2707,2710,(no id),openDbForm,declaration,rsteps,10
+index.html,2673,2723,(no id),program,declaration,openDbForm,27
+index.html,2725,2729,(no id),program,declaration,renderDbTable,57
+index.html,2736,2736,(no id),,ArrowFunctionExpression,pct,28
+index.html,2737,2737,(no id),,ArrowFunctionExpression,widthPct,10
+index.html,2752,2752,(no id),,ArrowFunctionExpression,jump,6
+index.html,2752,2752,(no id),,ArrowFunctionExpression,goDate,6
+index.html,2752,2752,(no id),,ArrowFunctionExpression,up,6
+index.html,2731,2754,(no id),program,declaration,renderGantt,7
+index.html,2755,2760,(no id),program,declaration,renderCalendar,6
+index.html,2762,2773,(no id),program,declaration,renderHome,106
+index.html,2809,2828,(no id),program,declaration,migrateV6Data,2
+index.html,2832,2838,(no id),program,declaration,modal,39
+index.html,2840,2854,(no id),program,declaration,ensureV6Ui,6
+index.html,2859,2866,(no id),program,declaration,renderTaskCategoryFilterV6,4
+index.html,2868,2883,(no id),program,declaration,taskListVisibleV6,2
+index.html,2884,2893,(no id),program,declaration,bindSelectAllV6,2
+index.html,2894,2914,(no id),program,declaration,renderTaskTable,108
+index.html,2916,2930,(no id),program,declaration,renderCalendar,6
+index.html,2932,2934,(no id),program,declaration,calcByModeV6,7
+index.html,2935,2946,(no id),program,declaration,effectiveStepSourceV6,13
+index.html,2947,2975,(no id),program,declaration,ensureDbLinkedChildrenV5,5
+index.html,2980,2984,(no id),program,declaration,dbLinkedScheduleBasisV151,1
+index.html,2985,2997,(no id),program,declaration,dbEditedOccurrenceDeadlineV151,4
+index.html,3002,3019,(no id),program,declaration,linkedStageDatesV152,2
+index.html,3020,3041,(no id),program,declaration,dbStageLinkV152,2
+index.html,3042,3050,(no id),program,declaration,dbChainHasCascadeV152,1
+index.html,3051,3085,(no id),program,declaration,recalcLinks,42
+index.html,3087,3090,(no id),program,declaration,stepChecklistEditorHtmlV6,1
+index.html,3091,3113,(no id),program,declaration,stepEditorHtmlV6,2
+index.html,3121,3121,(no id),,ArrowFunctionExpression,useProjectV175,10
+index.html,3122,3122,(no id),,ArrowFunctionExpression,ownersV175,1
+index.html,3123,3128,(no id),,ArrowFunctionExpression,projectCheckExtrasV175,2
+index.html,3157,3164,(no id),openDbForm,declaration,rchecks,13
+index.html,3165,3168,(no id),openDbForm,declaration,bindProjectExtrasV175,2
+index.html,3169,3186,(no id),openDbForm,declaration,rblocks,18
+index.html,3187,3192,(no id),openDbForm,declaration,rattachments,3
+index.html,3193,3193,(no id),openDbForm,declaration,rcycle,8
+index.html,3194,3207,(no id),openDbForm,declaration,bindStepControls,1
+index.html,3208,3227,(no id),openDbForm,declaration,rsteps,10
+index.html,3228,3242,(no id),openDbForm,declaration,refreshLibraryKindV175,2
+index.html,3115,3270,(no id),program,declaration,openDbForm,27
+index.html,3272,3279,(no id),program,declaration,flattenDbRowsV6,11
+index.html,3280,3289,(no id),program,declaration,renderDbTable,57
+index.html,3290,3290,(no id),program,declaration,renderChecklistListV6,2
+index.html,3291,3295,(no id),program,declaration,stepRuleTextV6,1
+index.html,3296,3306,(no id),program,declaration,openDbDetailV6,20
+index.html,3307,3312,(no id),program,declaration,rebuildTemplateChainV6,1
+index.html,3313,3317,(no id),program,declaration,deleteLinkedStepV6,2
+index.html,3318,3323,(no id),program,declaration,deleteDbTemplateV6,4
+index.html,3349,3352,(no id),program,declaration,migrateV7Data,4
+index.html,3353,3356,(no id),program,declaration,applyThemeV7,16
+index.html,3360,3362,(no id),program,declaration,updatePanelLayoutButtonsV7,3
+index.html,3366,3368,(no id),program,declaration,themeCardHtmlV7,1
+index.html,3369,3383,(no id),program,declaration,ensureV7Ui,9
+index.html,3387,3414,(no id),program,declaration,renderCategoryColorsV5,4
+index.html,3416,3431,(no id),program,declaration,openHolidayAddV7,2
+index.html,3433,3433,(no id),program,declaration,dbCategoryHtmlV7,7
+index.html,3434,3443,(no id),program,declaration,renderDbTable,57
+index.html,3470,3486,(no id),program,declaration,migrateV8Data,10
+index.html,3490,3494,(no id),program,declaration,ownerProfileV8,6
+index.html,3495,3499,(no id),program,declaration,ownerDisplayV8,6
+index.html,3500,3508,(no id),program,declaration,ownerOptionHtmlV8,4
+index.html,3510,3516,(no id),program,declaration,countOwnerUsageV8,2
+index.html,3517,3532,(no id),program,declaration,renameOwnerEverywhereV8,1
+index.html,3546,3546,(no id),,ArrowFunctionExpression,updatePreview,5
+index.html,3533,3569,(no id),program,declaration,openOwnerEditorV8,3
+index.html,3570,3580,(no id),program,declaration,deleteOwnerV8,1
+index.html,3582,3604,(no id),program,declaration,renderOwnerManagerV8,2
+index.html,3612,3617,(no id),program,declaration,decorateTaskOwnerSelectV8,1
+index.html,3654,3659,(no id),program,declaration,ownerForDbRefV8,9
+index.html,3668,3670,(no id),program,declaration,taskListVisibleV8,5
+index.html,3671,3694,(no id),program,declaration,renderTaskTable,108
+index.html,3696,3709,(no id),program,declaration,renderDbTable,57
+index.html,3740,3740,(no id),program,declaration,isCanonicalDbKeyV9,2
+index.html,3741,3743,(no id),program,declaration,isCorruptDbSeriesTaskV9,2
+index.html,3744,3749,(no id),program,declaration,canonicalRootForCorruptV9,2
+index.html,3761,3761,(no id),,ArrowFunctionExpression,score,2
+index.html,3750,3772,(no id),program,declaration,dedupeGeneratedKeysV9,1
+index.html,3773,3819,(no id),program,declaration,repairDbAutoCorruptionV9,2
+index.html,3821,3832,(no id),program,declaration,installSelectAllV9,2
+index.html,3834,3844,(no id),program,declaration,dbAutoTaskUiLockV9,1
+index.html,3845,3848,(no id),program,declaration,checksFromTaskFormV9,2
+index.html,3849,3881,(no id),program,declaration,saveDbAutoOccurrenceV9,1
+index.html,3936,3949,(no id),program,declaration,ensureDbRegisterUiV10,3
+index.html,3950,3958,(no id),program,declaration,dbVisibleRowsV10,5
+index.html,3959,3970,(no id),program,declaration,updateDbRegisterSelectionV10,4
+index.html,3971,3986,(no id),program,declaration,bindDbSelectionsV10,1
+index.html,3988,4003,(no id),program,declaration,renderDbTable,57
+index.html,4005,4005,(no id),program,declaration,isProjectLibraryV175,8
+index.html,4006,4015,(no id),program,declaration,selectedDbDescriptorsV10,1
+index.html,4016,4023,(no id),program,declaration,stageSourceV10,2
+index.html,4024,4027,(no id),program,declaration,stageLabelV10,1
+index.html,4028,4051,(no id),program,declaration,registerCardHtmlV10,1
+index.html,4052,4058,(no id),program,declaration,refreshRegisterFlowV10,2
+index.html,4059,4090,(no id),program,declaration,openDbRegisterModalV10,1
+index.html,4092,4104,(no id),program,declaration,initialStageScheduleV10,1
+index.html,4134,4134,(no id),,ArrowFunctionExpression,holidays,5
+index.html,4105,4140,(no id),program,declaration,createProjectFromLibraryV175,1
+index.html,4141,4172,(no id),program,declaration,createManualDbChainV10,1
+index.html,4175,4182,(no id),program,declaration,lockManualDbChainFormV10,1
+index.html,4183,4210,(no id),program,declaration,saveManualDbOccurrenceV10,1
+index.html,4258,4262,(no id),program,declaration,bindCloudUi,1
+index.html,4273,4277,(no id),program,declaration,dbRootIdsFromRefsV12,2
+index.html,4278,4283,(no id),program,declaration,detachDeletedDbHistoryV12,1
+index.html,4284,4309,(no id),program,declaration,removeDbTemplatesV12,4
+index.html,4310,4321,(no id),program,declaration,deleteSelectedDbV12,1
+index.html,4323,4342,(no id),program,declaration,bindDrivePhotoAuthorizationV12,1
+index.html,4343,4353,(no id),program,declaration,bindDbSingleDeleteV12,1
+index.html,4357,4357,(no id),program,declaration,todayLabelV12,1
+index.html,4358,4361,(no id),program,declaration,renderTodayV12,1
+index.html,4369,4375,(no id),program,declaration,ensureGanttFilterSettingsV13,5
+index.html,4376,4380,(no id),program,declaration,ganttFilterBoundsV13,1
+index.html,4381,4396,(no id),program,declaration,ganttRepeatCycleV13,1
+index.html,4397,4400,(no id),program,declaration,ganttCycleVisibleV13,1
+index.html,4401,4405,(no id),program,declaration,syncGanttControlsV13,3
+index.html,4406,4411,(no id),program,declaration,bindGanttControlsV13,1
+index.html,4422,4425,(no id),program,declaration,scheduleRelatedDocumentSaveV15,6
+index.html,4426,4429,(no id),program,declaration,captureRelatedDocumentV15,13
+index.html,4457,4470,(no id),program,declaration,positionGanttCategoryMenuV15,1
+index.html,4489,4498,(no id),program,declaration,isTaskFormMobileV16,2
+index.html,4499,4503,(no id),program,declaration,clearTaskFormViewportV16,2
+index.html,4514,4524,(no id),,ArrowFunctionExpression,sync,14
+index.html,4506,4531,(no id),program,declaration,applyTaskFormViewportV16,1
+index.html,4539,4539,(no id),program,declaration,isMobileUiV17,9
+index.html,4542,4560,(no id),program,declaration,syncMobileNavigationV17,12
+index.html,4561,4564,(no id),program,declaration,clearMobileFilterPositionV17,3
+index.html,4565,4571,(no id),program,declaration,applyMobileUiV17,3
+index.html,4572,4582,(no id),program,declaration,positionMobileFilterV17,1
+index.html,4586,4586,(no id),,FunctionExpression,wrapped,6
+index.html,4583,4588,(no id),program,declaration,bindMobileFilterV17,3
+index.html,4589,4597,(no id),program,declaration,decorateMobileRowV17,2
+index.html,4598,4601,(no id),program,declaration,decorateTaskCardsV17,1
+index.html,4602,4605,(no id),program,declaration,decorateDbCardsV17,1
+index.html,4606,4612,(no id),program,declaration,decorateHistoryCardsV17,1
+index.html,4613,4618,(no id),program,declaration,ensureMobileAccountCardV17,2
+index.html,4640,4642,(no id),program,declaration,canCompleteTaskV18,6
+index.html,4643,4648,(no id),program,declaration,applyTaskStatusFieldsV18,1
+index.html,4649,4652,(no id),program,declaration,setAppModalOpenV18,2
+index.html,4653,4662,(no id),program,declaration,decorateOpenModalV18,1
+index.html,4675,4698,(no id),program,declaration,persistTaskStatusV18,4
+index.html,4699,4704,(no id),program,declaration,checklistMessageV18,4
+index.html,4707,4719,(no id),program,declaration,statusSelectV18,1
+index.html,4723,4726,(no id),program,declaration,removeDuplicateControlsV18,2
+index.html,4739,4752,(no id),program,declaration,refreshChecklistUiV33,1
+index.html,4810,4819,(no id),program,declaration,normalizeCompactDateV20,4
+index.html,4829,4829,(no id),,ArrowFunctionExpression,normalize,5
+index.html,4820,4842,(no id),program,declaration,upgradeDateInputV20,1
+index.html,4843,4845,(no id),program,declaration,enhanceDateInputsV20,5
+index.html,4846,4853,(no id),program,declaration,defaultRepeatMonthsV20,1
+index.html,4854,4856,(no id),program,declaration,repeatMonthsFromFormV20,5
+index.html,4862,4862,(no id),,ArrowFunctionExpression,syncEnd,2
+index.html,4867,4867,(no id),,ArrowFunctionExpression,start,158
+index.html,4871,4874,(no id),,ArrowFunctionExpression,capture,1
+index.html,4875,4886,(no id),,ArrowFunctionExpression,renderExtra,4
+index.html,4888,4891,(no id),,ArrowFunctionExpression,syncRepeat,4
+index.html,4857,4899,(no id),program,declaration,setupTaskFormV20,1
+index.html,4917,4924,(no id),program,declaration,migrateV21Data,2
+index.html,4928,4966,(no id),program,declaration,ensureV21Ui,3
+index.html,4968,4975,(no id),program,declaration,v21DueLabel,1
+index.html,4976,5004,(no id),program,declaration,renderHomeOverviewV21,10
+index.html,5013,5028,(no id),program,declaration,repairLinkedInheritanceV23,1
+index.html,5030,5042,(no id),program,declaration,bindDriveFileDownloadsV23,1
+index.html,5060,5065,(no id),program,declaration,rollingAutoTargetV24,5
+index.html,5068,5083,(no id),program,declaration,recalcNewDbChainV24,3
+index.html,5085,5100,(no id),program,declaration,appendMissingTemplateOccurrencesV24,1
+index.html,5102,5114,(no id),program,declaration,rollingTemplateSessionTokenV24,2
+index.html,5118,5121,(no id),program,declaration,v5DefaultAutoRange,8
+index.html,5123,5150,(no id),program,declaration,ensureAutoSchedulesV5,7
+index.html,5161,5165,(no id),program,declaration,homeFocusWeekBoundsV25,1
+index.html,5166,5173,(no id),program,declaration,taskMatchesHomeFocusV25,3
+index.html,5174,5176,(no id),program,declaration,homeFocusTasksV25,2
+index.html,5177,5186,(no id),program,declaration,renderHomeFocusV25,4
+index.html,5187,5192,(no id),program,declaration,clearHomeFocusV25,5
+index.html,5193,5198,(no id),program,declaration,openHomeFocusV25,1
+index.html,5199,5213,(no id),program,declaration,renderTaskFocusV25,1
+index.html,5230,5234,(no id),program,declaration,compactTaskScheduleV26,3
+index.html,5235,5245,(no id),program,declaration,bindCompactRowOpenV26,2
+index.html,5246,5256,(no id),program,declaration,decorateCompactTaskRowsV26,1
+index.html,5257,5259,(no id),program,declaration,decorateCompactDbRowsV26,1
+index.html,5260,5265,(no id),program,declaration,applyMobileGanttStateV26,5
+index.html,5266,5277,(no id),program,declaration,ensureMobileGanttToggleV26,3
+index.html,5289,5292,(no id),program,declaration,syncMobileLayoutV26,2
+index.html,5305,5307,(no id),program,declaration,normalizeSearchV27,7
+index.html,5308,5312,(no id),program,declaration,searchValueV27,5
+index.html,5313,5315,(no id),program,declaration,checklistSearchTextV27,10
+index.html,5316,5318,(no id),program,declaration,methodSearchTextV27,11
+index.html,5319,5322,(no id),program,declaration,matchingSearchLabelsV27,4
+index.html,5323,5332,(no id),program,declaration,taskTemplateSourceV27,3
+index.html,5333,5343,(no id),program,declaration,taskSearchFieldsV27,2
+index.html,5344,5346,(no id),program,declaration,taskMatchesUnifiedSearchV27,1
+index.html,5347,5359,(no id),program,declaration,dbSearchFieldsV27,2
+index.html,5360,5362,(no id),program,declaration,dbRowMatchesUnifiedSearchV27,2
+index.html,5363,5376,(no id),program,declaration,taskListVisibleV27,2
+index.html,5383,5386,(no id),program,declaration,unifiedTaskRowHtmlV27,1
+index.html,5387,5390,(no id),program,declaration,unifiedDbRowHtmlV27,1
+index.html,5391,5405,(no id),program,declaration,renderUnifiedSearchV27,3
+index.html,5407,5420,(no id),program,declaration,taskLinkedToDbRefV27,1
+index.html,5421,5425,(no id),program,declaration,isPastDbTaskV27,1
+index.html,5426,5432,(no id),program,declaration,dbHistoryTasksV27,1
+index.html,5433,5435,(no id),program,declaration,historyDateV27,3
+index.html,5436,5439,(no id),program,declaration,historyScheduleV27,1
+index.html,5440,5448,(no id),program,declaration,renderDbHistoryV27,2
+index.html,5458,5462,(no id),program,declaration,validIsoDateV28,4
+index.html,5463,5471,(no id),program,declaration,hasTemplateManualV28,1
+index.html,5472,5476,(no id),program,declaration,templateWeekdaysV28,1
+index.html,5477,5484,(no id),program,declaration,rollingBoundsV28,1
+index.html,5485,5490,(no id),program,declaration,expectedRollingSpecsV28,1
+index.html,5491,5493,(no id),program,declaration,healthIssueV28,22
+index.html,5494,5499,(no id),program,declaration,autoSourceTemplateIdV28,2
+index.html,5500,5580,(no id),program,declaration,inspectDbHealthV28,2
+index.html,5582,5604,(no id),program,declaration,applyMissingDbRepairV28,1
+index.html,5606,5610,(no id),program,declaration,dbHealthIssueRowV28,1
+index.html,5611,5613,(no id),program,declaration,dbHealthGroupV28,3
+index.html,5614,5629,(no id),program,declaration,openDbHealthInspectionV28,5
+index.html,5630,5644,(no id),program,declaration,restoreMissingDbTasksV28,1
+index.html,5657,5660,(no id),program,declaration,archiveCloneV29,34
+index.html,5661,5661,(no id),program,declaration,sameValueV29,2
+index.html,5662,5670,(no id),program,declaration,normalizedLinkedScheduleV29,1
+index.html,5671,5680,(no id),program,declaration,templateScheduleSignatureV29,2
+index.html,5681,5681,(no id),program,declaration,scheduleAffectingTemplateChangeV29,2
+index.html,5682,5684,(no id),program,declaration,taskScheduleShapeV29,2
+index.html,5694,5694,(no id),,ArrowFunctionExpression,read,21
+index.html,5685,5698,(no id),program,declaration,templateDraftFromFormV29,1
+index.html,5699,5701,(no id),program,declaration,formSignatureV29,2
+index.html,5702,5702,(no id),program,declaration,taskBelongsToTemplateV29,0
+index.html,5705,5705,(no id),,ArrowFunctionExpression,belongs,2
+index.html,5713,5713,(no id),,ArrowFunctionExpression,kindCount,2
+index.html,5703,5720,(no id),program,declaration,previewTemplateImpactV29,2
+index.html,5721,5726,(no id),program,declaration,showTemplateImpactV29,2
+index.html,5727,5730,(no id),program,declaration,saveTemplateVersionSnapshotV29,2
+index.html,5731,5734,(no id),program,declaration,decorateTemplateVersionButtonV29,2
+index.html,5741,5741,(no id),,ArrowFunctionExpression,apply,4
+index.html,5735,5745,(no id),program,declaration,decorateDbProtectionV29,1
+index.html,5747,5752,(no id),program,declaration,taskIdsForDbDeletionV29,2
+index.html,5753,5757,(no id),program,declaration,templateTrashEntryV29,1
+index.html,5758,5762,(no id),program,declaration,taskDeletionIdsV29,1
+index.html,5763,5767,(no id),program,declaration,taskTrashEntryV29,1
+index.html,5768,5768,(no id),program,declaration,rememberTrashV29,2
+index.html,5769,5777,(no id),program,declaration,deleteTemplateIdsV29,2
+index.html,5778,5786,(no id),program,declaration,deleteTaskIdsV29,4
+index.html,5787,5791,(no id),program,declaration,restoreConnectionFieldsV29,1
+index.html,5792,5800,(no id),program,declaration,restoreTemplateTrashV29,1
+index.html,5801,5806,(no id),program,declaration,restoreTaskTrashV29,1
+index.html,5807,5815,(no id),program,declaration,restoreTrashEntryV29,1
+index.html,5816,5824,(no id),program,declaration,openTrashV29,2
+index.html,5826,5826,(no id),program,declaration,formatVersionTimeV29,3
+index.html,5827,5827,(no id),program,declaration,versionSummaryV29,2
+index.html,5830,5835,(no id),,ArrowFunctionExpression,apply,4
+index.html,5828,5838,(no id),program,declaration,applyTemplateVersionRestoreV29,1
+index.html,5839,5842,(no id),program,declaration,openTemplateVersionDetailV29,1
+index.html,5843,5850,(no id),program,declaration,openTemplateVersionsV29,3
+index.html,5891,5891,(no id),program,declaration,templateAttachmentExtensionV30,3
+index.html,5892,5892,(no id),program,declaration,templateAttachmentSignatureV30,2
+index.html,5893,5896,(no id),program,declaration,cleanTemplateAttachmentV30,3
+index.html,5897,5897,(no id),program,declaration,templateAttachmentIconV30,1
+index.html,5898,5902,(no id),program,declaration,templateAttachmentRowHtmlV30,2
+index.html,5903,5903,(no id),program,declaration,renderTemplateAttachmentsV30,1
+index.html,5904,5907,(no id),program,declaration,makeTemplateAttachmentV30,1
+index.html,5908,5914,(no id),program,declaration,bindTemplateAttachmentOpenV30,1
+index.html,5917,5917,(no id),program,declaration,cloneMethodBlocksV30,2
+index.html,5918,5925,(no id),program,declaration,templateCloneDraftV30,1
+index.html,5926,5926,(no id),program,declaration,openDbCloneV30,4
+index.html,5927,5931,(no id),program,declaration,decorateDbCloneFormV30,1
+index.html,5932,5936,(no id),program,declaration,decorateDbDetailV30,1
+index.html,5948,5964,(no id),program,declaration,annualPlanEntriesV31,2
+index.html,5965,5974,(no id),program,declaration,annualRepeatLabelV31,3
+index.html,5975,5975,(no id),program,declaration,annualActiveRangeV31,2
+index.html,5976,5976,(no id),program,declaration,annualOccurrenceTextV31,2
+index.html,5977,5977,(no id),program,declaration,annualMatrixCountV31,1
+index.html,5978,5978,(no id),program,declaration,annualSafeColorV31,1
+index.html,5979,5979,(no id),program,declaration,annualCategoryBadgeV31,4
+index.html,5980,5983,(no id),program,declaration,annualEntryHtmlV31,1
+index.html,5984,5986,(no id),program,declaration,annualMonthlyViewV31,1
+index.html,5987,5992,(no id),program,declaration,annualCategoryViewV31,1
+index.html,5993,5997,(no id),program,declaration,annualMatrixViewV31,1
+index.html,5998,6002,(no id),program,declaration,bindAnnualPlanItemsV31,2
+index.html,6003,6006,(no id),program,declaration,openAnnualCellV31,1
+index.html,6007,6018,(no id),program,declaration,renderAnnualPlanV31,7
+index.html,6019,6025,(no id),program,declaration,ensureAnnualPlanUiV31,5
+index.html,6036,6036,(no id),program,declaration,taskWorkTypeV32,1
+index.html,6042,6049,(no id),,ArrowFunctionExpression,sync,14
+index.html,6037,6051,(no id),program,declaration,setupTaskEndUiV32,1
+index.html,6054,6054,(no id),,ArrowFunctionExpression,sync,14
+index.html,6052,6057,(no id),program,declaration,setupTaskWorkTypeV32,1
+index.html,6067,6073,local-v33-layout-script,program,declaration,ensureLayoutDefaultsV33,8
+index.html,6074,6089,local-v33-layout-script,program,declaration,applySidebarVisibilityV33,9
+index.html,6101,6101,local-v33-layout-script,,ArrowFunctionExpression,syncLabel,4
+index.html,6090,6105,local-v33-layout-script,program,declaration,ensureLayoutSettingsCardV33,5
+index.html,6106,6110,local-v33-layout-script,program,declaration,homeFoldButtonV33,1
+index.html,6111,6116,local-v33-layout-script,program,declaration,ensureHomeFoldButtonsV33,3
+index.html,6117,6124,local-v33-layout-script,program,declaration,applyHomeFoldsV33,6
+index.html,6154,6157,local-v35-task-split-theme-script,program,declaration,ensureTaskViewDefaultsV35,5
+index.html,6158,6158,local-v35-task-split-theme-script,program,declaration,currentTaskViewV35,17
+index.html,6159,6178,local-v35-task-split-theme-script,program,declaration,syncTaskNavV35,12
+index.html,6179,6197,local-v35-task-split-theme-script,program,declaration,syncTaskViewUiV35,14
+index.html,6198,6203,local-v35-task-split-theme-script,program,declaration,openTaskViewV35,2
+index.html,6281,6285,local-v36-home-focus-visibility-script,program,declaration,ensureHomeFocusVisibilityDefaultsV36,4
+index.html,6286,6290,local-v36-home-focus-visibility-script,program,declaration,setHomeFocusVisibleV36,2
+index.html,6291,6298,local-v36-home-focus-visibility-script,program,declaration,syncHomeFocusControlsV36,4
+index.html,6299,6313,local-v36-home-focus-visibility-script,program,declaration,ensureHomeFocusQuickSettingsV36,4
+index.html,6314,6325,local-v36-home-focus-visibility-script,program,declaration,ensureHomeFocusSettingsSectionV36,4
+index.html,6326,6335,local-v36-home-focus-visibility-script,program,declaration,applyHomeFocusVisibilityV36,4
+index.html,6356,6359,local-v37-display-flow-script,program,declaration,positionHomeFocusConfigV37,3
+index.html,6385,6385,local-dev-v1-current-cloud-parity-script,program,declaration,desktopTableSortEnabledLocalV1,5
+index.html,6386,6386,local-dev-v1-current-cloud-parity-script,program,declaration,stableSortLocalV1,2
+index.html,6387,6392,local-dev-v1-current-cloud-parity-script,program,declaration,compareSortValueLocalV1,2
+index.html,6393,6400,local-dev-v1-current-cloud-parity-script,program,declaration,taskSortValuesLocalV1,3
+index.html,6401,6405,local-dev-v1-current-cloud-parity-script,program,declaration,compareTaskRowsLocalV1,1
+index.html,6406,6406,local-dev-v1-current-cloud-parity-script,program,declaration,sortTaskRowsLocalV1,1
+index.html,6407,6416,local-dev-v1-current-cloud-parity-script,program,declaration,dbPeriodSortValuesLocalV1,1
+index.html,6417,6420,local-dev-v1-current-cloud-parity-script,program,declaration,dbGroupSortValuesLocalV1,3
+index.html,6421,6424,local-dev-v1-current-cloud-parity-script,program,declaration,compareDbGroupsLocalV1,1
+index.html,6425,6430,local-dev-v1-current-cloud-parity-script,program,declaration,sortDbRowsLocalV1,1
+index.html,6437,6437,local-dev-v1-current-cloud-parity-script,program,declaration,toggleTableSortLocalV1,1
+index.html,6438,6443,local-dev-v1-current-cloud-parity-script,program,declaration,decorateDesktopSortHeadersLocalV1,6
+index.html,6456,6458,local-dev-v1-current-cloud-parity-script,program,declaration,flushRelatedDocumentLocalV1,7
+index.html,6461,6465,local-dev-v1-current-cloud-parity-script,program,declaration,syncChecklistProgressLocalV1,4
+index.html,6480,6480,local-dev-v1-current-cloud-parity-script,,ArrowFunctionExpression,commitDocument,2
+index.html,6510,6510,local-dev-v1-1-stability-script,,ArrowFunctionExpression,run,4
+index.html,6523,6529,local-dev-v1-1-stability-script,program,declaration,isEditableDraftLocalV11,6
+index.html,6530,6534,local-dev-v1-1-stability-script,program,declaration,flushEditableDraftLocalV11,5
+index.html,6548,6556,local-dev-v1-1-stability-script,program,declaration,captureChecklistDomLocalV11,1
+index.html,6608,6630,local-dev-v1-2-navigation-script,program,declaration,ensureNavVisibilityLocalV12,9
+index.html,6631,6639,local-dev-v1-2-navigation-script,program,declaration,setNavVisibleLocalV12,3
+index.html,6640,6647,local-dev-v1-2-navigation-script,program,declaration,taskNavButtonsLocalV12,2
+index.html,6648,6666,local-dev-v1-2-navigation-script,program,declaration,enforceTaskNavLabelsLocalV12,2
+index.html,6667,6678,local-dev-v1-2-navigation-script,program,declaration,applyNavButtonsLocalV12,5
+index.html,6679,6698,local-dev-v1-2-navigation-script,program,declaration,redirectHiddenCurrentViewLocalV12,1
+index.html,6699,6703,local-dev-v1-2-navigation-script,program,declaration,applySidebarVisibilityLocalV12,5
+index.html,6725,6725,local-dev-v1-2-navigation-script,,ArrowFunctionExpression,syncLabel,4
+index.html,6717,6735,local-dev-v1-2-navigation-script,program,declaration,ensureLayoutSettingsCardLocalV12,5
+index.html,6796,6796,local-dev-v1-3-cycle-script,program,declaration,validMonthLocalV13,3
+index.html,6797,6797,local-dev-v1-3-cycle-script,program,declaration,uniqueMonthsLocalV13,4
+index.html,6798,6798,local-dev-v1-3-cycle-script,program,declaration,periodDefinitionForMonthLocalV13,1
+index.html,6799,6810,local-dev-v1-3-cycle-script,program,declaration,initialPeriodRowsLocalV13,2
+index.html,6811,6823,local-dev-v1-3-cycle-script,program,declaration,resolvedPeriodRowsLocalV13,2
+index.html,6824,6826,local-dev-v1-3-cycle-script,program,declaration,periodRowsHtmlLocalV13,1
+index.html,6833,6833,local-dev-v1-3-cycle-script,installCyclePeriodEditorLocalV13,declaration,saveButtonValidity,2
+index.html,6834,6841,local-dev-v1-3-cycle-script,installCyclePeriodEditorLocalV13,declaration,syncLegacyFields,3
+index.html,6842,6845,local-dev-v1-3-cycle-script,installCyclePeriodEditorLocalV13,declaration,captureCurrent,1
+index.html,6846,6854,local-dev-v1-3-cycle-script,installCyclePeriodEditorLocalV13,declaration,renderCustom,2
+index.html,6827,6861,local-dev-v1-3-cycle-script,program,declaration,installCyclePeriodEditorLocalV13,1
+index.html,6907,6916,local-dev-v1-4-history-script,program,declaration,historicalRangeLocalV14,1
+index.html,6917,6920,local-dev-v1-4-history-script,program,declaration,syncTemplateHistoricalLocalV14,4
+index.html,6921,6927,local-dev-v1-4-history-script,program,declaration,backfillAllHistoricalLocalV14,2
+index.html,6930,6935,local-dev-v1-4-history-script,program,declaration,runInitialHistoricalBackfillLocalV14,2
+index.html,6976,6976,local-dev-v1-5-search-script,,ArrowFunctionExpression,cleanScope,2
+index.html,6973,6982,local-dev-v1-5-search-script,program,declaration,loadSearchPrefsLocalV15,7
+index.html,6983,6983,local-dev-v1-5-search-script,program,declaration,saveSearchPrefsLocalV15,4
+index.html,6984,6989,local-dev-v1-5-search-script,program,declaration,categoryChoicesLocalV15,1
+index.html,6990,7000,local-dev-v1-5-search-script,program,declaration,syncCategorySelectLocalV15,2
+index.html,7001,7005,local-dev-v1-5-search-script,program,declaration,updateSearchPlaceholderLocalV15,4
+index.html,7006,7009,local-dev-v1-5-search-script,program,declaration,searchFilterHtmlLocalV15,2
+index.html,7010,7033,local-dev-v1-5-search-script,program,declaration,ensureSearchUiLocalV15,8
+index.html,7034,7034,local-dev-v1-5-search-script,program,declaration,normalizeSearchTermLocalV15,5
+index.html,7035,7035,local-dev-v1-5-search-script,program,declaration,valueMatchesLocalV15,1
+index.html,7036,7052,local-dev-v1-5-search-script,program,declaration,taskSearchFieldsLocalV15,2
+index.html,7053,7067,local-dev-v1-5-search-script,program,declaration,dbSearchFieldsLocalV15,2
+index.html,7068,7071,local-dev-v1-5-search-script,program,declaration,matchingSearchLabelsLocalV15,4
+index.html,7072,7072,local-dev-v1-5-search-script,program,declaration,taskMatchesSearchLocalV15,1
+index.html,7073,7073,local-dev-v1-5-search-script,program,declaration,dbMatchesSearchLocalV15,2
+index.html,7074,7074,local-dev-v1-5-search-script,program,declaration,categoryMatchesLocalV15,3
+index.html,7098,7101,local-dev-v1-5-search-script,program,declaration,unifiedTaskRowHtmlLocalV15,1
+index.html,7102,7105,local-dev-v1-5-search-script,program,declaration,unifiedDbRowHtmlLocalV15,1
+index.html,7136,7136,local-dev-v1-5-search-script,,ArrowFunctionExpression,run,4
+index.html,7132,7140,local-dev-v1-5-search-script,program,declaration,bindImeSafeSearchLocalV151,2
+index.html,7141,7144,local-dev-v1-5-search-script,program,declaration,bindSearchImeGuardsLocalV151,1
+index.html,7188,7188,local-dev-v1-6-rolling-script,program,declaration,normalizeRollingMonthsLocalV16,3
+index.html,7189,7189,local-dev-v1-6-rolling-script,program,declaration,rollingOccurrenceDateLocalV16,1
+index.html,7190,7190,local-dev-v1-6-rolling-script,program,declaration,rollingGroupLocalV16,2
+index.html,7191,7199,local-dev-v1-6-rolling-script,program,declaration,rollingTaskTouchedLocalV16,1
+index.html,7200,7200,local-dev-v1-6-rolling-script,program,declaration,rollingGroupProtectedLocalV16,1
+index.html,7201,7211,local-dev-v1-6-rolling-script,program,declaration,pruneRollingOverflowLocalV16,3
+index.html,7212,7232,local-dev-v1-6-rolling-script,program,declaration,applyRollingHorizonLocalV16,1
+index.html,7235,7239,local-dev-v1-6-rolling-script,program,declaration,ensureRollingSettingsUiLocalV16,1
+index.html,7244,7252,local-dev-v1-6-rolling-script,program,declaration,runInitialRollingGuardLocalV16,2
+index.html,7283,7286,local-v17-home-progress-visibility-script,program,declaration,ensureHomeMonthlyProgressDefaultLocalV17,6
+index.html,7287,7290,local-v17-home-progress-visibility-script,program,declaration,homeMonthlyProgressVisibleLocalV17,4
+index.html,7291,7297,local-v17-home-progress-visibility-script,program,declaration,syncHomeMonthlyProgressControlsLocalV17,4
+index.html,7298,7336,local-v17-home-progress-visibility-script,program,declaration,ensureHomeMonthlyProgressControlsLocalV17,3
+index.html,7337,7348,local-v17-home-progress-visibility-script,program,declaration,applyHomeMonthlyProgressVisibilityLocalV17,7
+index.html,7378,7380,local-v18-reopen-completed-script,program,declaration,completedTaskViewLocalV18,1
+index.html,7384,7390,local-v18-reopen-completed-script,program,declaration,syncCompletedListUxLocalV18,3
+index.html,7399,7442,local-v18-reopen-completed-script,program,declaration,reopenCompletedTaskLocalV18,2
+index.html,7628,7633,local-v191-hello-kitty-theme-script,program,declaration,syncHelloKittyProgressLocalV191,4
+index.html,7634,7637,local-v191-hello-kitty-theme-script,program,declaration,syncHelloKittyMetaLocalV191,2
+index.html,7771,7790,local-v192-hello-kitty-theme-refinement-script,program,declaration,syncHelloKittyCompletionVisibilityLocalV192,5
+index.html,8092,8101,local-v195-table-db-ux-script,program,declaration,taskPeriodSortValueLocalV195,1
+index.html,8102,8107,local-v195-table-db-ux-script,program,declaration,repeatSortValueLocalV195,1
+index.html,8127,8131,local-v195-table-db-ux-script,program,declaration,desktopTableSortEnabledLocalV195,2
+index.html,8132,8140,local-v195-table-db-ux-script,program,declaration,toggleTableSortLocalV195,2
+index.html,8141,8171,local-v195-table-db-ux-script,program,declaration,decorateClickableSortHeadersLocalV195,2
+index.html,8174,8200,local-v195-table-db-ux-script,program,declaration,refineTaskScheduleCellsLocalV195,1
+index.html,8203,8214,local-v195-table-db-ux-script,program,declaration,compactDbTableLocalV195,1
+index.html,8217,8267,local-v195-table-db-ux-script,program,declaration,normalizeDbDetailActionsLocalV195,1
+index.html,8461,8482,local-v196-mobile-kitty-assets-script,program,declaration,syncHelloKittyMobileVisualsLocalV196,6
+index.html,8529,8542,local-v197-mobile-task-label-script,program,declaration,fixMobileTaskMenuLabelsLocalV197,6
+index.html,8618,8620,local-v198-settings-sort-polish-script,program,declaration,removeDuplicateHomeSettingsLocalV198,2
+index.html,8686,8691,local-v110-handover-generator-script,program,declaration,handoverChecklistV110,3
+index.html,8692,8705,local-v110-handover-generator-script,program,declaration,handoverBlocksV110,2
+index.html,8706,8716,local-v110-handover-generator-script,program,declaration,handoverAttachmentsV110,5
+index.html,8717,8729,local-v110-handover-generator-script,program,declaration,handoverTemplateSourceV110,2
+index.html,8730,8733,local-v110-handover-generator-script,program,declaration,handoverStatusV110,1
+index.html,8734,8740,local-v110-handover-generator-script,program,declaration,handoverCycleLabelV110,1
+index.html,8741,8850,local-v110-handover-generator-script,program,declaration,buildHandoverDataV110,2
+index.html,8852,9333,local-v110-handover-generator-script,program,declaration,buildHandoverHtmlV110,3
+index.html,9335,9353,local-v110-handover-generator-script,program,declaration,exportHandoverHtmlV110,1
+index.html,9355,9361,local-v110-handover-generator-script,program,declaration,bindHandoverGeneratorV110,2
+index.html,9383,9388,local-v120-handover-zip-script,program,declaration,handoverScrubSourceRefsV120,1
+index.html,9394,9417,local-v120-handover-zip-script,program,declaration,sanitizeArchiveFileNameV120,1
+index.html,9419,9427,local-v120-handover-zip-script,program,declaration,dataUriToBlobV120,1
+index.html,9429,9463,local-v120-handover-zip-script,program,declaration,handoverResolveOriginalV120,1
+index.html,9467,9469,local-v120-handover-zip-script,,ArrowFunctionExpression,addBlocks,3
+index.html,9470,9470,local-v120-handover-zip-script,,ArrowFunctionExpression,addAttachments,5
+index.html,9465,9485,local-v120-handover-zip-script,program,declaration,walkHandoverFileItemsV120,1
+index.html,9487,9523,local-v120-handover-zip-script,program,declaration,prepareHandoverZipV120,1
+index.html,9534,9538,local-v120-handover-zip-script,program,declaration,zipCrc32V120,1
+index.html,9539,9544,local-v120-handover-zip-script,program,declaration,zipDosDateTimeV120,1
+index.html,9545,9545,local-v120-handover-zip-script,program,declaration,zipHeaderV120,3
+index.html,9546,9546,local-v120-handover-zip-script,program,declaration,zipSet16V120,23
+index.html,9547,9547,local-v120-handover-zip-script,program,declaration,zipSet32V120,13
+index.html,9549,9600,local-v120-handover-zip-script,program,declaration,buildZipBlobV120,1
+index.html,9602,9607,local-v120-handover-zip-script,program,declaration,setHandoverExportStatusV120,6
+index.html,9609,9659,local-v120-handover-zip-script,program,declaration,exportHandoverZipV120,1
+index.html,9661,9667,local-v120-handover-zip-script,program,declaration,bindHandoverZipV120,2
+index.html,9908,9923,local-v121-shinchan-theme-script,program,declaration,syncShinchanThemeLocalV121,8
+index.html,10075,10087,local-v111-final-mobile-task-label-guard,program,declaration,syncTaskMenuLabelsFinalLocalV111,6
+index.html,10219,10219,local-v113-home-layout-editor-script,program,declaration,cloneHomeLayoutV113,9
+index.html,10220,10220,local-v113-home-layout-editor-script,program,declaration,isMobileHomeLayoutV113,10
+index.html,10221,10228,local-v113-home-layout-editor-script,program,declaration,normalizeWidgetRectV113,3
+index.html,10229,10235,local-v113-home-layout-editor-script,program,declaration,ensureHomeWidgetLayoutStateV113,11
+index.html,10236,10236,local-v113-home-layout-editor-script,program,declaration,rectsOverlapV113,4
+index.html,10237,10241,local-v113-home-layout-editor-script,program,declaration,canPlaceHomeWidgetV113,3
+index.html,10242,10242,local-v113-home-layout-editor-script,program,declaration,getHomeWidgetStageV113,3
+index.html,10243,10243,local-v113-home-layout-editor-script,program,declaration,getHomeWidgetCardV113,12
+index.html,10245,10291,local-v113-home-layout-editor-script,program,declaration,ensureHomeWidgetEditorDomV113,12
+index.html,10292,10296,local-v113-home-layout-editor-script,program,declaration,updateHomeWidgetStageRowsV113,3
+index.html,10297,10311,local-v113-home-layout-editor-script,program,declaration,applyHomeWidgetLayoutV113,11
+index.html,10312,10318,local-v113-home-layout-editor-script,program,declaration,setHomeLayoutEditingV113,5
+index.html,10319,10319,local-v113-home-layout-editor-script,program,declaration,saveHomeWidgetLayoutV113,6
+index.html,10320,10325,local-v113-home-layout-editor-script,program,declaration,resetHomeWidgetLayoutV113,1
+index.html,10327,10331,local-v113-home-layout-editor-script,program,declaration,gridMetricsV113,3
+index.html,10332,10332,local-v113-home-layout-editor-script,program,declaration,gridPointV113,1
+index.html,10333,10336,local-v113-home-layout-editor-script,program,declaration,previewPixelsV113,1
+index.html,10337,10341,local-v113-home-layout-editor-script,program,declaration,showPreviewV113,3
+index.html,10342,10346,local-v113-home-layout-editor-script,program,declaration,setLiveRectV113,2
+index.html,10348,10363,local-v113-home-layout-editor-script,program,declaration,startMoveV113,4
+index.html,10364,10372,local-v113-home-layout-editor-script,program,declaration,startResizeV113,1
+index.html,10373,10387,local-v113-home-layout-editor-script,program,declaration,movePointerV113,3
+index.html,10388,10395,local-v113-home-layout-editor-script,program,declaration,finishPointerV113,4
+index.html,10396,10408,local-v113-home-layout-editor-script,program,declaration,bindHomeLayoutEditorV113,1
+index.html,10409,10409,local-v113-home-layout-editor-script,program,declaration,syncHomeLayoutForViewportV113,2
+index.html,10485,10492,local-v114-home-layout-editor-fix-script,program,declaration,ensureHomeWidgetVisibilityV114,12
+index.html,10493,10495,local-v114-home-layout-editor-fix-script,program,declaration,homeWidgetVisibleDesktopV114,0
+index.html,10496,10510,local-v114-home-layout-editor-fix-script,program,declaration,homeLayoutValidV114,2
+index.html,10548,10556,local-v114-home-layout-editor-fix-script,program,declaration,setGridRectImportantV114,2
+index.html,10572,10578,local-v114-home-layout-editor-fix-script,program,declaration,disableLegacyHomeFoldsV114,3
+index.html,10583,10595,local-v114-home-layout-editor-fix-script,program,declaration,syncHomeWidgetPaletteV114,5
+index.html,10596,10603,local-v114-home-layout-editor-fix-script,program,declaration,syncHomeWidgetVisibilityV114,5
+index.html,10604,10620,local-v114-home-layout-editor-fix-script,program,declaration,firstFreeHomeWidgetRectV114,1
+index.html,10621,10630,local-v114-home-layout-editor-fix-script,program,declaration,removeHomeWidgetV114,2
+index.html,10631,10645,local-v114-home-layout-editor-fix-script,program,declaration,restoreHomeWidgetV114,4
+index.html,10647,10663,local-v114-home-layout-editor-fix-script,program,declaration,ensureWidgetRemoveButtonsV114,1
+index.html,10664,10677,local-v114-home-layout-editor-fix-script,program,declaration,bindRemovedPaletteRestoreV114,1
+index.html,10680,10695,local-v114-home-layout-editor-fix-script,program,declaration,reorderHomeControlsV114,3
+index.html,10918,10934,local-v115-home-order-responsive-script,program,declaration,reorderHomeControlsV115,6
+index.html,10938,10955,local-v115-home-order-responsive-script,program,declaration,widgetResponsiveMetricsV115,1
+index.html,10956,10970,local-v115-home-order-responsive-script,program,declaration,applyWidgetResponsiveSizeV115,4
+index.html,10971,10973,local-v115-home-order-responsive-script,program,declaration,syncAllWidgetResponsiveSizesV115,5
+index.html,10974,10990,local-v115-home-order-responsive-script,program,declaration,bindWidgetResizeObserverV115,2
+index.html,11052,11058,local-v116-single-widget-restore-fix-script,program,declaration,cloneHomeWidgetVisibilityV116,5
+index.html,11094,11100,local-v116-single-widget-restore-fix-script,program,declaration,canPlaceWithVisibilityV116,2
+index.html,11102,11118,local-v116-single-widget-restore-fix-script,program,declaration,findFreeHomeWidgetRectV116,2
+index.html,11154,11186,local-v116-single-widget-restore-fix-script,program,declaration,rebindHomeWidgetPaletteV116,3
+index.html,11248,11268,local-v117-widget-edit-lock-script,program,declaration,syncHomeWidgetPaletteV117,5
+index.html,11274,11310,local-v117-widget-edit-lock-script,program,declaration,rebindHomeWidgetPaletteV117,4
+index.html,11418,11420,local-v118-settings-organize-script,program,declaration,settingsCardHeadingV118,1
+index.html,11421,11436,local-v118-settings-organize-script,program,declaration,ensureSettingsGroupsV118,1
+index.html,11437,11437,local-v118-settings-organize-script,program,declaration,settingsGroupGridV118,1
+index.html,11438,11443,local-v118-settings-organize-script,program,declaration,moveSettingsCardV118,12
+index.html,11444,11446,local-v118-settings-organize-script,program,declaration,findSettingsCardByHeadingV118,6
+index.html,11448,11456,local-v118-settings-organize-script,program,declaration,simplifyHandoverCardV118,1
+index.html,11457,11460,local-v118-settings-organize-script,program,declaration,hideCsvExportV118,1
+index.html,11461,11465,local-v118-settings-organize-script,program,declaration,polishThemeCardV118,1
+index.html,11466,11469,local-v118-settings-organize-script,program,declaration,fixAutomationRangeV118,1
+index.html,11471,11494,local-v118-settings-organize-script,program,declaration,organizeSettingsV118,2
+index.html,11543,11546,local-v119-quick-task-duplicate-script,program,declaration,optionListV119,2
+index.html,11566,11579,local-v119-quick-task-duplicate-script,openQuickTaskV119,declaration,collectQuickTaskV119,2
+index.html,11548,11618,local-v119-quick-task-duplicate-script,program,declaration,openQuickTaskV119,1
+index.html,11620,11632,local-v119-quick-task-duplicate-script,program,declaration,ensureQuickTaskButtonV119,3
+index.html,11634,11659,local-v119-quick-task-duplicate-script,program,declaration,cloneManualTaskV119,1
+index.html,11661,11673,local-v119-quick-task-duplicate-script,program,declaration,duplicateTaskV119,1
+index.html,11689,11728,local-v119-quick-task-duplicate-script,program,declaration,syncStandardWorkTerminologyV119,8
+index.html,11802,11814,local-v120-standard-work-nav-guard-script,program,declaration,syncStandardWorkNavLabelV120,10
+index.html,11932,11938,cloud-v2-rc1-script,,ArrowFunctionExpression,read,21
+index.html,11930,11945,cloud-v2-rc1-script,program,declaration,driveTokenForHandoverCloudV2,2
+index.html,11953,11953,cloud-v2-rc1-script,,ArrowFunctionExpression,request,10
+index.html,11967,11971,cloud-v2-rc1-script,program,declaration,finalizeCloudV2Identity,1
+index.html,11994,12029,cloud-v12-home-mobile-script,program,declaration,renderMonthlyAllTasksV12,2
+index.html,12117,12145,cloud-v122-legacy-drive-repair,(closure),declaration,installLegacyRepair,2
+index.html,12194,12199,linked-schedule-v1-5-2,program,declaration,autoFirstStageEndV152,3
+index.html,12211,12221,linked-schedule-v1-5-2,,ArrowFunctionExpression,adjust,3
+js/cloud-sync.js,125,140,cloud-sync,program,declaration,rememberDriveAccessToken,3
+js/cloud-sync.js,142,148,cloud-sync,program,declaration,clearDriveAccessToken,5
+js/cloud-sync.js,150,172,cloud-sync,program,declaration,restoreDriveAccessToken,0
+js/cloud-sync.js,174,177,cloud-sync,program,declaration,legacyWorkspaceEligible,3
+js/cloud-sync.js,179,190,cloud-sync,program,declaration,rememberLegacyDriveToken,1
+js/cloud-sync.js,192,206,cloud-sync,program,declaration,restoreLegacyDriveToken,2
+js/cloud-sync.js,208,236,cloud-sync,program,declaration,ensureLegacyDriveAccess,3
+js/cloud-sync.js,238,245,cloud-sync,program,declaration,driveFileResponse,6
+js/cloud-sync.js,247,269,cloud-sync,program,declaration,readDriveFileBlob,2
+js/cloud-sync.js,271,279,cloud-sync,program,declaration,readDriveFile,1
+js/cloud-sync.js,281,283,cloud-sync,program,declaration,makeRecordMaps,5
+js/cloud-sync.js,285,287,cloud-sync,program,declaration,clone,97
+js/cloud-sync.js,289,291,cloud-sync,program,declaration,plain,23
+js/cloud-sync.js,293,293,cloud-sync,program,declaration,validFirebaseConfig,0
+js/cloud-sync.js,295,297,cloud-sync,program,declaration,docId,12
+js/cloud-sync.js,299,304,cloud-sync,program,declaration,stableKeyId,2
+js/cloud-sync.js,306,312,cloud-sync,program,declaration,withoutSyncFields,3
+js/cloud-sync.js,314,320,cloud-sync,program,declaration,mapClone,4
+js/cloud-sync.js,322,332,cloud-sync,program,declaration,recordMapsEqual,1
+js/cloud-sync.js,334,348,cloud-sync,program,declaration,replaceState,5
+js/cloud-sync.js,350,377,cloud-sync,program,declaration,emptyState,2
+js/cloud-sync.js,379,456,cloud-sync,program,declaration,serializeState,1
+js/cloud-sync.js,458,527,cloud-sync,program,declaration,deserializeState,3
+js/cloud-sync.js,529,531,cloud-sync,program,declaration,cleanBlock,2
+js/cloud-sync.js,533,535,cloud-sync,program,declaration,cleanAttachmentMetadata,2
+js/cloud-sync.js,537,541,cloud-sync,program,declaration,omit,4
+js/cloud-sync.js,543,545,cloud-sync,program,declaration,cloudHasData,3
+js/cloud-sync.js,547,569,cloud-sync,program,declaration,ensureCloudStylesV2,1
+js/cloud-sync.js,571,596,cloud-sync,program,declaration,ensureShell,3
+js/cloud-sync.js,598,605,cloud-sync,program,declaration,gate,12
+js/cloud-sync.js,607,609,cloud-sync,program,declaration,hideGate,1
+js/cloud-sync.js,611,616,cloud-sync,program,declaration,setSyncStatus,13
+js/cloud-sync.js,618,640,cloud-sync,program,declaration,showLoggedOutGateV2,1
+js/cloud-sync.js,642,732,cloud-sync,program,declaration,authenticateBuildingAndWorkspace,1
+js/cloud-sync.js,734,746,cloud-sync,program,declaration,friendlyError,10
+js/cloud-sync.js,748,766,cloud-sync,program,declaration,configureAuthPersistence,0
+js/cloud-sync.js,768,785,cloud-sync,program,declaration,chooseInitialState,1
+js/cloud-sync.js,787,833,cloud-sync,program,declaration,bootstrapCloud,0
+js/cloud-sync.js,835,862,cloud-sync,program,declaration,controller,6
+js/cloud-sync.js,864,887,cloud-sync,program,declaration,activate,1
+js/cloud-sync.js,889,908,cloud-sync,program,declaration,applySnapshotChanges,2
+js/cloud-sync.js,922,934,cloud-sync,,ArrowFunctionExpression,resolveWhenReady,1
+js/cloud-sync.js,910,957,cloud-sync,program,declaration,subscribeRealtime,2
+js/cloud-sync.js,959,984,cloud-sync,program,declaration,loadChangeLogs,1
+js/cloud-sync.js,986,995,cloud-sync,program,declaration,stage7LocalData,5
+js/cloud-sync.js,997,999,cloud-sync,program,declaration,saveStage7LocalData,3
+js/cloud-sync.js,1001,1003,cloud-sync,program,declaration,stage7MetaId,3
+js/cloud-sync.js,1005,1016,cloud-sync,program,declaration,saveTrashEntry,1
+js/cloud-sync.js,1018,1024,cloud-sync,program,declaration,listTrashEntries,1
+js/cloud-sync.js,1026,1034,cloud-sync,program,declaration,removeTrashEntry,1
+js/cloud-sync.js,1036,1075,cloud-sync,program,declaration,saveTemplateVersion,1
+js/cloud-sync.js,1077,1089,cloud-sync,program,declaration,listTemplateVersions,1
+js/cloud-sync.js,1091,1097,cloud-sync,program,declaration,stopRealtime,2
+js/cloud-sync.js,1099,1106,cloud-sync,program,declaration,appModalOpenForRemoteApply,1
+js/cloud-sync.js,1108,1116,cloud-sync,program,declaration,scheduleRemoteApply,3
+js/cloud-sync.js,1118,1129,cloud-sync,program,declaration,save,14
+js/cloud-sync.js,1131,1134,cloud-sync,program,declaration,flush,1
+js/cloud-sync.js,1136,1175,cloud-sync,program,declaration,flushQueue,3
+js/cloud-sync.js,1177,1195,cloud-sync,program,declaration,diffMaps,1
+js/cloud-sync.js,1197,1200,cloud-sync,program,declaration,changedFields,1
+js/cloud-sync.js,1202,1206,cloud-sync,program,declaration,patchFor,2
+js/cloud-sync.js,1208,1222,cloud-sync,program,declaration,changeBundleKey,1
+js/cloud-sync.js,1224,1244,cloud-sync,program,declaration,chunkChanges,2
+js/cloud-sync.js,1246,1251,cloud-sync,program,declaration,commitOnlineChunks,1
+js/cloud-sync.js,1253,1258,cloud-sync,program,declaration,commitOfflineChunks,2
+js/cloud-sync.js,1260,1319,cloud-sync,program,declaration,commitTransaction,1
+js/cloud-sync.js,1321,1325,cloud-sync,program,declaration,belongsToSkippedTask,1
+js/cloud-sync.js,1327,1339,cloud-sync,program,declaration,commitOfflineBatch,1
+js/cloud-sync.js,1341,1360,cloud-sync,program,declaration,makeLog,2
+js/cloud-sync.js,1362,1365,cloud-sync,program,declaration,inferReason,1
+js/cloud-sync.js,1367,1387,cloud-sync,program,declaration,importState,1
+js/cloud-sync.js,1389,1393,cloud-sync,program,declaration,mergeById,4
+js/cloud-sync.js,1395,1402,cloud-sync,program,declaration,ensureDriveAccess,6
+js/cloud-sync.js,1404,1428,cloud-sync,program,declaration,ensureDriveFolder,1
+js/cloud-sync.js,1430,1432,cloud-sync,program,declaration,sleepMs,1
+js/cloud-sync.js,1434,1436,cloud-sync,program,declaration,isRetryableDriveStatus,1
+js/cloud-sync.js,1438,1441,cloud-sync,program,declaration,isNetworkFetchError,2
+js/cloud-sync.js,1443,1455,cloud-sync,program,declaration,currentDriveToken,7
+js/cloud-sync.js,1457,1492,cloud-sync,program,declaration,uploadDriveMediaWithRetry,1
+js/cloud-sync.js,1494,1507,cloud-sync,program,declaration,verifyDriveUpload,1
+js/cloud-sync.js,1509,1521,cloud-sync,program,declaration,cleanupFailedDriveFile,1
+js/cloud-sync.js,1523,1569,cloud-sync,program,declaration,createDriveBlock,3
+js/cloud-sync.js,1571,1574,cloud-sync,program,declaration,createImageBlock,2
+js/cloud-sync.js,1576,1578,cloud-sync,program,declaration,createFileBlock,1
+js/cloud-sync.js,1580,1597,cloud-sync,program,declaration,ensureImageUploads,2
+js/cloud-sync.js,1599,1601,cloud-sync,program,declaration,mimeExtension,1
+js/cloud-sync.js,1613,1626,cloud-sync,,ArrowFunctionExpression,load,3
+js/cloud-sync.js,1603,1633,cloud-sync,program,declaration,hydrateImages,1
+js/cloud-sync.js,1635,1641,cloud-sync,program,declaration,getDriveObjectUrl,3
+js/cloud-sync.js,1643,1653,cloud-sync,program,declaration,downloadDriveFile,3
+js/cloud-sync.js,1655,1670,cloud-sync,program,declaration,openDriveFile,1
+js/cloud-sync.js,1679,1684,cloud-sync,,ArrowFunctionExpression,collect,3
+js/cloud-sync.js,1672,1741,cloud-sync,program,declaration,repairLegacyDriveAttachments,1
+js/cloud-sync.js,1743,1761,cloud-sync,program,declaration,driveFetchResponse,3
+js/cloud-sync.js,1763,1774,cloud-sync,program,declaration,driveFetch,3
+js/google-tasks-sync.js,6,6,google-tasks-sync,,ArrowFunctionExpression,$,958
+js/google-tasks-sync.js,9,9,google-tasks-sync,,ArrowFunctionExpression,bridge,7
+js/google-tasks-sync.js,10,10,google-tasks-sync,,ArrowFunctionExpression,currentState,7
+js/google-tasks-sync.js,11,11,google-tasks-sync,,ArrowFunctionExpression,settings,22
+js/google-tasks-sync.js,12,12,google-tasks-sync,,ArrowFunctionExpression,today,45
+js/google-tasks-sync.js,13,20,google-tasks-sync,program,declaration,status,53
+js/google-tasks-sync.js,21,25,google-tasks-sync,program,declaration,apiError,1
+js/google-tasks-sync.js,26,42,google-tasks-sync,program,declaration,request,10
+js/google-tasks-sync.js,43,52,google-tasks-sync,program,declaration,listAll,2
+js/google-tasks-sync.js,53,53,google-tasks-sync,,ArrowFunctionExpression,taskPath,8
+js/google-tasks-sync.js,54,54,google-tasks-sync,,ArrowFunctionExpression,isDone,6
+js/google-tasks-sync.js,55,63,google-tasks-sync,,ArrowFunctionExpression,groupRemote,1
+js/google-tasks-sync.js,64,68,google-tasks-sync,program,declaration,saveSnapshot,5
+js/google-tasks-sync.js,69,73,google-tasks-sync,program,declaration,updateFingerprint,6
+js/google-tasks-sync.js,74,82,google-tasks-sync,program,declaration,sendParent,3
+js/google-tasks-sync.js,83,104,google-tasks-sync,program,declaration,sendChildren,3
+js/google-tasks-sync.js,105,112,google-tasks-sync,program,declaration,prepareLocalCompletion,1
+js/google-tasks-sync.js,113,131,google-tasks-sync,program,declaration,pushImported,1
+js/google-tasks-sync.js,132,144,google-tasks-sync,program,declaration,exportNewTask,1
+js/google-tasks-sync.js,145,147,google-tasks-sync,program,declaration,findLinked,1
+js/google-tasks-sync.js,148,212,google-tasks-sync,program,declaration,performSync,1
+js/google-tasks-sync.js,213,219,google-tasks-sync,program,declaration,synchronize,9
+js/google-tasks-sync.js,220,224,google-tasks-sync,program,declaration,scheduleSync,1
+js/google-tasks-sync.js,229,229,google-tasks-sync,,ArrowFunctionExpression,escape,1
+js/google-tasks-sync.js,232,232,google-tasks-sync,,ArrowFunctionExpression,close,8
+js/google-tasks-sync.js,225,236,google-tasks-sync,program,declaration,choiceDialog,1
+js/google-tasks-sync.js,237,266,google-tasks-sync,program,declaration,connect,1
+js/google-tasks-sync.js,267,287,google-tasks-sync,program,declaration,disconnect,1
+js/google-tasks-sync.js,288,310,google-tasks-sync,program,declaration,ensureToggle,4
+js/google-tasks-sync.js,311,320,google-tasks-sync,program,declaration,boot,3
+js/project-model.js,8,8,project-model,,ArrowFunctionExpression,id,391
+js/project-model.js,9,9,project-model,,ArrowFunctionExpression,clone,97
+js/project-model.js,13,40,project-model,,ArrowFunctionExpression,date,54
+js/project-model.js,41,43,project-model,(closure),declaration,freshStep,3
+js/project-model.js,44,46,project-model,(closure),declaration,freshProject,1
+js/project-model.js,47,47,project-model,(closure),declaration,addStep,1
+js/project-model.js,48,52,project-model,(closure),declaration,removeStep,1
+js/project-model.js,53,58,project-model,(closure),declaration,moveStep,1
+js/project-model.js,59,65,project-model,(closure),declaration,dateAfter,3
+js/project-model.js,66,78,project-model,(closure),declaration,stageEnd,6
+js/project-model.js,81,85,project-model,(closure),declaration,dayDifference,2
+js/project-model.js,86,97,project-model,(closure),declaration,initializeRelativeDates,2
+js/project-model.js,98,115,project-model,(closure),declaration,applyRelativeDates,2
+js/project-model.js,116,118,project-model,(closure),declaration,sanitizeResources,2
+js/project-model.js,119,151,project-model,(closure),declaration,normalizeProject,1
+js/project-model.js,152,152,project-model,(closure),declaration,visibleStage,2
+js/project-model.js,153,153,project-model,(closure),declaration,existingCheckMap,2
+js/project-model.js,154,157,project-model,(closure),declaration,checksForEdit,1
+js/project-model.js,158,181,project-model,(closure),declaration,buildStageTask,2
+js/project-model.js,182,209,project-model,(closure),declaration,reconcile,1
+js/project-model.js,210,218,project-model,(closure),declaration,setCheck,1
+js/project-model.js,219,222,project-model,(closure),declaration,removeProject,1
+js/project-ui.js,6,6,project-ui,,ArrowFunctionExpression,$p,51
+js/project-ui.js,7,7,project-ui,,ArrowFunctionExpression,$$p,23
+js/project-ui.js,8,8,project-ui,,ArrowFunctionExpression,escp,49
+js/project-ui.js,9,9,project-ui,,ArrowFunctionExpression,fmtp,3
+js/project-ui.js,10,10,project-ui,,ArrowFunctionExpression,valp,0
+js/project-ui.js,15,15,project-ui,,ArrowFunctionExpression,editorRoot,1
+js/project-ui.js,16,19,project-ui,,ArrowFunctionExpression,holidayCheck,24
+js/project-ui.js,20,23,project-ui,(closure),declaration,selectable,4
+js/project-ui.js,24,24,project-ui,(closure),declaration,projectList,4
+js/project-ui.js,25,25,project-ui,(closure),declaration,projectById,5
+js/project-ui.js,26,26,project-ui,(closure),declaration,projectStageTask,3
+js/project-ui.js,27,27,project-ui,(closure),declaration,doneCount,9
+js/project-ui.js,28,43,project-ui,(closure),declaration,projectCard,1
+js/project-ui.js,44,73,project-ui,(closure),declaration,ensurePage,3
+js/project-ui.js,74,82,project-ui,(closure),declaration,renderProjectCards,4
+js/project-ui.js,83,93,project-ui,(closure),declaration,renderProjectPage,9
+js/project-ui.js,94,109,project-ui,(closure),declaration,ensureProjectVisibilityDefault,4
+js/project-ui.js,110,126,project-ui,(closure),declaration,syncProjectVisibility,6
+js/project-ui.js,127,143,project-ui,(closure),declaration,ensureSettingsControl,2
+js/project-ui.js,144,153,project-ui,(closure),declaration,applyProjectThemeIcon,2
+js/project-ui.js,154,158,project-ui,(closure),declaration,dateField,10
+js/project-ui.js,159,165,project-ui,(closure),declaration,editorHeader,1
+js/project-ui.js,166,169,project-ui,(closure),declaration,stageTabs,2
+js/project-ui.js,170,176,project-ui,(closure),declaration,checkRows,1
+js/project-ui.js,177,180,project-ui,(closure),declaration,resourceRows,1
+js/project-ui.js,181,195,project-ui,(closure),declaration,stageEditor,2
+js/project-ui.js,196,196,project-ui,(closure),declaration,setDirty,18
+js/project-ui.js,197,197,project-ui,(closure),declaration,renderTabs,5
+js/project-ui.js,198,198,project-ui,(closure),declaration,renderStage,11
+js/project-ui.js,199,210,project-ui,(closure),declaration,showEditor,1
+js/project-ui.js,211,224,project-ui,(closure),declaration,openEditor,6
+js/project-ui.js,225,225,project-ui,(closure),declaration,cancelEditor,2
+js/project-ui.js,226,232,project-ui,(closure),declaration,normalizeCheckAssignments,4
+js/project-ui.js,233,243,project-ui,(closure),declaration,refreshCheckOwners,1
+js/project-ui.js,244,254,project-ui,(closure),declaration,updateDateField,3
+js/project-ui.js,261,271,project-ui,,ArrowFunctionExpression,normalize,5
+js/project-ui.js,255,289,project-ui,(closure),declaration,bindDateControls,2
+js/project-ui.js,290,301,project-ui,(closure),declaration,bindEditorHeader,1
+js/project-ui.js,302,315,project-ui,(closure),declaration,bindTabs,2
+js/project-ui.js,316,359,project-ui,(closure),declaration,bindStageControls,2
+js/project-ui.js,360,360,project-ui,(closure),declaration,moveActive,2
+js/project-ui.js,361,367,project-ui,(closure),declaration,openResource,2
+js/project-ui.js,368,388,project-ui,(closure),declaration,uploadPendingResources,1
+js/project-ui.js,389,411,project-ui,(closure),declaration,saveEditor,1
+js/project-ui.js,412,423,project-ui,(closure),declaration,deleteProject,1
+js/project-ui.js,424,485,project-ui,(closure),declaration,projectTaskModal,4
+js/project-ui.js,529,529,project-ui,,ArrowFunctionExpression,safeDate,2
+js/project-ui.js,530,530,project-ui,,ArrowFunctionExpression,templateById,10
+js/project-ui.js,531,531,project-ui,,ArrowFunctionExpression,isProjectTemplate,2
+js/project-ui.js,532,536,project-ui,,ArrowFunctionExpression,isHoliday,11
+js/project-ui.js,537,544,project-ui,,ArrowFunctionExpression,shiftDate,1
+js/project-ui.js,545,555,project-ui,installLibraryAndProjectEnhancementsV181,declaration,openSource,2
+js/project-ui.js,556,558,project-ui,installLibraryAndProjectEnhancementsV181,declaration,resourceButtons,2
+js/project-ui.js,559,570,project-ui,installLibraryAndProjectEnhancementsV181,declaration,methodMarkup,1
+js/project-ui.js,571,604,project-ui,installLibraryAndProjectEnhancementsV181,declaration,showProjectLibraryV181,3
+js/project-ui.js,616,635,project-ui,installLibraryAndProjectEnhancementsV181,declaration,decorateProjectActions,3
+js/project-ui.js,638,656,project-ui,installLibraryAndProjectEnhancementsV181,declaration,tidyLibraryForm,3
+js/project-ui.js,658,681,project-ui,installLibraryAndProjectEnhancementsV181,declaration,installHolidayShiftField,1
+js/project-ui.js,527,726,project-ui,(closure),declaration,installLibraryAndProjectEnhancementsV181,1
+js/project-ui.js,734,734,project-ui,,ArrowFunctionExpression,parseDate,9
+js/project-ui.js,735,735,project-ui,,ArrowFunctionExpression,utcDate,12
+js/project-ui.js,736,736,project-ui,,ArrowFunctionExpression,isoDate,5
+js/project-ui.js,737,737,project-ui,,ArrowFunctionExpression,addDays,41
+js/project-ui.js,738,743,project-ui,,ArrowFunctionExpression,addMonths,5
+js/project-ui.js,744,753,project-ui,,ArrowFunctionExpression,freqFrom,1
+js/project-ui.js,754,762,project-ui,,ArrowFunctionExpression,scheduleKind,3
+js/project-ui.js,763,771,project-ui,,ArrowFunctionExpression,weekDay,1
+js/project-ui.js,772,778,project-ui,,ArrowFunctionExpression,configuredWeekDay,2
+js/project-ui.js,779,785,project-ui,,ArrowFunctionExpression,configuredMonths,2
+js/project-ui.js,786,795,project-ui,,ArrowFunctionExpression,dueShift,4
+js/project-ui.js,796,796,project-ui,,ArrowFunctionExpression,templateFor,3
+js/project-ui.js,797,797,project-ui,,ArrowFunctionExpression,completed,38
+js/project-ui.js,798,798,project-ui,,ArrowFunctionExpression,sourceRoot,1
+js/project-ui.js,799,802,project-ui,,ArrowFunctionExpression,seriesRoot,2
+js/project-ui.js,816,842,project-ui,installRollingRecurrencesV181,declaration,attachRecurrenceEndChoice,1
+js/project-ui.js,850,870,project-ui,installRollingRecurrencesV181,declaration,applyEndChoice,1
+js/project-ui.js,871,881,project-ui,installRollingRecurrencesV181,declaration,adjustHolidayIfNeeded,3
+js/project-ui.js,882,954,project-ui,installRollingRecurrencesV181,declaration,ensureOccurrences,3
+js/project-ui.js,733,992,project-ui,(closure),declaration,installRollingRecurrencesV181,1
+js/project-ui.js,1012,1022,project-ui,,ArrowFunctionExpression,navType,1
+js/project-ui.js,1023,1051,project-ui,,ArrowFunctionExpression,applyNavIcons,5
+js/project-ui.js,1052,1059,project-ui,,ArrowFunctionExpression,isoFromAny,4
+js/project-ui.js,1060,1063,project-ui,,ArrowFunctionExpression,holidayName,2
+js/project-ui.js,1064,1068,project-ui,,ArrowFunctionExpression,isWeekend,3
+js/project-ui.js,1069,1086,project-ui,,ArrowFunctionExpression,dateForLabel,1
+js/project-ui.js,1087,1105,project-ui,,ArrowFunctionExpression,decorateHomeHolidayLabels,3
+js/project-ui.js,1108,1112,project-ui,,FunctionExpression,wrapped,6
+js/project-ui.js,1118,1122,project-ui,,FunctionExpression,wrapped,6
+js/project-ui.js,996,1139,project-ui,(closure),declaration,installNavAndHomeHolidayEnhancementsV182,1
+js/workflow-reform-v17.js,6,6,workflow-reform-v17,,ArrowFunctionExpression,get,78
+js/workflow-reform-v17.js,7,7,workflow-reform-v17,,ArrowFunctionExpression,getAll,14
+js/workflow-reform-v17.js,8,8,workflow-reform-v17,,ArrowFunctionExpression,html,31
+js/workflow-reform-v17.js,9,9,workflow-reform-v17,,ArrowFunctionExpression,clean,5
+js/workflow-reform-v17.js,10,10,workflow-reform-v17,,ArrowFunctionExpression,done,18
+js/workflow-reform-v17.js,11,11,workflow-reform-v17,,ArrowFunctionExpression,isFromLibrary,2
+js/workflow-reform-v17.js,12,12,workflow-reform-v17,,ArrowFunctionExpression,isLibrarySchedule,3
+js/workflow-reform-v17.js,13,19,workflow-reform-v17,,ArrowFunctionExpression,lookupLibraryRef,4
+js/workflow-reform-v17.js,20,20,workflow-reform-v17,,ArrowFunctionExpression,libraryRootId,3
+js/workflow-reform-v17.js,21,21,workflow-reform-v17,,ArrowFunctionExpression,libraryRoot,3
+js/workflow-reform-v17.js,23,27,workflow-reform-v17,(closure),declaration,isProjectClosedV174,2
+js/workflow-reform-v17.js,28,31,workflow-reform-v17,(closure),declaration,canCloseProjectV174,2
+js/workflow-reform-v17.js,42,78,workflow-reform-v17,(closure),declaration,renameVisible,9
+js/workflow-reform-v17.js,83,90,workflow-reform-v17,(closure),declaration,stableLibraryLabelV172,4
+js/workflow-reform-v17.js,103,107,workflow-reform-v17,(closure),declaration,boardDateV172,3
+js/workflow-reform-v17.js,113,116,workflow-reform-v17,,ArrowFunctionExpression,boardColumnDefsV174,2
+js/workflow-reform-v17.js,117,119,workflow-reform-v17,(closure),declaration,taskIdForBoardV174,3
+js/workflow-reform-v17.js,120,146,workflow-reform-v17,(closure),declaration,redrawBoardHeaderV174,2
+js/workflow-reform-v17.js,151,159,workflow-reform-v17,,ArrowFunctionExpression,field,33
+js/workflow-reform-v17.js,147,165,workflow-reform-v17,(closure),declaration,applyBoardSortV174,1
+js/workflow-reform-v17.js,166,193,workflow-reform-v17,(closure),declaration,compactTaskBoardV172,2
+js/workflow-reform-v17.js,197,208,workflow-reform-v17,(closure),declaration,observeBoardHeaderV174,1
+js/workflow-reform-v17.js,210,220,workflow-reform-v17,(closure),declaration,markLibraryRows,2
+js/workflow-reform-v17.js,221,265,workflow-reform-v17,(closure),declaration,decorateLibraryEditor,1
+js/workflow-reform-v17.js,267,267,workflow-reform-v17,(closure),declaration,projectStages,5
+js/workflow-reform-v17.js,268,277,workflow-reform-v17,(closure),declaration,projectMatches,1
+js/workflow-reform-v17.js,278,281,workflow-reform-v17,(closure),declaration,stageMarkup,1
+js/workflow-reform-v17.js,282,291,workflow-reform-v17,(closure),declaration,visibleProjectListV173,1
+js/workflow-reform-v17.js,292,327,workflow-reform-v17,(closure),declaration,renderProjectCards,4
+js/workflow-reform-v17.js,328,347,workflow-reform-v17,(closure),declaration,closeProjectV174,1
+js/workflow-reform-v17.js,350,379,workflow-reform-v17,(closure),declaration,completedProjectCheckGuardV174,1
+js/workflow-reform-v17.js,391,409,workflow-reform-v17,(closure),declaration,ensureSplit,1
+js/workflow-reform-v17.js,410,433,workflow-reform-v17,(closure),declaration,bindVisibleSelectAllV173,3
+js/workflow-reform-v17.js,434,460,workflow-reform-v17,(closure),declaration,updateSplit,3
+js/workflow-reform-v17.js,476,479,workflow-reform-v17,ensureCreateMenu,declaration,closeMenu,4
+js/workflow-reform-v17.js,480,493,workflow-reform-v17,ensureCreateMenu,declaration,reposition,3
+js/workflow-reform-v17.js,462,513,workflow-reform-v17,(closure),declaration,ensureCreateMenu,3
+js/workflow-reform-v17.js,514,541,workflow-reform-v17,(closure),declaration,lockScheduleDates,1
+js/workflow-reform-v17.js,542,555,workflow-reform-v17,(closure),declaration,enhanceWorkModal,1
+js/workflow-reform-v17.js,602,602,workflow-reform-v17,,ArrowFunctionExpression,isProjectLibraryV176,5
+js/workflow-reform-v17.js,612,633,workflow-reform-v17,(closure),declaration,ensureLibraryTypeFilterV176,2
+js/workflow-reform-v17.js,634,658,workflow-reform-v17,(closure),declaration,decorateLibraryTypesV176,1
+js/workflow-reform-v17.js,660,671,workflow-reform-v17,(closure),declaration,libraryProjectDetailV177,1
+js/workflow-reform-v17.js,672,681,workflow-reform-v17,(closure),declaration,enhanceLibraryProjectDetailV177,1
+js/workspace-profile.js,59,80,workspace-profile,program,declaration,getOrInitFirestore,2
+js/workspace-profile.js,82,84,workspace-profile,program,declaration,clone,97
+js/workspace-profile.js,86,92,workspace-profile,program,declaration,randomBase64Url,2
+js/workspace-profile.js,94,96,workspace-profile,program,declaration,makeWorkspacePassword,1
+js/workspace-profile.js,98,102,workspace-profile,program,declaration,makeWorkspaceEmail,1
+js/workspace-profile.js,104,106,workspace-profile,program,declaration,profileFileQuery,1
+js/workspace-profile.js,108,111,workspace-profile,program,declaration,driveHeaders,5
+js/workspace-profile.js,113,126,workspace-profile,program,declaration,rememberDriveToken,1
+js/workspace-profile.js,128,150,workspace-profile,program,declaration,restoreDriveToken,4
+js/workspace-profile.js,152,157,workspace-profile,program,declaration,clearDriveToken,5
+js/workspace-profile.js,160,162,workspace-profile,program,declaration,normalizeEmail,9
+js/workspace-profile.js,167,171,workspace-profile,program,declaration,hasVerifiedGoogleIdentity,2
+js/workspace-profile.js,172,177,workspace-profile,program,declaration,isPersonalOwner,4
+js/workspace-profile.js,178,184,workspace-profile,program,declaration,assertPersonalOwner,3
+js/workspace-profile.js,186,191,workspace-profile,program,declaration,rememberBuildingEmail,3
+js/workspace-profile.js,193,197,workspace-profile,program,declaration,getRememberedBuildingEmail,1
+js/workspace-profile.js,199,205,workspace-profile,program,declaration,rememberWorkspaceProfileCache,4
+js/workspace-profile.js,207,221,workspace-profile,program,declaration,readWorkspaceProfileCache,1
+js/workspace-profile.js,223,225,workspace-profile,program,declaration,clearWorkspaceProfileCache,1
+js/workspace-profile.js,227,239,workspace-profile,program,declaration,googleProvider,3
+js/workspace-profile.js,241,248,workspace-profile,program,declaration,waitForAuthState,1
+js/workspace-profile.js,250,261,workspace-profile,program,declaration,initBuildingIdentity,9
+js/workspace-profile.js,263,292,workspace-profile,program,declaration,signInBuildingGoogle,3
+js/workspace-profile.js,294,321,workspace-profile,program,declaration,checkBuildingAuthorization,4
+js/workspace-profile.js,323,340,workspace-profile,program,declaration,ensureBuildingDriveAccess,8
+js/workspace-profile.js,342,344,workspace-profile,program,declaration,invalidateBuildingDriveAccessToken,3
+js/workspace-profile.js,346,353,workspace-profile,program,declaration,signOutBuilding,3
+js/workspace-profile.js,355,370,workspace-profile,program,declaration,listProfileFiles,3
+js/workspace-profile.js,372,378,workspace-profile,program,declaration,readProfileFile,1
+js/workspace-profile.js,380,387,workspace-profile,program,declaration,validateWorkspaceProfile,5
+js/workspace-profile.js,389,404,workspace-profile,program,declaration,loadWorkspaceProfile,2
+js/workspace-profile.js,406,424,workspace-profile,program,declaration,createProfileFile,1
+js/workspace-profile.js,426,437,workspace-profile,program,declaration,updateProfileFile,1
+js/workspace-profile.js,439,446,workspace-profile,program,declaration,saveWorkspaceProfile,1
+js/workspace-profile.js,448,460,workspace-profile,program,declaration,deleteWorkspaceProfile,0
+js/workspace-profile.js,462,474,workspace-profile,program,declaration,parseFirebaseConfigText,0
+js/workspace-profile.js,476,512,workspace-profile,program,declaration,provisionPrivateWorkspace,0
+js/workspace-profile.js,514,518,workspace-profile,program,declaration,firestoreRulesForWorkspaceUid,0
+js/workspace-profile.js,520,536,workspace-profile,program,declaration,testPrivateFirestore,0
+js/workspace-profile.js,538,560,workspace-profile,program,declaration,finalizeWorkspaceProvision,0
+js/workspace-profile.js,562,590,workspace-profile,program,declaration,connectPrivateWorkspace,3
+js/workspace-profile.js,592,596,workspace-profile,program,declaration,loadCachedWorkspaceProfile,1
+js/workspace-profile.js,598,603,workspace-profile,program,declaration,verifyExistingWorkspace,0
+js/workspace-profile.js,605,607,workspace-profile,program,declaration,getBuildingUser,4
+js/workspace-profile.js,609,611,workspace-profile,program,declaration,hasBuildingDriveToken,1
+js/workspace-profile.js,613,615,workspace-profile,program,declaration,getBuildingDriveAccessToken,3
+js/workspace-profile.js,624,627,workspace-profile,program,declaration,invalidateBuildingTasksToken,5
+js/workspace-profile.js,628,641,workspace-profile,program,declaration,getBuildingTasksToken,8
+js/workspace-profile.js,642,660,workspace-profile,program,declaration,authorizeBuildingTasks,2

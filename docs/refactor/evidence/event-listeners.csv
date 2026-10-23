@@ -1,0 +1,134 @@
+file,line,block,target,event
+index.html,1895,(no id),document,click
+index.html,1945,(no id),sc,pointerdown
+index.html,1945,(no id),sc,pointermove
+index.html,1945,(no id),sc,pointerup
+index.html,1945,(no id),sc,pointercancel
+index.html,1945,(no id),$('#ganttToday'),click
+index.html,2171,(no id),document,click
+index.html,2209,(no id),$('#ganttLeft'),click
+index.html,2209,(no id),$('#ganttRight'),click
+index.html,2209,(no id),sc,pointerdown
+index.html,2209,(no id),sc,pointermove
+index.html,2209,(no id),sc,pointerup
+index.html,2209,(no id),sc,pointercancel
+index.html,2209,(no id),sc,wheel
+index.html,2209,(no id),$('#ganttToday'),click
+index.html,2310,(no id),$('#ganttLeft'),click
+index.html,2311,(no id),$('#ganttRight'),click
+index.html,2312,(no id),$('#ganttSelected'),click
+index.html,2313,(no id),$('#ganttToday'),click
+index.html,2314,(no id),sc,pointerdown
+index.html,2315,(no id),sc,pointermove
+index.html,2315,(no id),sc,pointerup
+index.html,2315,(no id),sc,pointercancel
+index.html,2316,(no id),sc,wheel
+index.html,2342,(no id),$('#repairRepeatsSetting'),click
+index.html,2752,(no id),$('#ganttLeft'),click
+index.html,2752,(no id),$('#ganttRight'),click
+index.html,2752,(no id),$('#ganttSelected'),click
+index.html,2752,(no id),$('#ganttToday'),click
+index.html,2752,(no id),sc,pointerdown
+index.html,2752,(no id),sc,pointermove
+index.html,2752,(no id),sc,pointerup
+index.html,2752,(no id),sc,pointercancel
+index.html,2752,(no id),sc,wheel
+index.html,2778,(no id),$('#syncDbSchedules'),click
+index.html,2779,(no id),$('#autoHorizonMonths'),change
+index.html,2783,(no id),document,click
+index.html,3328,(no id),document,click
+index.html,3823,(no id),document,change
+index.html,4254,(no id),window,beforeinstallprompt
+index.html,4255,(no id),window,appinstalled
+index.html,4330,(no id),trigger,click
+index.html,4526,(no id),window,resize
+index.html,4527,(no id),window,orientationchange
+index.html,4528,(no id),window.visualViewport,resize
+index.html,4529,(no id),window.visualViewport,scroll
+index.html,4636,(no id),window,resize
+index.html,4637,(no id),window,orientationchange
+index.html,4894,(no id),"$('#tfSearchResults',dialog)",click
+index.html,5032,(no id),document,click
+index.html,5221,(no id),window,popstate
+index.html,5238,(no id),row,click
+index.html,5293,(no id),window,resize
+index.html,5294,(no id),window,orientationchange
+index.html,5295,(no id),window,popstate
+index.html,5910,(no id),document,click
+index.html,6055,(no id),dialog,input
+index.html,6055,(no id),dialog,click
+index.html,6310,local-v36-home-focus-visibility-script,document,click
+index.html,6491,local-dev-v1-current-cloud-parity-script,window,resize
+index.html,6492,local-dev-v1-current-cloud-parity-script,window,orientationchange
+index.html,6535,local-dev-v1-1-stability-script,document,focusin
+index.html,6536,local-dev-v1-1-stability-script,document,compositionstart
+index.html,6537,local-dev-v1-1-stability-script,document,compositionend
+index.html,6538,local-dev-v1-1-stability-script,document,focusout
+index.html,6539,local-dev-v1-1-stability-script,document,pointerdown
+index.html,6543,local-dev-v1-1-stability-script,document,change
+index.html,7322,local-v17-home-progress-visibility-script,input,change
+index.html,8509,local-v196-mobile-kitty-assets-script,window,resize
+index.html,8510,local-v196-mobile-kitty-assets-script,window,orientationchange
+index.html,8569,local-v197-mobile-task-label-script,window,resize
+index.html,8570,local-v197-mobile-task-label-script,window,orientationchange
+index.html,9936,local-v121-shinchan-theme-script,window,resize
+index.html,9937,local-v121-shinchan-theme-script,window,orientationchange
+index.html,10096,local-v111-final-mobile-task-label-guard,window,resize
+index.html,10097,local-v111-final-mobile-task-label-guard,window,orientationchange
+index.html,10361,local-v113-home-layout-editor-script,document,pointermove
+index.html,10362,local-v113-home-layout-editor-script,document,pointerup
+index.html,10362,local-v113-home-layout-editor-script,document,pointercancel
+index.html,10370,local-v113-home-layout-editor-script,document,pointermove
+index.html,10371,local-v113-home-layout-editor-script,document,pointerup
+index.html,10371,local-v113-home-layout-editor-script,document,pointercancel
+index.html,10399,local-v113-home-layout-editor-script,document.querySelector('#toggleHomeLayoutEditV113'),click
+index.html,10400,local-v113-home-layout-editor-script,document.querySelector('#resetHomeLayoutV113'),click
+index.html,10401,local-v113-home-layout-editor-script,chip,pointerdown
+index.html,10404,local-v113-home-layout-editor-script,overlay,pointerdown
+index.html,10407,local-v113-home-layout-editor-script,h,pointerdown
+index.html,10417,local-v113-home-layout-editor-script,window,resize
+index.html,10418,local-v113-home-layout-editor-script,window,orientationchange
+index.html,10659,local-v114-home-layout-editor-fix-script,button,pointerdown
+index.html,10660,local-v114-home-layout-editor-fix-script,button,click
+index.html,10668,local-v114-home-layout-editor-fix-script,chip,pointerdown
+index.html,11017,local-v115-home-order-responsive-script,window,resize
+index.html,11021,local-v115-home-order-responsive-script,window,orientationchange
+index.html,11163,local-v116-single-widget-restore-fix-script,chip,pointerdown
+index.html,11285,local-v117-widget-edit-lock-script,chip,pointerdown
+index.html,11612,local-v119-quick-task-duplicate-script,name,keydown
+index.html,11874,local-v120-standard-work-nav-guard-script,window,resize
+index.html,11875,local-v120-standard-work-nav-guard-script,window,orientationchange
+index.html,11972,cloud-v2-rc1-script,window,online
+index.html,11973,cloud-v2-rc1-script,window,offline
+index.html,12148,cloud-v122-legacy-drive-repair,window,load
+index.html,12208,linked-schedule-v1-5-2,end,input
+index.html,12209,linked-schedule-v1-5-2,end,change
+index.html,12210,linked-schedule-v1-5-2,x,change
+index.html,12222,linked-schedule-v1-5-2,start,input
+index.html,12223,linked-schedule-v1-5-2,start,change
+js/cloud-sync.js,830,cloud-sync,window,online
+js/cloud-sync.js,831,cloud-sync,window,offline
+js/cloud-sync.js,1776,cloud-sync,window,beforeunload
+js/google-tasks-sync.js,297,google-tasks-sync,label.querySelector('input'),change
+js/google-tasks-sync.js,316,google-tasks-sync,window,focus
+js/google-tasks-sync.js,317,google-tasks-sync,document,visibilitychange
+js/google-tasks-sync.js,318,google-tasks-sync,window,wm:tasks-v15-saved
+js/google-tasks-sync.js,322,google-tasks-sync,document,DOMContentLoaded
+js/project-ui.js,54,project-ui,page.querySelector('#prjGrid'),click
+js/project-ui.js,65,project-ui,button,click
+js/project-ui.js,257,project-ui,input,input
+js/project-ui.js,272,project-ui,input,blur
+js/project-ui.js,273,project-ui,input,change
+js/project-ui.js,291,project-ui,field,input
+js/project-ui.js,805,project-ui,document,click
+js/project-ui.js,835,project-ui,dlg,click
+js/project-ui.js,1127,project-ui,document,click
+js/workflow-reform-v17.js,380,workflow-reform-v17,document,click
+js/workflow-reform-v17.js,399,workflow-reform-v17,"get('#workflowProjectListV17',split)",click
+js/workflow-reform-v17.js,494,workflow-reform-v17,trigger,click
+js/workflow-reform-v17.js,501,workflow-reform-v17,menu,click
+js/workflow-reform-v17.js,509,workflow-reform-v17,document,click
+js/workflow-reform-v17.js,510,workflow-reform-v17,document,keydown
+js/workflow-reform-v17.js,511,workflow-reform-v17,window,resize
+js/workflow-reform-v17.js,512,workflow-reform-v17,window,scroll
+js/workflow-reform-v17.js,533,workflow-reform-v17,save,click

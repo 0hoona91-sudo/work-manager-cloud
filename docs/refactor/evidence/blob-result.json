@@ -1,0 +1,5 @@
+{
+  "probe": "HTML blob same-origin storage",
+  "result": "synthetic-storage-readable",
+  "note": "Synthetic marker only; no credentials or production data read. Mirrors MIME accepted by openDriveFile, not a live Drive upload."
+}

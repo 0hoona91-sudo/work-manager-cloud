@@ -1,0 +1,32 @@
+[
+  {
+    "file": "js/project-ui.js",
+    "line": 522,
+    "block": "project-ui",
+    "code": "new MutationObserver(()=>applyProjectThemeIcon())"
+  },
+  {
+    "file": "js/project-ui.js",
+    "line": 718,
+    "block": "project-ui",
+    "code": "new MutationObserver(()=>{\n    if(pending)return;pending=true;\n    queueMicrotask(()=>{pending=false;decorateProjectActions();tidyLibraryForm();});\n  })"
+  },
+  {
+    "file": "js/workflow-reform-v17.js",
+    "line": 93,
+    "block": "workflow-reform-v17",
+    "code": "new MutationObserver(()=>{\n    if(libraryNavRefreshPendingV172)return;\n    libraryNavRefreshPendingV172=true;\n    queueMicrotask(()=>{libraryNavRefreshPendingV172=false;stableLibraryLabelV172()});\n  })"
+  },
+  {
+    "file": "js/workflow-reform-v17.js",
+    "line": 199,
+    "block": "workflow-reform-v17",
+    "code": "new MutationObserver(()=>{\n    if(boardRepairQueuedV174)return;\n    const completed=typeof currentTaskViewV35==='function'&&currentTaskViewV35()==='completed';\n    const defs=boardColumnDefsV174(completed);\n    const row"
+  },
+  {
+    "file": "js/workflow-reform-v17.js",
+    "line": 583,
+    "block": "workflow-reform-v17",
+    "code": "new MutationObserver(()=>{\n    const project=get('.project-editor-modal',modalRoot),pane=get('.prj-stage-inner',project||modalRoot);\n    if(!project||!pane)return;\n    const stageId=pane.dataset.stageId;\n    const task=s"
+  }
+]
