@@ -1544,7 +1544,7 @@ async function createDriveBlock(file, { id, type, kind }) {
   try {
     await uploadDriveMediaWithRetry(metadata.id, file, mimeType, { attempts: 3 });
     const verified = await verifyDriveUpload(metadata.id, Number(file.size || 0));
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(await safeDriveDisplayBlob(file));
     const previous = driveObjectUrls.get(metadata.id);
     if (previous) try { URL.revokeObjectURL(previous); } catch {}
     driveObjectUrls.set(metadata.id, objectUrl);
@@ -1632,36 +1632,84 @@ async function hydrateImages(root = document) {
   }
 }
 
+function drivePreviewMime(value) {
+  return String(value || "").split(";", 1)[0].trim().toLowerCase();
+}
+
+function drivePreviewExtension(fileName) {
+  const extension = String(fileName || "").toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
+  return ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
+    webp: "image/webp", bmp: "image/bmp", ico: "image/x-icon", pdf: "application/pdf" })[extension] || "";
+}
+
+async function drivePreviewType(blob) {
+  // Neither stored metadata nor an image/* prefix proves a passive document.
+  // Check the response MIME and format header; never sniff HTML/SVG into a preview.
+  const type = drivePreviewMime(blob.type);
+  const bytes = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
+  const starts = (...values) => values.every((value, i) => bytes[i] === value);
+  const text = (start, end) => String.fromCharCode(...bytes.slice(start, end));
+  if (type === "image/png" && starts(137, 80, 78, 71, 13, 10, 26, 10)) return type;
+  if (type === "image/jpeg" && starts(255, 216, 255)) return type;
+  if (type === "image/gif" && ["GIF87a", "GIF89a"].includes(text(0, 6))) return type;
+  if (type === "image/webp" && text(0, 4) === "RIFF" && text(8, 12) === "WEBP") return type;
+  if (type === "image/bmp" && text(0, 2) === "BM") return type;
+  if (["image/x-icon", "image/vnd.microsoft.icon"].includes(type) && starts(0, 0, 1, 0)) return "image/x-icon";
+  if (type === "application/pdf" && /^%PDF-\d\.\d/.test(text(0, 8))) return type;
+  return "";
+}
+
+async function safeDriveDisplayBlob(blob) {
+  // Cached image URLs can also be opened in a new tab via the browser menu.
+  // Keep bytes intact but give active/unknown formats a download-only MIME.
+  return blob.slice(0, blob.size, (await drivePreviewType(blob)) || "application/octet-stream");
+}
+
 async function getDriveObjectUrl(fileId, { allowLegacyPrompt = false } = {}) {
   if (driveObjectUrls.has(fileId)) return driveObjectUrls.get(fileId);
   const result = await readDriveFileBlob(fileId, { allowLegacyPrompt });
-  const objectUrl = URL.createObjectURL(result.blob);
+  const objectUrl = URL.createObjectURL(await safeDriveDisplayBlob(result.blob));
   driveObjectUrls.set(fileId, objectUrl);
   return objectUrl;
 }
 
-async function downloadDriveFile(fileId, fileName = "첨부파일") {
+async function downloadDriveFile(fileId, fileName = "첨부파일", sourceBlob = null) {
   if (!fileId) throw new Error("다운로드할 Drive 파일 정보가 없습니다.");
-  const objectUrl = await getDriveObjectUrl(fileId, { allowLegacyPrompt: true });
+  const blob = sourceBlob || (await readDriveFileBlob(fileId, { allowLegacyPrompt: true })).blob;
+  // A separate URL prevents a cached preview MIME from turning a download into
+  // an active same-origin document. Retyping a Blob does not change its bytes.
+  const objectUrl = URL.createObjectURL(blob.slice(0, blob.size, "application/octet-stream"));
   const anchor = document.createElement("a");
   anchor.href = objectUrl;
   anchor.download = String(fileName || "첨부파일");
   anchor.rel = "noopener";
   document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
+  try { anchor.click(); }
+  finally {
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+  }
 }
 
 async function openDriveFile(fileId, fileName = "첨부파일", mimeType = "") {
   if (!fileId) throw new Error("열 Google Drive 파일 정보가 없습니다.");
-  const lowerName = String(fileName || "").toLowerCase();
-  const previewable = String(mimeType || "").startsWith("image/") || String(mimeType || "").startsWith("text/") || mimeType === "application/pdf" || /\.(pdf|txt|csv)$/.test(lowerName);
-  if (!previewable) return downloadDriveFile(fileId, fileName);
+  const expectedType = drivePreviewExtension(fileName);
+  let declaredType = drivePreviewMime(mimeType);
+  if (declaredType === "image/vnd.microsoft.icon") declaredType = "image/x-icon";
+  if (!expectedType || (declaredType && declaredType !== expectedType)) return downloadDriveFile(fileId, fileName);
   const preview = window.open("", "_blank");
+  if (preview) preview.opener = null;
   try {
-    const objectUrl = await getDriveObjectUrl(fileId, { allowLegacyPrompt: true });
-    if (!preview) return downloadDriveFile(fileId, fileName);
-    preview.opener = null;
+    // Re-read the response instead of trusting a URL cached during upload or hydration.
+    const { blob } = await readDriveFileBlob(fileId, { allowLegacyPrompt: true });
+    if (!preview || await drivePreviewType(blob) !== expectedType) {
+      preview?.close();
+      return await downloadDriveFile(fileId, fileName, blob);
+    }
+    const objectUrl = URL.createObjectURL(blob.slice(0, blob.size, expectedType));
+    const previous = driveObjectUrls.get(fileId);
+    if (previous) URL.revokeObjectURL(previous);
+    driveObjectUrls.set(fileId, objectUrl);
     preview.location.replace(objectUrl);
   } catch (error) {
     preview?.close();

@@ -1,0 +1,365 @@
+{
+  "generatedAt": "2026-10-23T03:59:52.859Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "748db8132cfd24a5963c6f0187b9b0be628a3544",
+  "attachmentSourceSha256": "87b31ea5a425e800e3fd09d2e3fc54e93313474fe8cfb45f9e23c7d30e450172",
+  "checkoutHead": "748db8132cfd24a5963c6f0187b9b0be628a3544",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 49,
+  "counts": {
+    "PASS": 37,
+    "FAIL": 0,
+    "XFAIL": 12,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "HARNESS-01",
+      "title": "Outcome gate rejects changed failure signatures and unexpected passes",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-01",
+      "title": "All production classic/module JavaScript parses in its actual mode",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-02",
+      "title": "Local imports and script/stylesheet references resolve except the tracked Tasks model",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-01",
+      "title": "Google Tasks model import must resolve",
+      "expected": true,
+      "observed": false,
+      "source": "js/google-tasks-sync.js:2 / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "STATIC-03",
+      "title": "All other inline and external CSS parses",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-02",
+      "title": "Dashboard style block must have valid CSS syntax",
+      "expected": null,
+      "observed": {
+        "reason": "Unexpected }",
+        "line": 197
+      },
+      "source": "index.html #app-v21-navy-dashboard-style / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "MODEL-01",
+      "title": "Date normalization accepts compact dates and leap day, rejects invalid day",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "title": "Stage end counts working days and shifts holiday deadlines",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "title": "Legacy absolute stage dates become stable relative offsets",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "title": "Unchanged completed stage retains its dates and completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "title": "Explicit checklist completion and reopen update only the target task",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-03",
+      "title": "Dependent stage dates must use the preserved completed stage anchor",
+      "expected": [
+        "2026-01-01",
+        "2026-01-03"
+      ],
+      "observed": [
+        "2026-01-01",
+        "2026-01-12"
+      ],
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-04",
+      "title": "Adding a new checklist item must not silently reopen completed history",
+      "expected": [
+        "done",
+        "2026-10-23"
+      ],
+      "observed": [
+        "progress",
+        null
+      ],
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-05",
+      "title": "Deleting a stage must retain its completed task history",
+      "expected": {
+        "retained": true,
+        "deleted": []
+      },
+      "observed": {
+        "retained": false,
+        "deleted": [
+          "task-b"
+        ]
+      },
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-06",
+      "title": "Negative stage offsets must be timezone independent (UTC+14)",
+      "expected": "2026-01-09",
+      "observed": "2026-01-08",
+      "source": "js/project-model.js / phase1 evidence/timezone-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "DATA-01",
+      "title": "Schema11 roundtrip preserves tasks, history, templates, rules, projects and settings",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "title": "Removed recurrence retains its stored generation lock",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "title": "Project and template attachments exclude inline data and transient URLs",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "title": "Local-only holiday setting is excluded from cloud records",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "title": "Backup merges disjoint IDs and identical records without duplication or mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "title": "Backup conflict must not silently overwrite completed history",
+      "expected": [
+        "done",
+        "2026-10-01"
+      ],
+      "observed": [
+        "planned",
+        null
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-08",
+      "title": "Object-form template checklist must retain text instead of string coercion",
+      "expected": [
+        "First"
+      ],
+      "observed": [
+        "[object Object]"
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "title": "Task projectResources must exclude inline bytes and transient URLs too",
+      "expected": [
+        {
+          "id": "fixture-file"
+        }
+      ],
+      "observed": [
+        {
+          "id": "fixture-file",
+          "data": "SYNTHETIC_INLINE_DATA",
+          "previewUrl": "blob:fixture"
+        }
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "REPEAT-01",
+      "title": "Month end clamps correctly across short months and leap years",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "title": "Monthly generation has stable dates, fresh checklist IDs and is idempotent",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "title": "Canonical semiannual schedule generates every six months",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "title": "Recurrence end is inclusive and completed roots remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "title": "Supported selectedMonths filters dates and holiday shifts preserve weekends",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "title": "Schema11 cycleMonths must filter actual generated occurrences",
+      "expected": [
+        "2026-10-01",
+        "2027-01-01"
+      ],
+      "observed": [
+        "2026-10-01",
+        "2026-11-01",
+        "2026-12-01",
+        "2027-01-01"
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-11",
+      "title": "Legacy half cycle must generate the semiannual occurrence",
+      "expected": [
+        "2026-01-31",
+        "2026-07-31"
+      ],
+      "observed": [
+        "2026-01-31"
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-12",
+      "title": "Generated recurrence must carry a durable deduplication key",
+      "expected": [
+        true,
+        true,
+        true
+      ],
+      "observed": [
+        false,
+        false,
+        false
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "UI-01",
+      "title": "Desktop quick-task validates blank name and registers one synthetic task",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "title": "Mobile quick-task opens, accepts input and cancels without mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-01",
+      "title": "HTML cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "title": "SVG script cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "title": "XHTML downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "title": "XML downloads despite text MIME",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "title": "PDF extension cannot disguise HTML response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "title": "Image extension cannot disguise SVG response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Forged image MIME with HTML bytes downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "title": "Recognized MIME must match extension",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "title": "Normal PNG still renders",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "title": "Normal PDF still opens",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "title": "Ordinary binary downloads unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "title": "Explicit active-file download preserves bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "title": "Blocked popup falls back to download",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "title": "Legacy missing declared MIME still previews a verified image",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "title": "Hydrated HTML cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "title": "Newly uploaded SVG cache cannot supply an active document",
+      "status": "PASS"
+    }
+  ]
+}

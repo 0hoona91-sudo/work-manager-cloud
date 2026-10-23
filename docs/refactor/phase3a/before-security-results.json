@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-10-23T03:55:08.703Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "checkoutHead": "748db8132cfd24a5963c6f0187b9b0be628a3544",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 16,
+  "counts": {
+    "PASS": 6,
+    "FAIL": 10,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "SEC-01",
+      "title": "HTML cannot read app localStorage",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Attachment executed and read same-origin localStorage\n+ actual - expected\n\n+ 'SYNTHETIC_STORAGE_MARKER'\n- null\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:110:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-02",
+      "title": "SVG script cannot read app localStorage",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Attachment executed and read same-origin localStorage\n+ actual - expected\n\n+ 'SYNTHETIC_STORAGE_MARKER'\n- null\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:110:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-03",
+      "title": "XHTML downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "title": "XML downloads despite text MIME",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Unsafe or ordinary attachment must download\n\n0 !== 1\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:121:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-05",
+      "title": "PDF extension cannot disguise HTML response",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Attachment executed and read same-origin localStorage\n+ actual - expected\n\n+ 'SYNTHETIC_STORAGE_MARKER'\n- null\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:110:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-06",
+      "title": "Image extension cannot disguise SVG response",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Attachment executed and read same-origin localStorage\n+ actual - expected\n\n+ 'SYNTHETIC_STORAGE_MARKER'\n- null\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:110:12)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Forged image MIME with HTML bytes downloads",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Unsafe or ordinary attachment must download\n\n0 !== 1\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:121:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-08",
+      "title": "Recognized MIME must match extension",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Unsafe or ordinary attachment must download\n\n0 !== 1\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:121:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-09",
+      "title": "Normal PNG still renders",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "title": "Normal PDF still opens",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "title": "Ordinary binary downloads unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "title": "Explicit active-file download preserves bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "title": "Blocked popup falls back to download",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "title": "Legacy missing declared MIME still previews a verified image",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:112:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-15",
+      "title": "Hydrated HTML cache cannot supply an active document",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Active cached Blob must not be navigable as HTML/SVG\n+ actual - expected\n\n+ 'text/html'\n- 'application/octet-stream'\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:89:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    },
+    {
+      "id": "SEC-16",
+      "title": "Newly uploaded SVG cache cannot supply an active document",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Active cached Blob must not be navigable as HTML/SVG\n+ actual - expected\n\n+ 'image/svg+xml'\n- 'application/octet-stream'\n\n    at exercise (/workspace/work-manager-cloud/tests/attachment.test.cjs:89:14)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:44:16)"
+    }
+  ]
+}
