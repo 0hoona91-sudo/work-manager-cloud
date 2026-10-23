@@ -1,0 +1,38 @@
+{
+  "baseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "scripts": 49,
+  "inlineScripts": 42,
+  "styles": 64,
+  "inlineStyles": 62,
+  "namedFunctionsAndFunctionVariables": 1039,
+  "functionValueAssignments": 614,
+  "simpleIdentifierAssignments": 238,
+  "addEventListenerSites": 133,
+  "mutationObservers": 5,
+  "timerRafSites": 113,
+  "callSites": 12297,
+  "cssParsedBlocks": 63,
+  "cssRulesParsed": 2094,
+  "cssImportantParsed": 2011,
+  "cssError": {
+    "file": "index.html",
+    "block": "app-v21-navy-dashboard-style",
+    "line": 1228,
+    "message": "Unexpected }"
+  },
+  "parserVersions": {
+    "acorn": "8.15.0",
+    "acorn-walk": "8.3.4",
+    "postcss": "8.5.6"
+  },
+  "node": "v24.19.0",
+  "python": "Python 3.12.14",
+  "countLimits": [
+    "CSS invalid block excluded from aggregate counts",
+    "CSS dynamically inserted from JavaScript not counted",
+    "Function variables and declarations counted, anonymous callback functions not a full function count",
+    "Generated handover HTML JavaScript inside strings is not recursively parsed",
+    "Identifier reference count is global by spelling and not scope resolved",
+    "Callsite expressions longer than 160 chars truncated; no dynamic binding resolution"
+  ]
+}

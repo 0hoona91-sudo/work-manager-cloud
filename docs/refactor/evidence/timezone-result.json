@@ -1,0 +1,7 @@
+{
+  "timezone": "Pacific/Kiritimati",
+  "case": "project-model.applyRelativeDates negative offset -1 from 2026-01-10",
+  "expected": "2026-01-09",
+  "observed": "2026-01-08",
+  "status": "reproduced with TZ env in Node"
+}

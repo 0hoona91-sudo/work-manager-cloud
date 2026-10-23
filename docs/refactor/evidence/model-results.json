@@ -1,0 +1,92 @@
+[
+  {
+    "name": "completed-stage-relative-anchor",
+    "observed": [
+      {
+        "start": "2026-01-01",
+        "end": "2026-01-01"
+      },
+      {
+        "start": "2026-01-12",
+        "end": "2026-01-12",
+        "offset": 2
+      }
+    ],
+    "expected": "If completed stage A is restored to Jan 1, B offset 2 should resolve to Jan 3, not Jan 12.",
+    "status": "reproduced-in-model; UI path requires separate validation"
+  },
+  {
+    "name": "completed-stage-checklist-edit",
+    "observed": {
+      "before": "done",
+      "after": "progress",
+      "actualComplete": null
+    },
+    "status": "completed record reopens when new unchecked item added; policy decision required"
+  },
+  {
+    "name": "delete-completed-stage",
+    "observed": {
+      "deletedTaskIds": [
+        "task-b"
+      ],
+      "remaining": [
+        "task-a"
+      ]
+    },
+    "status": "completed stage task removed by model"
+  },
+  {
+    "name": "date-parser",
+    "observed": {
+      "compact": "2026-10-01",
+      "leap": "2024-02-29",
+      "invalidRejected": true
+    },
+    "status": "pass"
+  },
+  {
+    "name": "dateAfter-all-holidays",
+    "observed": {
+      "holidayChecks": 10000,
+      "returnedNormally": false
+    },
+    "status": "no internal iteration bound; diagnostic guard stopped execution"
+  },
+  {
+    "name": "serializer-template-checklist-objects",
+    "observed": [
+      "[object Object]"
+    ],
+    "status": "object checklist becomes [object Object]; validate string[] legacy template contract at import boundary"
+  },
+  {
+    "name": "serializer-generated-key-retention",
+    "observed": {
+      "locksRetainedAfterTaskRemoval": 1
+    },
+    "status": "pass: existing lock retention; intentional deletion differs from future horizon pruning"
+  },
+  {
+    "name": "serializer-task-resource-inline-data",
+    "observed": [
+      {
+        "id": "r",
+        "data": "data:image/png;base64,SYNTHETIC",
+        "previewUrl": "blob:synthetic"
+      }
+    ],
+    "status": "task.projectResources not sanitized by serializer although project.stages.resources is sanitized"
+  },
+  {
+    "name": "import-same-id-completed",
+    "observed": [
+      {
+        "id": "task",
+        "status": "planned",
+        "actualComplete": null
+      }
+    ],
+    "status": "import incoming same-id record overwrites completed fields; explicit preview/validation absent"
+  }
+]

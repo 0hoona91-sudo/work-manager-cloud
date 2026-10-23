@@ -1,0 +1,615 @@
+file,line,endLine,block,target
+index.html,1703,1703,(no id),r.onupgradeneeded
+index.html,1703,1703,(no id),r.onsuccess
+index.html,1703,1703,(no id),r.onerror
+index.html,1707,1707,(no id),req.onsuccess
+index.html,1707,1707,(no id),req.onerror
+index.html,1708,1708,(no id),tx.onerror
+index.html,1711,1711,(no id),tx.onerror
+index.html,1712,1712,(no id),req.onsuccess
+index.html,1712,1712,(no id),req.onerror
+index.html,1716,1716,(no id),tx.onerror
+index.html,1766,1766,(no id),i.onchange
+index.html,1790,1790,(no id),x.onclick
+index.html,1794,1794,(no id),x.onclick
+index.html,1794,1794,(no id),x.onclick
+index.html,1797,1797,(no id),x.onchange
+index.html,1797,1797,(no id),x.onchange
+index.html,1797,1797,(no id),x.onclick
+index.html,1798,1798,(no id),x.onclick
+index.html,1817,1817,(no id),x.onchange
+index.html,1817,1817,(no id),$('[data-edit-task]').onclick
+index.html,1817,1817,(no id),$('#completeTask').onclick
+index.html,1837,1837,(no id),x.oninput
+index.html,1837,1837,(no id),x.onclick
+index.html,1838,1838,(no id),x.onclick
+index.html,1839,1839,(no id),$('#tfAddCheck').onclick
+index.html,1839,1839,(no id),$('#tfAddStep').onclick
+index.html,1840,1840,(no id),el.onclick
+index.html,1840,1840,(no id),$('#tfSearch').oninput
+index.html,1843,1843,(no id),$('#deleteTask').onclick
+index.html,1844,1844,(no id),$('#saveTask').onclick
+index.html,1846,1846,(no id),$('[data-editdb]').onclick
+index.html,1848,1848,(no id),x.oninput
+index.html,1848,1848,(no id),x.onclick
+index.html,1848,1848,(no id),x.onclick
+index.html,1848,1848,(no id),$('#dfAddCheck').onclick
+index.html,1848,1848,(no id),$('#dfPhotos').onchange
+index.html,1848,1848,(no id),$('#saveDb').onclick
+index.html,1848,1848,(no id),$('#deleteDb').onclick
+index.html,1849,1849,(no id),r.onload
+index.html,1895,1895,(no id),x.onclick
+index.html,1895,1895,(no id),x.onclick
+index.html,1895,1895,(no id),$('#catMultiBtn').onclick
+index.html,1895,1895,(no id),$('#generateRepeats').onclick
+index.html,1895,1895,(no id),$('#newTaskBtn').onclick
+index.html,1895,1895,(no id),$('#newDbBtn').onclick
+index.html,1895,1895,(no id),$('#addHoliday').onclick
+index.html,1895,1895,(no id),$('#addCategory').onclick
+index.html,1895,1895,(no id),$('#addOwner').onclick
+index.html,1895,1895,(no id),$('#importBackup').onchange
+index.html,1895,1895,(no id),$('#exportTaskCsv').onclick
+index.html,1895,1895,(no id),$('#exportDbCsv').onclick
+index.html,1944,1944,(no id),x.onclick
+index.html,1960,1960,(no id),x.onchange
+index.html,1961,1961,(no id),sel.onchange
+index.html,2033,2033,(no id),x.oninput
+index.html,2033,2033,(no id),x.onclick
+index.html,2072,2072,(no id),el.onclick
+index.html,2067,2073,(no id),name.oninput
+index.html,2075,2075,(no id),category.onchange
+index.html,2076,2076,(no id),owner.onchange
+index.html,2080,2080,(no id),el.oninput
+index.html,2081,2081,(no id),el.onclick
+index.html,2082,2082,(no id),el.onclick
+index.html,2083,2083,(no id),el.onclick
+index.html,2087,2087,(no id),$('#tfAddCheck').onclick
+index.html,2087,2087,(no id),$('#tfAddStep').onclick
+index.html,2089,2089,(no id),el.onclick
+index.html,2089,2089,(no id),$('#tfSearch').oninput
+index.html,2091,2091,(no id),$('#deleteTask').onclick
+index.html,2092,2097,(no id),$('#saveTask').onclick
+index.html,2153,2153,(no id),$('[data-editdb]').onclick
+index.html,2157,2157,(no id),x.oninput
+index.html,2157,2157,(no id),x.onclick
+index.html,2158,2158,(no id),x.oninput
+index.html,2158,2158,(no id),x.oninput
+index.html,2158,2158,(no id),x.onclick
+index.html,2158,2158,(no id),x.onclick
+index.html,2158,2158,(no id),x.onclick
+index.html,2160,2160,(no id),$('#dfAddCheck').onclick
+index.html,2160,2160,(no id),$('#addMethodText').onclick
+index.html,2160,2160,(no id),$('#addMethodImage').onchange
+index.html,2161,2161,(no id),$('#saveDb').onclick
+index.html,2161,2161,(no id),$('#deleteDb').onclick
+index.html,2163,2163,(no id),x.onclick
+index.html,2163,2163,(no id),x.onclick
+index.html,2164,2164,(no id),x.onchange
+index.html,2164,2164,(no id),x.onchange
+index.html,2164,2164,(no id),x.onclick
+index.html,2169,2169,(no id),x.onclick
+index.html,2171,2171,(no id),x.onclick
+index.html,2171,2171,(no id),x.onclick
+index.html,2171,2171,(no id),$('#catMultiBtn').onclick
+index.html,2171,2171,(no id),$('#newTaskBtn').onclick
+index.html,2171,2171,(no id),$('#newDbBtn').onclick
+index.html,2172,2172,(no id),$('#selectAllTasks').onchange
+index.html,2172,2172,(no id),$('#deleteSelectedTasks').onclick
+index.html,2173,2173,(no id),$('#addHoliday').onclick
+index.html,2174,2174,(no id),$('#addCategory').onclick
+index.html,2174,2174,(no id),$('#addOwner').onclick
+index.html,2174,2174,(no id),$('#holidayApiKey').onchange
+index.html,2175,2175,(no id),$('#importBackup').onchange
+index.html,2175,2175,(no id),$('#exportTaskCsv').onclick
+index.html,2175,2175,(no id),$('#exportDbCsv').onclick
+index.html,2208,2208,(no id),x.onclick
+index.html,2233,2244,(no id),btn.onclick
+index.html,2230,2245,(no id),openTaskForm
+index.html,2248,2248,(no id),cm.onchange
+index.html,2248,2248,(no id),bind
+index.html,2250,2250,(no id),migrateStateV2
+index.html,2305,2305,(no id),x.onclick
+index.html,2334,2339,(no id),renderSettings
+index.html,2386,2386,(no id),migrateStateV2
+index.html,2409,2409,(no id),b.onclick
+index.html,2456,2456,(no id),inp.oninput
+index.html,2468,2478,(no id),renderSettings
+index.html,2485,2485,(no id),i.onchange
+index.html,2493,2493,(no id),btn.onclick
+index.html,2494,2494,(no id),i.onchange
+index.html,2653,2653,(no id),x.onchange
+index.html,2654,2654,(no id),inp.onchange
+index.html,2655,2655,(no id),sel.onchange
+index.html,2704,2704,(no id),x.oninput
+index.html,2704,2704,(no id),x.onclick
+index.html,2705,2705,(no id),x.oninput
+index.html,2705,2705,(no id),x.oninput
+index.html,2705,2705,(no id),x.onclick
+index.html,2705,2705,(no id),x.onclick
+index.html,2705,2705,(no id),x.onclick
+index.html,2708,2708,(no id),el.onclick
+index.html,2708,2708,(no id),q.oninput
+index.html,2710,2710,(no id),x.onclick
+index.html,2712,2712,(no id),$('#dfAddCheck').onclick
+index.html,2712,2712,(no id),$('#dfAddLinked').onclick
+index.html,2713,2713,(no id),$('#addMethodText').onclick
+index.html,2713,2713,(no id),$('#addMethodImage').onchange
+index.html,2714,2721,(no id),$('#saveDb').onclick
+index.html,2722,2722,(no id),$('#deleteDb').onclick
+index.html,2728,2728,(no id),x.onclick
+index.html,2728,2728,(no id),x.onclick
+index.html,2751,2751,(no id),x.onclick
+index.html,2776,2784,(no id),bind
+index.html,2787,2793,(no id),deleteTasksByIdsV2
+index.html,2795,2803,(no id),deleteSeriesV2
+index.html,2830,2830,(no id),migrateStateV2
+index.html,2857,2857,(no id),ensureV5Ui
+index.html,2864,2864,(no id),btn.onclick
+index.html,2865,2865,(no id),x.onchange
+index.html,2886,2892,(no id),all.onchange
+index.html,2905,2905,(no id),x.onchange
+index.html,2906,2906,(no id),inp.onchange
+index.html,2907,2912,(no id),sel.onchange
+index.html,3161,3161,(no id),x.oninput
+index.html,3162,3162,(no id),x.onclick
+index.html,3166,3166,(no id),el.onchange
+index.html,3167,3167,(no id),el.onchange
+index.html,3180,3180,(no id),x.oninput
+index.html,3181,3181,(no id),x.oninput
+index.html,3182,3182,(no id),x.onclick
+index.html,3183,3183,(no id),x.onclick
+index.html,3184,3184,(no id),x.onclick
+index.html,3191,3191,(no id),button.onclick
+index.html,3197,3197,(no id),el.onchange
+index.html,3197,3197,(no id),el.oninput
+index.html,3198,3198,(no id),category.onchange
+index.html,3199,3199,(no id),owner.onchange
+index.html,3201,3201,(no id),el.onclick
+index.html,3201,3201,(no id),q.oninput
+index.html,3203,3203,(no id),x.oninput
+index.html,3204,3204,(no id),x.onclick
+index.html,3205,3205,(no id),x.onclick
+index.html,3206,3206,(no id),x.onclick
+index.html,3247,3251,(no id),btn.onclick
+index.html,3255,3255,(no id),$('#dfCat').onchange
+index.html,3256,3256,(no id),$('#dfAddCheck').onclick
+index.html,3256,3256,(no id),$('#dfAddLinked').onclick
+index.html,3257,3257,(no id),$('#addMethodText').onclick
+index.html,3257,3257,(no id),$('#addMethodImage').onchange
+index.html,3258,3258,(no id),$('#addTemplateAttachmentV30').onchange
+index.html,3259,3268,(no id),$('#saveDb').onclick
+index.html,3269,3269,(no id),$('#deleteDb').onclick
+index.html,3288,3288,(no id),x.onclick
+index.html,3288,3288,(no id),x.onclick
+index.html,3301,3301,(no id),$('#deleteDbDetail').onclick
+index.html,3304,3304,(no id),$('#deleteDbDetail').onclick
+index.html,3326,3330,(no id),bind
+index.html,3358,3358,(no id),migrateStateV2
+index.html,3364,3364,(no id),applyHomeLayoutV5
+index.html,3374,3374,(no id),b.onclick
+index.html,3380,3380,(no id),sb.onclick
+index.html,3385,3385,(no id),ensureV6Ui
+index.html,3402,3405,(no id),b.onclick
+index.html,3406,3409,(no id),inp.oninput
+index.html,3410,3413,(no id),b.onclick
+index.html,3422,3430,(no id),$('#v7SaveHoliday').onclick
+index.html,3442,3442,(no id),x.onclick
+index.html,3442,3442,(no id),x.onclick
+index.html,3446,3449,(no id),bind
+index.html,3452,3456,(no id),renderSettings
+index.html,3488,3488,(no id),migrateStateV2
+index.html,3548,3548,(no id),b.onclick
+index.html,3549,3549,(no id),b.onclick
+index.html,3550,3550,(no id),$('#v8OwnerCustomColor').oninput
+index.html,3552,3568,(no id),$('#v8SaveOwner').onclick
+index.html,3601,3601,(no id),add.onclick
+index.html,3602,3602,(no id),b.onclick
+index.html,3603,3603,(no id),b.onclick
+index.html,3607,3610,(no id),renderSettings
+index.html,3619,3622,(no id),openTaskForm
+index.html,3625,3633,(no id),stepEditorHtmlV6
+index.html,3646,3650,(no id),rootOwnerSelect.onchange
+index.html,3636,3652,(no id),openDbForm
+index.html,3661,3666,(no id),openDbDetailV6
+index.html,3685,3685,(no id),x.onchange
+index.html,3686,3686,(no id),inp.onchange
+index.html,3687,3692,(no id),sel.onchange
+index.html,3707,3707,(no id),x.onclick
+index.html,3708,3708,(no id),x.onclick
+index.html,3712,3721,(no id),renderGantt
+index.html,3728,3728,(no id),$('#addOwner').onclick
+index.html,3724,3729,(no id),bind
+index.html,3884,3890,(no id),openTaskForm
+index.html,3894,3901,(no id),changeTaskStartV5
+index.html,3908,3912,(no id),all.onchange
+index.html,3904,3914,(no id),renderTaskTable
+index.html,3917,3923,(no id),renderHome
+index.html,3972,3975,(no id),cb.onchange
+index.html,3977,3981,(no id),all.onchange
+index.html,3983,3983,(no id),btn.onclick
+index.html,3985,3985,(no id),deleteBtn.onclick
+index.html,3999,3999,(no id),x.onclick
+index.html,4000,4000,(no id),x.onclick
+index.html,4067,4067,(no id),"$(`[data-v10endstage=""${i}""]`).onchange"
+index.html,4069,4089,(no id),$('#v10RegisterDbTasks').onclick
+index.html,4213,4219,(no id),openTaskForm
+index.html,4223,4233,(no id),changeTaskStartV5
+index.html,4237,4245,(no id),renderTaskTable
+index.html,4248,4251,(no id),bind
+index.html,4261,4261,(no id),$('#resetLocalBetaData').onclick
+index.html,4265,4270,(no id),renderSettings
+index.html,4345,4352,(no id),button.onclick
+index.html,4355,4355,(no id),openDbForm
+index.html,4363,4363,(no id),renderHome
+index.html,4408,4408,(no id),monthSelect.onchange
+index.html,4409,4409,(no id),button.onclick
+index.html,4413,4413,(no id),ganttTasksV4
+index.html,4414,4414,(no id),ganttWindowV4
+index.html,4416,4416,(no id),bind
+index.html,4418,4418,(no id),renderHome
+index.html,4440,4440,(no id),docInput.oninput
+index.html,4441,4441,(no id),docInput.onchange
+index.html,4443,4447,(no id),x.onchange
+index.html,4448,4448,(no id),$('[data-edit-task]').onclick
+index.html,4449,4454,(no id),$('#completeTask').onclick
+index.html,4430,4455,(no id),openChecklist
+index.html,4476,4476,(no id),btn.onclick
+index.html,4472,4477,(no id),bindGanttCategoryFilterV5
+index.html,4480,4485,(no id),openTaskForm
+index.html,4505,4505,(no id),closeModal
+index.html,4533,4536,(no id),openTaskForm
+index.html,4621,4621,(no id),ensureV7Ui
+index.html,4623,4623,(no id),renderTaskTable
+index.html,4625,4625,(no id),renderDbTable
+index.html,4627,4627,(no id),renderHistory
+index.html,4629,4629,(no id),renderSettings
+index.html,4631,4631,(no id),showPage
+index.html,4633,4633,(no id),bind
+index.html,4664,4668,(no id),modal
+index.html,4670,4673,(no id),closeModal
+index.html,4728,4731,(no id),updatePanelLayoutButtonsV7
+index.html,4733,4737,(no id),renderHome
+index.html,4766,4766,(no id),docInput.oninput
+index.html,4767,4767,(no id),docInput.onchange
+index.html,4769,4777,(no id),input.onchange
+index.html,4779,4779,(no id),edit.onclick
+index.html,4781,4786,(no id),complete.onclick
+index.html,4754,4787,(no id),openChecklist
+index.html,4796,4805,(no id),select.onchange
+index.html,4790,4807,(no id),renderTaskTable
+index.html,4830,4830,(no id),input.oninput
+index.html,4831,4831,(no id),input.onchange
+index.html,4832,4832,(no id),input.onblur
+index.html,4833,4833,(no id),picker.onchange
+index.html,4834,4840,(no id),pickerButton.onclick
+index.html,4863,4863,(no id),endType.onchange
+index.html,4885,4885,(no id),input.onchange
+index.html,4892,4892,(no id),cycle.onchange
+index.html,4893,4893,(no id),repeatSwitch.onchange
+index.html,4902,4902,(no id),modal
+index.html,4904,4904,(no id),openTaskForm
+index.html,4906,4906,(no id),renderTaskTable
+index.html,4908,4908,(no id),renderHolidays
+index.html,4910,4913,(no id),renderCalendar
+index.html,4926,4926,(no id),migrateStateV2
+index.html,4942,4942,(no id),sideBrand.onclick
+index.html,4965,4965,(no id),add.onclick
+index.html,5000,5000,(no id),button.onclick
+index.html,5007,5007,(no id),renderHome
+index.html,5009,5009,(no id),renderSettings
+index.html,5045,5045,(no id),openDbDetailV6
+index.html,5047,5054,(no id),renderDbTable
+index.html,5185,5185,(no id),card.onclick
+index.html,5210,5210,(no id),$('#homeFocusBackV25').onclick
+index.html,5211,5211,(no id),$('#homeFocusClearV25').onclick
+index.html,5216,5216,(no id),renderHome
+index.html,5218,5218,(no id),renderTaskTable
+index.html,5220,5220,(no id),showPage
+index.html,5271,5274,(no id),button.onclick
+index.html,5280,5280,(no id),renderTaskTable
+index.html,5282,5282,(no id),renderDbTable
+index.html,5284,5284,(no id),renderHome
+index.html,5286,5286,(no id),showPage
+index.html,5378,5381,(no id),dbVisibleRowsV10
+index.html,5402,5402,(no id),button.onclick
+index.html,5403,5403,(no id),button.onclick
+index.html,5404,5404,(no id),more.onclick
+index.html,5446,5446,(no id),button.onclick
+index.html,5447,5447,(no id),more.onclick
+index.html,5451,5451,(no id),openDbDetailV6
+index.html,5453,5453,(no id),renderTaskTable
+index.html,5621,5621,(no id),button.onclick
+index.html,5622,5622,(no id),button.onclick
+index.html,5624,5627,(no id),repair.onclick
+index.html,5649,5649,(no id),button.onclick
+index.html,5647,5651,(no id),bind
+index.html,5724,5724,(no id),"$('#cancelTemplateImpactV29',overlay).onclick"
+index.html,5724,5724,(no id),"$('#applyTemplateImpactV29',overlay).onclick"
+index.html,5733,5733,(no id),"$('#templateVersionsV29',footer).onclick"
+index.html,5738,5738,(no id),remove.onclick
+index.html,5739,5744,(no id),button.onclick
+index.html,5822,5822,(no id),button.onclick
+index.html,5841,5841,(no id),$('#restoreTemplateVersionV29').onclick
+index.html,5848,5848,(no id),button.onclick
+index.html,5853,5853,(no id),openDbForm
+index.html,5855,5855,(no id),openDbDetailV6
+index.html,5859,5867,(no id),button.onclick
+index.html,5857,5868,(no id),openTaskForm
+index.html,5869,5869,(no id),deleteTasksByIdsV2
+index.html,5870,5875,(no id),deleteSeriesV2
+index.html,5876,5879,(no id),deleteDbTemplateV6
+index.html,5880,5883,(no id),deleteSelectedDbV12
+index.html,5885,5885,(no id),trash.onclick
+index.html,5885,5885,(no id),bind
+index.html,5930,5930,(no id),"$('#cloneDbV30',footer).onclick"
+index.html,5935,5935,(no id),"$('#cloneDbV30',footer).onclick"
+index.html,5939,5939,(no id),openDbForm
+index.html,5941,5941,(no id),openDbDetailV6
+index.html,5942,5942,(no id),versionSummaryV29
+index.html,5999,5999,(no id),button.onclick
+index.html,6000,6000,(no id),button.onclick
+index.html,6001,6001,(no id),button.onclick
+index.html,6017,6017,(no id),$('#annualPrevV31').onclick
+index.html,6017,6017,(no id),$('#annualNextV31').onclick
+index.html,6017,6017,(no id),yearSelect.onchange
+index.html,6017,6017,(no id),categorySelect.onchange
+index.html,6017,6017,(no id),button.onclick
+index.html,6017,6017,(no id),$('#annualBackV31').onclick
+index.html,6024,6024,(no id),button.onclick
+index.html,6028,6028,(no id),renderDbTable
+index.html,6030,6030,(no id),showPage
+index.html,6032,6032,(no id),bind
+index.html,6050,6050,(no id),input.onchange
+index.html,6056,6056,(no id),button.onclick
+index.html,6059,6059,(no id),openTaskForm
+index.html,6103,6103,local-v33-layout-script,input.onchange
+index.html,6108,6108,local-v33-layout-script,button.onclick
+index.html,6126,6126,local-v33-layout-script,migrateStateV2
+index.html,6128,6128,local-v33-layout-script,renderSettings
+index.html,6130,6130,local-v33-layout-script,renderHome
+index.html,6132,6132,local-v33-layout-script,showPage
+index.html,6171,6171,local-v35-task-split-theme-script,doneBtn.onclick
+index.html,6172,6172,local-v35-task-split-theme-script,activeBtn.onclick
+index.html,6206,6214,local-v35-task-split-theme-script,taskListVisibleV8
+index.html,6217,6217,local-v35-task-split-theme-script,renderTaskTable
+index.html,6220,6225,local-v35-task-split-theme-script,showPage
+index.html,6232,6240,local-v35-task-split-theme-script,applySidebarVisibilityV33
+index.html,6243,6246,local-v35-task-split-theme-script,renderSettings
+index.html,6307,6307,local-v36-home-focus-visibility-script,btn.onclick
+index.html,6308,6308,local-v36-home-focus-visibility-script,panel.onclick
+index.html,6309,6309,local-v36-home-focus-visibility-script,input.onchange
+index.html,6322,6322,local-v36-home-focus-visibility-script,input.onchange
+index.html,6337,6337,local-v36-home-focus-visibility-script,renderHomeFocusV25
+index.html,6339,6339,local-v36-home-focus-visibility-script,renderSettings
+index.html,6341,6341,local-v36-home-focus-visibility-script,renderHome
+index.html,6361,6361,local-v37-display-flow-script,renderHome
+index.html,6363,6363,local-v37-display-flow-script,renderHomeFocusV25
+index.html,6374,6380,local-dev-v1-current-cloud-parity-script,migrateStateV2
+index.html,6432,6432,local-dev-v1-current-cloud-parity-script,taskListVisibleV8
+index.html,6434,6434,local-dev-v1-current-cloud-parity-script,dbVisibleRowsV10
+index.html,6442,6442,local-dev-v1-current-cloud-parity-script,header.ondblclick
+index.html,6445,6445,local-dev-v1-current-cloud-parity-script,renderTaskTable
+index.html,6447,6447,local-dev-v1-current-cloud-parity-script,renderDbTable
+index.html,6451,6454,local-dev-v1-current-cloud-parity-script,scheduleRelatedDocumentSaveV15
+index.html,6455,6455,local-dev-v1-current-cloud-parity-script,captureRelatedDocumentV15
+index.html,6460,6460,local-dev-v1-current-cloud-parity-script,closeModal
+index.html,6477,6477,local-dev-v1-current-cloud-parity-script,docInput.oncompositionstart
+index.html,6478,6478,local-dev-v1-current-cloud-parity-script,docInput.oncompositionend
+index.html,6479,6479,local-dev-v1-current-cloud-parity-script,docInput.oninput
+index.html,6482,6486,local-dev-v1-current-cloud-parity-script,input.onchange
+index.html,6487,6487,local-dev-v1-current-cloud-parity-script,$('[data-edit-task]').onclick
+index.html,6488,6488,local-dev-v1-current-cloud-parity-script,complete.onclick
+index.html,6466,6489,local-dev-v1-current-cloud-parity-script,openChecklist
+index.html,6508,6514,local-dev-v1-1-stability-script,writeLocalState
+index.html,6563,6569,local-dev-v1-1-stability-script,persistTaskStatusV18
+index.html,6708,6708,local-dev-v1-2-navigation-script,ensureV5Ui
+index.html,6712,6712,local-dev-v1-2-navigation-script,syncTaskNavV35
+index.html,6727,6733,local-dev-v1-2-navigation-script,input.onchange
+index.html,6739,6739,local-dev-v1-2-navigation-script,renderSettings
+index.html,6742,6750,local-dev-v1-2-navigation-script,showPage
+index.html,6851,6851,local-dev-v1-3-cycle-script,box.onchange
+index.html,6852,6852,local-dev-v1-3-cycle-script,input.oninput
+index.html,6858,6858,local-dev-v1-3-cycle-script,radio.onchange
+index.html,6865,6870,local-dev-v1-3-cycle-script,formSignatureV29
+index.html,6874,6884,local-dev-v1-3-cycle-script,templatePeriodLabel
+index.html,6887,6887,local-dev-v1-3-cycle-script,openDbForm
+index.html,6939,6944,local-dev-v1-4-history-script,openDbForm
+index.html,7018,7018,local-dev-v1-5-search-script,category.onchange
+index.html,7019,7019,local-dev-v1-5-search-script,scope.onchange
+index.html,7029,7029,local-dev-v1-5-search-script,category.onchange
+index.html,7030,7030,local-dev-v1-5-search-script,scope.onchange
+index.html,7079,7088,local-dev-v1-5-search-script,taskListVisibleV8
+index.html,7090,7096,local-dev-v1-5-search-script,dbVisibleRowsV10
+index.html,7121,7121,local-dev-v1-5-search-script,button.onclick
+index.html,7122,7122,local-dev-v1-5-search-script,button.onclick
+index.html,7123,7123,local-dev-v1-5-search-script,more.onclick
+index.html,7106,7124,local-dev-v1-5-search-script,renderUnifiedSearchV27
+index.html,7127,7127,local-dev-v1-5-search-script,renderTaskTable
+index.html,7129,7129,local-dev-v1-5-search-script,renderDbTable
+index.html,7137,7137,local-dev-v1-5-search-script,input.oncompositionstart
+index.html,7138,7138,local-dev-v1-5-search-script,input.oncompositionend
+index.html,7139,7139,local-dev-v1-5-search-script,input.oninput
+index.html,7162,7167,local-dev-v1-5-2-task-search-script,renderUnifiedSearchV27
+index.html,7241,7241,local-dev-v1-6-rolling-script,renderSettings
+index.html,7350,7350,local-v17-home-progress-visibility-script,renderHome
+index.html,7352,7352,local-v17-home-progress-visibility-script,renderSettings
+index.html,7393,7397,local-v18-reopen-completed-script,syncTaskViewUiV35
+index.html,7473,7473,local-v18-reopen-completed-script,button.onclick
+index.html,7448,7475,local-v18-reopen-completed-script,openChecklist
+index.html,7478,7482,local-v18-reopen-completed-script,renderTaskTable
+index.html,7640,7640,local-v191-hello-kitty-theme-script,renderHomeOverviewV21
+index.html,7644,7644,local-v191-hello-kitty-theme-script,applyThemeV7
+index.html,7793,7797,local-v192-hello-kitty-theme-refinement-script,applyHomeMonthlyProgressVisibilityLocalV17
+index.html,7801,7805,local-v192-hello-kitty-theme-refinement-script,applyThemeV7
+index.html,7809,7813,local-v192-hello-kitty-theme-refinement-script,renderHomeOverviewV21
+index.html,8111,8117,local-v195-table-db-ux-script,taskSortValuesLocalV1
+index.html,8119,8125,local-v195-table-db-ux-script,dbGroupSortValuesLocalV1
+index.html,8161,8165,local-v195-table-db-ux-script,header.onclick
+index.html,8230,8230,local-v195-table-db-ux-script,edit.onclick
+index.html,8236,8236,local-v195-table-db-ux-script,cloneBtn.onclick
+index.html,8242,8245,local-v195-table-db-ux-script,del.onclick
+index.html,8262,8262,local-v195-table-db-ux-script,versions.onclick
+index.html,8271,8286,local-v195-table-db-ux-script,renderTaskTable
+index.html,8289,8300,local-v195-table-db-ux-script,renderDbTable
+index.html,8303,8307,local-v195-table-db-ux-script,openDbDetailV6
+index.html,8310,8315,local-v195-table-db-ux-script,openDbForm
+index.html,8486,8490,local-v196-mobile-kitty-assets-script,syncMobileNavigationV17
+index.html,8494,8498,local-v196-mobile-kitty-assets-script,applyThemeV7
+index.html,8502,8506,local-v196-mobile-kitty-assets-script,renderHomeOverviewV21
+index.html,8546,8550,local-v197-mobile-task-label-script,syncMobileNavigationV17
+index.html,8554,8558,local-v197-mobile-task-label-script,ensureV5Ui
+index.html,8562,8566,local-v197-mobile-task-label-script,syncTaskViewUiV33
+index.html,8612,8615,local-v198-settings-sort-polish-script,ensureHomeFocusSettingsSectionV36
+index.html,8645,8649,local-v198-settings-sort-polish-script,header.onclick
+index.html,8624,8657,local-v198-settings-sort-polish-script,decorateClickableSortHeadersLocalV195
+index.html,8661,8665,local-v198-settings-sort-polish-script,renderSettings
+index.html,9364,9368,local-v110-handover-generator-script,renderSettings
+index.html,9390,9392,local-v120-handover-zip-script,buildHandoverHtmlV110
+index.html,9670,9674,local-v120-handover-zip-script,renderSettings
+index.html,9926,9926,local-v121-shinchan-theme-script,renderHomeOverviewV21
+index.html,9930,9930,local-v121-shinchan-theme-script,applyThemeV7
+index.html,9934,9934,local-v121-shinchan-theme-script,syncMobileNavigationV17
+index.html,10090,10094,local-v111-final-mobile-task-label-guard,renderTaskTable
+index.html,10412,10416,local-v113-home-layout-editor-script,renderHome
+index.html,10514,10536,local-v114-home-layout-editor-fix-script,ensureHomeWidgetLayoutStateV113
+index.html,10539,10546,local-v114-home-layout-editor-fix-script,canPlaceHomeWidgetV113
+index.html,10557,10562,local-v114-home-layout-editor-fix-script,setLiveRectV113
+index.html,10564,10570,local-v114-home-layout-editor-fix-script,updateHomeWidgetStageRowsV113
+index.html,10580,10580,local-v114-home-layout-editor-fix-script,ensureHomeFoldButtonsV33
+index.html,10581,10581,local-v114-home-layout-editor-fix-script,applyHomeFoldsV33
+index.html,10698,10707,local-v114-home-layout-editor-fix-script,ensureHomeWidgetEditorDomV113
+index.html,10709,10742,local-v114-home-layout-editor-fix-script,applyHomeWidgetLayoutV113
+index.html,10746,10749,local-v114-home-layout-editor-fix-script,setHomeLayoutEditingV113
+index.html,10752,10755,local-v114-home-layout-editor-fix-script,syncHomeLayoutForViewportV113
+index.html,10993,10999,local-v115-home-order-responsive-script,ensureHomeWidgetEditorDomV113
+index.html,11002,11007,local-v115-home-order-responsive-script,applyHomeWidgetLayoutV113
+index.html,11011,11015,local-v115-home-order-responsive-script,setLiveRectV113
+index.html,11060,11092,local-v116-single-widget-restore-fix-script,ensureHomeWidgetLayoutStateV113
+index.html,11121,11126,local-v116-single-widget-restore-fix-script,firstFreeHomeWidgetRectV114
+index.html,11128,11150,local-v116-single-widget-restore-fix-script,restoreHomeWidgetV114
+index.html,11189,11189,local-v116-single-widget-restore-fix-script,bindRemovedPaletteRestoreV114
+index.html,11192,11197,local-v116-single-widget-restore-fix-script,ensureHomeWidgetEditorDomV113
+index.html,11233,11236,local-v117-widget-edit-lock-script,removeHomeWidgetV114
+index.html,11240,11243,local-v117-widget-edit-lock-script,restoreHomeWidgetV114
+index.html,11314,11314,local-v117-widget-edit-lock-script,bindRemovedPaletteRestoreV114
+index.html,11318,11323,local-v117-widget-edit-lock-script,setHomeLayoutEditingV113
+index.html,11326,11332,local-v117-widget-edit-lock-script,ensureHomeWidgetEditorDomV113
+index.html,11497,11501,local-v118-settings-organize-script,renderSettings
+index.html,11581,11594,local-v119-quick-task-duplicate-script,save.onclick
+index.html,11596,11610,local-v119-quick-task-duplicate-script,detail.onclick
+index.html,11682,11682,local-v119-quick-task-duplicate-script,button.onclick
+index.html,11676,11686,local-v119-quick-task-duplicate-script,openChecklist
+index.html,11731,11735,local-v119-quick-task-duplicate-script,renderHome
+index.html,11738,11742,local-v119-quick-task-duplicate-script,renderDbTable
+index.html,11745,11749,local-v119-quick-task-duplicate-script,renderSettings
+index.html,11752,11756,local-v119-quick-task-duplicate-script,openTaskForm
+index.html,11759,11763,local-v119-quick-task-duplicate-script,openDbForm
+index.html,11766,11770,local-v119-quick-task-duplicate-script,openDbDetailV6
+index.html,11773,11777,local-v119-quick-task-duplicate-script,showPage
+index.html,11819,11823,local-v120-standard-work-nav-guard-script,syncMobileNavigationV17
+index.html,11828,11832,local-v120-standard-work-nav-guard-script,syncTaskNavV35
+index.html,11837,11841,local-v120-standard-work-nav-guard-script,ensureV5Ui
+index.html,11846,11850,local-v120-standard-work-nav-guard-script,syncTaskMenuLabelsFinalLocalV111
+index.html,11856,11860,local-v120-standard-work-nav-guard-script,renderTaskTable
+index.html,11866,11871,local-v120-standard-work-nav-guard-script,showPage
+index.html,11914,11917,cloud-v2-rc1-script,$('#connectGoogleDrive').onclick
+index.html,11900,11919,cloud-v2-rc1-script,bindCloudUi
+index.html,11922,11928,cloud-v2-rc1-script,renderSettings
+index.html,12033,12037,cloud-v12-home-mobile-script,renderHome
+index.html,12133,12144,cloud-v122-legacy-drive-repair,button.onclick
+index.html,12147,12147,cloud-v122-legacy-drive-repair,window.renderSettings
+index.html,12183,12187,google-tasks-v15-app-bridge,saveState
+index.html,12225,12225,linked-schedule-v1-5-2,save.onclick
+index.html,12201,12227,linked-schedule-v1-5-2,openTaskForm
+js/cloud-sync.js,626,639,cloud-sync,button.onclick
+js/cloud-sync.js,651,662,cloud-sync,"document.getElementById(""cloudGoogleLogin"").onclick"
+js/cloud-sync.js,674,677,cloud-sync,"document.getElementById(""cloudUnauthorizedLogout"").onclick"
+js/cloud-sync.js,715,718,cloud-sync,"document.getElementById(""cloudWorkspaceLogout"").onclick"
+js/cloud-sync.js,776,779,cloud-sync,"document.getElementById(""cloudMigrate"").onclick"
+js/cloud-sync.js,780,783,cloud-sync,"document.getElementById(""cloudStartEmpty"").onclick"
+js/cloud-sync.js,794,813,cloud-sync,"document.getElementById(""cloudSignOut"").onclick"
+js/cloud-sync.js,1627,1627,cloud-sync,image.onclick
+js/cloud-sync.js,1628,1630,cloud-sync,image.onkeydown
+js/google-tasks-sync.js,233,233,google-tasks-sync,el.querySelector('#gt-cancel-v15').onclick
+js/google-tasks-sync.js,234,234,google-tasks-sync,el.querySelector('#gt-ok-v15').onclick
+js/google-tasks-sync.js,304,304,google-tasks-sync,reconnect.onclick
+js/project-ui.js,51,51,project-ui,page.querySelector('#prjNew').onclick
+js/project-ui.js,52,52,project-ui,page.querySelector('#prjCategoryFilter').onchange
+js/project-ui.js,53,53,project-ui,page.querySelector('#prjSearch').oninput
+js/project-ui.js,81,81,project-ui,newButton.onclick
+js/project-ui.js,142,142,project-ui,input.onchange
+js/project-ui.js,206,206,project-ui,"$p('#prjSave',root).onclick"
+js/project-ui.js,209,209,project-ui,remove.onclick
+js/project-ui.js,278,283,project-ui,btn.onclick
+js/project-ui.js,284,287,project-ui,date.onchange
+js/project-ui.js,305,305,project-ui,button.onclick
+js/project-ui.js,306,306,project-ui,button.ondragstart
+js/project-ui.js,307,307,project-ui,button.ondragover
+js/project-ui.js,308,308,project-ui,button.ondrop
+js/project-ui.js,310,314,project-ui,add.onclick
+js/project-ui.js,320,320,project-ui,input.oninput
+js/project-ui.js,322,322,project-ui,input.oninput
+js/project-ui.js,323,326,project-ui,input.onchange
+js/project-ui.js,328,328,project-ui,input.onchange
+js/project-ui.js,329,329,project-ui,after.oninput
+js/project-ui.js,330,330,project-ui,holidays.onchange
+js/project-ui.js,331,331,project-ui,shift.onchange
+js/project-ui.js,332,335,project-ui,addCheck.onclick
+js/project-ui.js,338,338,project-ui,input.oninput
+js/project-ui.js,339,339,project-ui,remove.onclick
+js/project-ui.js,342,345,project-ui,file.onchange
+js/project-ui.js,346,346,project-ui,addFile.onclick
+js/project-ui.js,347,347,project-ui,btn.onclick
+js/project-ui.js,348,350,project-ui,btn.onclick
+js/project-ui.js,351,351,project-ui,"$p('#prj-move-left',root).onclick"
+js/project-ui.js,352,352,project-ui,"$p('#prj-move-right',root).onclick"
+js/project-ui.js,353,358,project-ui,"$p('#prj-remove-stage',root).onclick"
+js/project-ui.js,438,438,project-ui,$p('#prjEditFromTask').onclick
+js/project-ui.js,439,439,project-ui,b.onclick
+js/project-ui.js,440,470,project-ui,addResource.onchange
+js/project-ui.js,471,478,project-ui,input.onchange
+js/project-ui.js,479,483,project-ui,manual.onclick
+js/project-ui.js,488,492,project-ui,openChecklist
+js/project-ui.js,494,498,project-ui,openTaskForm
+js/project-ui.js,500,506,project-ui,showPage
+js/project-ui.js,508,508,project-ui,renderTaskTable
+js/project-ui.js,510,510,project-ui,renderSettings
+js/project-ui.js,517,517,project-ui,applyNavButtonsLocalV12
+js/project-ui.js,592,592,project-ui,$p('#libraryProjectCloseV181').onclick
+js/project-ui.js,593,593,project-ui,edit.onclick
+js/project-ui.js,594,597,project-ui,reg.onclick
+js/project-ui.js,598,602,project-ui,btn.onclick
+js/project-ui.js,603,603,project-ui,btn.onclick
+js/project-ui.js,608,612,project-ui,openDbDetailV6
+js/project-ui.js,625,629,project-ui,btn.onclick
+js/project-ui.js,671,680,project-ui,button.onclick
+js/project-ui.js,684,687,project-ui,openDbForm
+js/project-ui.js,832,832,project-ui,enabled.onchange
+js/project-ui.js,845,848,project-ui,openTaskForm
+js/project-ui.js,957,976,project-ui,saveState
+js/project-ui.js,979,990,project-ui,renderTaskTable
+js/workflow-reform-v17.js,36,36,workflow-reform-v17,ensureAutoSchedulesV5
+js/workflow-reform-v17.js,37,37,workflow-reform-v17,syncTemplateScheduleV5
+js/workflow-reform-v17.js,38,38,workflow-reform-v17,syncTemplateHistoricalLocalV14
+js/workflow-reform-v17.js,39,39,workflow-reform-v17,backfillAllHistoricalLocalV14
+js/workflow-reform-v17.js,40,40,workflow-reform-v17,pruneRollingOverflowLocalV16
+js/workflow-reform-v17.js,135,139,workflow-reform-v17,button.onclick
+js/workflow-reform-v17.js,140,140,workflow-reform-v17,button.ondblclick
+js/workflow-reform-v17.js,234,261,workflow-reform-v17,btn.onclick
+js/workflow-reform-v17.js,384,389,workflow-reform-v17,saveState
+js/workflow-reform-v17.js,422,431,workflow-reform-v17,selectAll.onchange
+js/workflow-reform-v17.js,527,527,workflow-reform-v17,button.onclick
+js/workflow-reform-v17.js,550,550,workflow-reform-v17,button.onclick
+js/workflow-reform-v17.js,558,558,workflow-reform-v17,renderTaskTable
+js/workflow-reform-v17.js,560,560,workflow-reform-v17,renderDbTable
+js/workflow-reform-v17.js,562,562,workflow-reform-v17,showPage
+js/workflow-reform-v17.js,564,564,workflow-reform-v17,openTaskForm
+js/workflow-reform-v17.js,569,569,workflow-reform-v17,button.onclick
+js/workflow-reform-v17.js,566,572,workflow-reform-v17,openChecklist
+js/workflow-reform-v17.js,574,574,workflow-reform-v17,openDbForm
+js/workflow-reform-v17.js,576,576,workflow-reform-v17,renderSettings
+js/workflow-reform-v17.js,578,578,workflow-reform-v17,renderHome
+js/workflow-reform-v17.js,604,611,workflow-reform-v17,dbVisibleRowsV10
+js/workflow-reform-v17.js,629,632,workflow-reform-v17,button.onclick
+js/workflow-reform-v17.js,684,691,workflow-reform-v17,openDbDetailV6
+js/workflow-reform-v17.js,694,699,workflow-reform-v17,renderDbTable

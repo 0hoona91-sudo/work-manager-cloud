@@ -1,0 +1,29 @@
+{
+  "observedDate": "2026-10-23",
+  "timezone": "Asia/Seoul",
+  "repository": "0hoona91-sudo/work-manager-cloud",
+  "defaultBranch": "main",
+  "pagesUrl": "https://0hoona91-sudo.github.io/work-manager-cloud/",
+  "latestDisplayedRun": {
+    "number": 68,
+    "url": "https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/39765908194",
+    "head": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+    "branch": "main",
+    "status": "Success",
+    "triggerUTC": "2026-10-22 10:48",
+    "duration": "42s",
+    "source": "public GitHub Actions HTML; main summary and build/report/deploy displayed"
+  },
+  "previousRun": {
+    "number": 67,
+    "url": "https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/39764489418",
+    "head": "21281207395d9f114d8c0c8e92a02b68b54ce022",
+    "status": "Success"
+  },
+  "limits": [
+    "GitHub Pages API and direct live Pages URL: proxy CONNECT 403",
+    "Settings source directory not verified",
+    "Live served bytes not compared with commit/artifact",
+    "No deployment action invoked"
+  ]
+}

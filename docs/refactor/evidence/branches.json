@@ -1,0 +1,110 @@
+[
+  {
+    "ref": "origin/dev/sites-phase1",
+    "head": "39c0c1a3685b6146176ba5e752d0832012dffe45",
+    "mergeBase": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+    "mainOnly": 0,
+    "branchOnly": 1,
+    "tipDiffNames": [
+      "sites-prototype/.env.example",
+      "sites-prototype/.gitignore",
+      "sites-prototype/README.md",
+      "sites-prototype/app/__init__.py",
+      "sites-prototype/app/auth.py",
+      "sites-prototype/app/config.py",
+      "sites-prototype/app/db.py",
+      "sites-prototype/app/main.py",
+      "sites-prototype/app/providers.py",
+      "sites-prototype/app/schema.sql",
+      "sites-prototype/app/static/app.js",
+      "sites-prototype/app/static/index.html",
+      "sites-prototype/app/static/style.css",
+      "sites-prototype/docs/01-analysis-plan.md",
+      "sites-prototype/docs/02-sites-findings.md",
+      "sites-prototype/docs/03-architecture.md",
+      "sites-prototype/docs/04-google-oauth.md",
+      "sites-prototype/docs/05-two-account-test.md",
+      "sites-prototype/docs/06-validation.md",
+      "sites-prototype/docs/07-roadmap.md",
+      "sites-prototype/docs/test-evidence/api.txt",
+      "sites-prototype/docs/test-evidence/browser.json",
+      "sites-prototype/docs/test-evidence/signed-out-desktop.png",
+      "sites-prototype/docs/test-evidence/signed-out-mobile.png",
+      "sites-prototype/docs/test-evidence/sites-identity.txt",
+      "sites-prototype/requirements-browser.txt",
+      "sites-prototype/requirements.lock",
+      "sites-prototype/requirements.txt",
+      "sites-prototype/run.py",
+      "sites-prototype/sites-adapter/001_initial.sql",
+      "sites-prototype/sites-adapter/README.md",
+      "sites-prototype/sites-adapter/identity.mjs",
+      "sites-prototype/tests/__init__.py",
+      "sites-prototype/tests/browser_smoke.py",
+      "sites-prototype/tests/sites-identity.test.mjs",
+      "sites-prototype/tests/support.py",
+      "sites-prototype/tests/test_api.py"
+    ]
+  },
+  {
+    "ref": "origin/fix/project-library-relative-stage-dates-20261022",
+    "head": "f1cfafb3b76099eb66751e3679513bb601de5352",
+    "mergeBase": "7b8aec11044d96fb08b9f43fdebfe9f722e9f87e",
+    "mainOnly": 6,
+    "branchOnly": 6,
+    "tipDiffNames": [
+      "assets/nav-icons/completed.png",
+      "assets/nav-icons/holiday-db.png",
+      "assets/nav-icons/home.png",
+      "assets/nav-icons/in-progress.png",
+      "assets/nav-icons/library.png",
+      "assets/nav-icons/settings-backup.png",
+      "js/project-ui.js"
+    ]
+  },
+  {
+    "ref": "origin/fix/project-library-schedule-20261022",
+    "head": "7b8aec11044d96fb08b9f43fdebfe9f722e9f87e",
+    "mergeBase": "7b8aec11044d96fb08b9f43fdebfe9f722e9f87e",
+    "mainOnly": 6,
+    "branchOnly": 0,
+    "tipDiffNames": [
+      "assets/nav-icons/completed.png",
+      "assets/nav-icons/holiday-db.png",
+      "assets/nav-icons/home.png",
+      "assets/nav-icons/in-progress.png",
+      "assets/nav-icons/library.png",
+      "assets/nav-icons/settings-backup.png",
+      "js/project-model.js",
+      "js/project-ui.js",
+      "js/workflow-reform-v17.js"
+    ]
+  },
+  {
+    "ref": "origin/main",
+    "head": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+    "mergeBase": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+    "mainOnly": 0,
+    "branchOnly": 0,
+    "tipDiffNames": []
+  },
+  {
+    "ref": "origin/revamp/01-baseline",
+    "head": "4d7d9f914b4683e05d540d4a732e3576816d37e9",
+    "mergeBase": "4d7d9f914b4683e05d540d4a732e3576816d37e9",
+    "mainOnly": 22,
+    "branchOnly": 0,
+    "tipDiffNames": [
+      "assets/nav-icons/completed.png",
+      "assets/nav-icons/holiday-db.png",
+      "assets/nav-icons/home.png",
+      "assets/nav-icons/in-progress.png",
+      "assets/nav-icons/library.png",
+      "assets/nav-icons/settings-backup.png",
+      "css/workflow-reform-v17.css",
+      "index.html",
+      "js/project-model.js",
+      "js/project-ui.js",
+      "js/workflow-reform-v17.js"
+    ]
+  }
+]

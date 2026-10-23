@@ -1,0 +1,96 @@
+{
+  "homegrid": [
+    "index.html:29",
+    "index.html:41",
+    "index.html:107",
+    "index.html:107",
+    "index.html:107"
+  ],
+  "viewtabs": [
+    "index.html:30",
+    "index.html:105"
+  ],
+  "viewtab": [
+    "index.html:30",
+    "index.html:30",
+    "index.html:105",
+    "index.html:105"
+  ],
+  "holiday-stripe": [
+    "index.html:31"
+  ],
+  "drop-menu": [
+    "index.html:39",
+    "index.html:39",
+    "index.html:39"
+  ],
+  "urgent-dot": [
+    "index.html:156"
+  ],
+  "gantt-category-menu": [
+    "index.html:177",
+    "index.html:178",
+    "index.html:178",
+    "index.html:536",
+    "index.html:540",
+    "index.html:541"
+  ],
+  "db-detail-rule": [
+    "index.html:223",
+    "index.html:224",
+    "index.html:241"
+  ],
+  "v7-restore": [
+    "index.html:295"
+  ],
+  "holiday-custom-badge": [
+    "index.html:329"
+  ],
+  "gbar-owner-name": [
+    "index.html:383"
+  ],
+  "owner-new-row": [
+    "index.html:393"
+  ],
+  "repair-badge": [
+    "index.html:409",
+    "index.html:7932",
+    "index.html:9871"
+  ],
+  "install-help": [
+    "index.html:485"
+  ],
+  "gantt-month-field-v13": [
+    "index.html:490",
+    "index.html:497",
+    "index.html:497",
+    "index.html:721"
+  ],
+  "gantt-cycle-field-v13": [
+    "index.html:491",
+    "index.html:497",
+    "index.html:721"
+  ],
+  "mobile-signout-v17": [
+    "index.html:864"
+  ],
+  "task-kind-options-v20": [
+    "index.html:958",
+    "index.html:959",
+    "index.html:963"
+  ],
+  "end-date-only-v20": [
+    "index.html:968",
+    "index.html:969"
+  ],
+  "search-mode-note-local-v15": [
+    "index.html:6956"
+  ],
+  "rolling-help-local-v16": [
+    "index.html:7178",
+    "index.html:7179"
+  ],
+  "library-row-project-v176": [
+    "css/workflow-reform-v17.css:191"
+  ]
+}

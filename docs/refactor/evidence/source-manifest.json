@@ -1,0 +1,127 @@
+[
+  {
+    "file": "README.md",
+    "bytes": 1078,
+    "sha256": "2fef2910c4db172ee4df254d4992e37be685ab72a14f460b36a1e7075fd96909"
+  },
+  {
+    "file": "assets/kitty-project.png",
+    "bytes": 9158,
+    "sha256": "16c9018c36b13ee376379d3948a114e3879ea44d392579ac9e3845f9995717da"
+  },
+  {
+    "file": "assets/nav-icons/completed.png",
+    "bytes": 269359,
+    "sha256": "4e87e5a1358bad1eafe54733bb84baefbc975f842c0bbe2fb81fd38944d6d6f8"
+  },
+  {
+    "file": "assets/nav-icons/holiday-db.png",
+    "bytes": 311671,
+    "sha256": "648f18bd8b79eec612f2136ac1b89ff5c49a510f4d4fdfaeaccbd6d9ff494263"
+  },
+  {
+    "file": "assets/nav-icons/home.png",
+    "bytes": 250812,
+    "sha256": "079aff3eb46f9c6b261569b910d6b4728f5eb60717b84e8aa74e13be948a1d02"
+  },
+  {
+    "file": "assets/nav-icons/in-progress.png",
+    "bytes": 315426,
+    "sha256": "af154698101e5f6ca4ff8998f8bf5129e6021190fda5622c744fddf384a01ddd"
+  },
+  {
+    "file": "assets/nav-icons/library.png",
+    "bytes": 283006,
+    "sha256": "9706235d1e030f69ba0e56e9f0deaff7f5483f76f1749d51b30a564396d077c1"
+  },
+  {
+    "file": "assets/nav-icons/settings-backup.png",
+    "bytes": 300578,
+    "sha256": "5c32c197258cb44b0773bb1cc8695b116f10582fb5107e8b00cfa16e43183e21"
+  },
+  {
+    "file": "assets/project-default.svg",
+    "bytes": 413,
+    "sha256": "f5a3312bdcef006ed5a85f7ce248ac4de7c14b32ca1ff5f8a2aff60b216068f2"
+  },
+  {
+    "file": "assets/shinchan-project.png",
+    "bytes": 26609,
+    "sha256": "3a31ce82d7f7e262b5f5e53f6ca39e3437e71895b6b05469bfc4d71a16e2804f"
+  },
+  {
+    "file": "css/project-feature.css",
+    "bytes": 16252,
+    "sha256": "6d209b9d64481c48253fb0626c1f14045593b5c9213bb3c8ce05c364187eb3ea"
+  },
+  {
+    "file": "css/workflow-reform-v17.css",
+    "bytes": 22123,
+    "sha256": "5dcef679fe6a6ebe174db46d7eb29f45edba0eb417c64f48875305f1b95a641e"
+  },
+  {
+    "file": "icon-192.png",
+    "bytes": 9327,
+    "sha256": "026b7f22e5292921408a5723c5d3fe85920ca330be3dd16ddc991f1e17405219"
+  },
+  {
+    "file": "icon-512.png",
+    "bytes": 23783,
+    "sha256": "20ffb412c97e78310e5ceb622e09b3e0e4a358cbc421b5437404572127222195"
+  },
+  {
+    "file": "icon.svg",
+    "bytes": 1052,
+    "sha256": "bc7fd1d2c1f41ef0e947020dfe41cbd68602408fc62b951c8af7c9762bb461f4"
+  },
+  {
+    "file": "index.html",
+    "bytes": 8287061,
+    "sha256": "bfa6c81b136a9ed90152d4bf41aae84dca8f3d09fbfba7e51d977404d1d78fb7"
+  },
+  {
+    "file": "js/cloud-sync.js",
+    "bytes": 77019,
+    "sha256": "05b69863bc0508e06725ae5651a474dd685e8b50fbb9f1cadba5a04cc645382a"
+  },
+  {
+    "file": "js/firebase-config.js",
+    "bytes": 821,
+    "sha256": "0993fe33460e930d969882c0a268b95655a8aa6b1eecc9583100b1fdce7bd0c0"
+  },
+  {
+    "file": "js/google-tasks-sync.js",
+    "bytes": 20471,
+    "sha256": "5b5498eaa0f7c21d3038ed870fa9fd176ee799ccdea3fa81b5b2b9c6030ea1c0"
+  },
+  {
+    "file": "js/project-model.js",
+    "bytes": 13076,
+    "sha256": "db586ddc65a94b6470013cf90a4667bff32b51268e473619d21fd25ff7300336"
+  },
+  {
+    "file": "js/project-ui.js",
+    "bytes": 75201,
+    "sha256": "237c8ff60647f65e77797933407e107c16cec160054900e295d2cef60b78f295"
+  },
+  {
+    "file": "js/workflow-reform-v17.js",
+    "bytes": 44088,
+    "sha256": "dda13438d1087482b46ac92b032a6ee52225a62bb437cb28f7afd07b04758579"
+  },
+  {
+    "file": "js/workspace-profile.js",
+    "bytes": 26118,
+    "sha256": "dfbb73cf84cfabd7cb7ad8b56faf5c7416657dd87817b917b8a0108e7bf186b7"
+  },
+  {
+    "file": "manifest.webmanifest",
+    "bytes": 443,
+    "sha256": "1024fe77d80e09242125a52b294fa678a7af7d2c397009f6cb2809dbaa6b8dff"
+  },
+  {
+    "file": "privacy.html",
+    "bytes": 7489,
+    "sha256": "2e7bbbcb38d3ad3f242437d86d05d65077f55e9505a449e4d17968a291d36854"
+  }
+]

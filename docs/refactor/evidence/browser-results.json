@@ -1,0 +1,134 @@
+[
+  {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "title": "업무관리시스템",
+    "errors": [],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "http://127.0.0.1:8001/js/google-tasks-model.js?v=20261017-tasks-v15"
+      }
+    ],
+    "effectiveFunctions": {
+      "ensureAutoSchedulesV5": "function(){return 0}",
+      "syncTemplateScheduleV5": "function(){return 0}",
+      "syncTemplateHistoricalLocalV14": "function(){return 0}",
+      "backfillAllHistoricalLocalV14": "async function(){return 0}",
+      "pruneRollingOverflowLocalV16": "function(){return{tasksRemoved:0,protectedRoots:0}}",
+      "renderHome": "function(...args){const result=originalHome.apply(this,args);renameVisible();return result}",
+      "renderTaskTable": "function(...args){const result=originalRenderTasks.apply(this,args);ensureCreateMenu();renameVisible();updateSplit();compactTaskBoardV172();stableLibraryLabelV172();return result}",
+      "openDbDetailV6": "function(ref,...args){\n    const parts=String(ref||'').split('|');\n    const root=parts[0]==='root'?(state.templates||[]).find(t=>String(t.id)===parts[1]):null;\n    window.__libraryProjectDetailIdV177=isProjectLibraryV176(root)?root.id:null"
+    },
+    "before": {
+      "mutations": 2,
+      "events": {
+        "window:beforeinstallprompt": 1,
+        "window:appinstalled": 1,
+        "window:resize": 11,
+        "window:orientationchange": 10,
+        "document:click": 7,
+        "window:popstate": 2,
+        "document:change": 2,
+        "document:focusin": 1,
+        "document:compositionstart": 1,
+        "document:compositionend": 1,
+        "document:focusout": 1,
+        "document:pointerdown": 1,
+        "window:online": 1,
+        "window:offline": 1,
+        "window:load": 1,
+        "document:keydown": 1,
+        "window:scroll": 1
+      }
+    },
+    "idleDelta": 0,
+    "quickTaskForm": true,
+    "recurrence": {
+      "configuredMonths": null,
+      "first": 3,
+      "dates": [
+        "2026-10-01",
+        "2026-11-01",
+        "2026-12-01",
+        "2027-01-01"
+      ],
+      "second": 0,
+      "generatedHaveKey": [
+        false,
+        false,
+        false
+      ],
+      "halfCycle": ""
+    },
+    "scopeNote": "Cloud SDK requests deliberately blocked. UI startup incomplete; fixture observations are isolated, not authenticated E2E."
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "title": "업무관리시스템",
+    "errors": [],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "http://127.0.0.1:8001/js/google-tasks-model.js?v=20261017-tasks-v15"
+      }
+    ],
+    "effectiveFunctions": {
+      "ensureAutoSchedulesV5": "function(){return 0}",
+      "syncTemplateScheduleV5": "function(){return 0}",
+      "syncTemplateHistoricalLocalV14": "function(){return 0}",
+      "backfillAllHistoricalLocalV14": "async function(){return 0}",
+      "pruneRollingOverflowLocalV16": "function(){return{tasksRemoved:0,protectedRoots:0}}",
+      "renderHome": "function(...args){const result=originalHome.apply(this,args);renameVisible();return result}",
+      "renderTaskTable": "function(...args){const result=originalRenderTasks.apply(this,args);ensureCreateMenu();renameVisible();updateSplit();compactTaskBoardV172();stableLibraryLabelV172();return result}",
+      "openDbDetailV6": "function(ref,...args){\n    const parts=String(ref||'').split('|');\n    const root=parts[0]==='root'?(state.templates||[]).find(t=>String(t.id)===parts[1]):null;\n    window.__libraryProjectDetailIdV177=isProjectLibraryV176(root)?root.id:null"
+    },
+    "before": {
+      "mutations": 3,
+      "events": {
+        "window:beforeinstallprompt": 1,
+        "window:appinstalled": 1,
+        "window:resize": 11,
+        "window:orientationchange": 10,
+        "document:click": 7,
+        "window:popstate": 2,
+        "document:change": 2,
+        "document:focusin": 1,
+        "document:compositionstart": 1,
+        "document:compositionend": 1,
+        "document:focusout": 1,
+        "document:pointerdown": 1,
+        "window:online": 1,
+        "window:offline": 1,
+        "window:load": 1,
+        "document:keydown": 1,
+        "window:scroll": 1
+      }
+    },
+    "idleDelta": 0,
+    "quickTaskForm": true,
+    "recurrence": {
+      "configuredMonths": null,
+      "first": 3,
+      "dates": [
+        "2026-10-01",
+        "2026-11-01",
+        "2026-12-01",
+        "2027-01-01"
+      ],
+      "second": 0,
+      "generatedHaveKey": [
+        false,
+        false,
+        false
+      ],
+      "halfCycle": ""
+    },
+    "scopeNote": "Cloud SDK requests deliberately blocked. UI startup incomplete; fixture observations are isolated, not authenticated E2E."
+  }
+]

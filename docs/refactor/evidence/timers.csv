@@ -1,0 +1,114 @@
+file,line,block,callee,arg
+index.html,1715,(no id),setTimeout,60000
+index.html,1762,(no id),setTimeout,1800
+index.html,1891,(no id),setTimeout,1000
+index.html,2317,(no id),requestAnimationFrame,
+index.html,2341,(no id),setTimeout,0
+index.html,2752,(no id),requestAnimationFrame,
+index.html,2805,(no id),setTimeout,0
+index.html,3332,(no id),setTimeout,30
+index.html,3458,(no id),setTimeout,60
+index.html,3731,(no id),setTimeout,80
+index.html,3925,(no id),setTimeout,120
+index.html,4365,(no id),setTimeout,140
+index.html,4424,(no id),setTimeout,550
+index.html,4476,(no id),requestAnimationFrame,
+index.html,4483,(no id),requestAnimationFrame,
+index.html,4525,(no id),requestAnimationFrame,
+index.html,4525,(no id),setTimeout,180
+index.html,4586,(no id),requestAnimationFrame,
+index.html,4631,(no id),requestAnimationFrame,
+index.html,4637,(no id),requestAnimationFrame,
+index.html,4896,(no id),setTimeout,0
+index.html,4902,(no id),requestAnimationFrame,
+index.html,4914,(no id),setTimeout,0
+index.html,5010,(no id),setTimeout,0
+index.html,5273,(no id),requestAnimationFrame,
+index.html,5293,(no id),requestAnimationFrame,
+index.html,5294,(no id),requestAnimationFrame,
+index.html,5295,(no id),requestAnimationFrame,
+index.html,6453,local-dev-v1-current-cloud-parity-script,setTimeout,550
+index.html,6491,local-dev-v1-current-cloud-parity-script,requestAnimationFrame,
+index.html,6492,local-dev-v1-current-cloud-parity-script,requestAnimationFrame,
+index.html,6493,local-dev-v1-current-cloud-parity-script,requestAnimationFrame,
+index.html,6572,local-dev-v1-1-stability-script,requestAnimationFrame,
+index.html,6754,local-dev-v1-2-navigation-script,requestAnimationFrame,
+index.html,6889,local-dev-v1-3-cycle-script,requestAnimationFrame,
+index.html,6931,local-dev-v1-4-history-script,setTimeout,25
+index.html,6947,local-dev-v1-4-history-script,requestAnimationFrame,
+index.html,7136,local-dev-v1-5-search-script,requestAnimationFrame,
+index.html,7146,local-dev-v1-5-search-script,requestAnimationFrame,
+index.html,7168,local-dev-v1-5-2-task-search-script,requestAnimationFrame,
+index.html,7245,local-dev-v1-6-rolling-script,setTimeout,25
+index.html,7254,local-dev-v1-6-rolling-script,requestAnimationFrame,
+index.html,7484,local-v18-reopen-completed-script,requestAnimationFrame,
+index.html,7646,local-v191-hello-kitty-theme-script,requestAnimationFrame,
+index.html,7815,local-v192-hello-kitty-theme-refinement-script,requestAnimationFrame,
+index.html,7957,local-v193-hello-kitty-theme-refinement-script,requestAnimationFrame,
+index.html,8008,local-v194-hello-kitty-theme-refinement-script,requestAnimationFrame,
+index.html,8317,local-v195-table-db-ux-script,requestAnimationFrame,
+index.html,8496,local-v196-mobile-kitty-assets-script,requestAnimationFrame,
+index.html,8504,local-v196-mobile-kitty-assets-script,requestAnimationFrame,
+index.html,8509,local-v196-mobile-kitty-assets-script,requestAnimationFrame,
+index.html,8510,local-v196-mobile-kitty-assets-script,requestAnimationFrame,
+index.html,8511,local-v196-mobile-kitty-assets-script,requestAnimationFrame,
+index.html,8569,local-v197-mobile-task-label-script,requestAnimationFrame,
+index.html,8570,local-v197-mobile-task-label-script,requestAnimationFrame,
+index.html,8572,local-v197-mobile-task-label-script,requestAnimationFrame,
+index.html,8667,local-v198-settings-sort-polish-script,requestAnimationFrame,
+index.html,9347,local-v110-handover-generator-script,setTimeout,3000
+index.html,9370,local-v110-handover-generator-script,requestAnimationFrame,
+index.html,9676,local-v120-handover-zip-script,requestAnimationFrame,
+index.html,9930,local-v121-shinchan-theme-script,requestAnimationFrame,
+index.html,9934,local-v121-shinchan-theme-script,requestAnimationFrame,
+index.html,9936,local-v121-shinchan-theme-script,requestAnimationFrame,
+index.html,9937,local-v121-shinchan-theme-script,requestAnimationFrame,
+index.html,9938,local-v121-shinchan-theme-script,requestAnimationFrame,
+index.html,10066,local-v122-shinchan-artwork-script,requestAnimationFrame,
+index.html,10096,local-v111-final-mobile-task-label-guard,requestAnimationFrame,
+index.html,10097,local-v111-final-mobile-task-label-guard,requestAnimationFrame,
+index.html,10098,local-v111-final-mobile-task-label-guard,requestAnimationFrame,
+index.html,10414,local-v113-home-layout-editor-script,requestAnimationFrame,
+index.html,10417,local-v113-home-layout-editor-script,requestAnimationFrame,
+index.html,10418,local-v113-home-layout-editor-script,requestAnimationFrame,
+index.html,10419,local-v113-home-layout-editor-script,requestAnimationFrame,
+index.html,10757,local-v114-home-layout-editor-fix-script,requestAnimationFrame,
+index.html,10981,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11005,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11013,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11017,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11021,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11026,local-v115-home-order-responsive-script,requestAnimationFrame,
+index.html,11199,local-v116-single-widget-restore-fix-script,requestAnimationFrame,
+index.html,11334,local-v117-widget-edit-lock-script,requestAnimationFrame,
+index.html,11499,local-v118-settings-organize-script,requestAnimationFrame,
+index.html,11502,local-v118-settings-organize-script,requestAnimationFrame,
+index.html,11609,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11733,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11740,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11747,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11775,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11779,local-v119-quick-task-duplicate-script,requestAnimationFrame,
+index.html,11869,local-v120-standard-work-nav-guard-script,requestAnimationFrame,
+index.html,11874,local-v120-standard-work-nav-guard-script,requestAnimationFrame,
+index.html,11875,local-v120-standard-work-nav-guard-script,requestAnimationFrame,
+index.html,11877,local-v120-standard-work-nav-guard-script,requestAnimationFrame,
+index.html,11972,cloud-v2-rc1-script,requestAnimationFrame,
+index.html,11973,cloud-v2-rc1-script,requestAnimationFrame,
+index.html,11974,cloud-v2-rc1-script,requestAnimationFrame,
+index.html,12040,cloud-v12-home-mobile-script,requestAnimationFrame,
+index.html,12108,cloud-v121-mobile-theme-calendar-fix-script,requestAnimationFrame,
+index.html,12141,cloud-v122-legacy-drive-repair,setTimeout,900
+index.html,12148,cloud-v122-legacy-drive-repair,setTimeout,800
+js/cloud-sync.js,1110,cloud-sync,setTimeout,120
+js/cloud-sync.js,1133,cloud-sync,setTimeout,25
+js/cloud-sync.js,1431,cloud-sync,setTimeout,ms
+js/google-tasks-sync.js,218,google-tasks-sync,setTimeout,800
+js/google-tasks-sync.js,223,google-tasks-sync,setTimeout,1600
+js/google-tasks-sync.js,313,google-tasks-sync,setTimeout,900
+js/google-tasks-sync.js,315,google-tasks-sync,setInterval,GT_INTERVAL_MS
+js/project-ui.js,1110,project-ui,setTimeout,0
+js/project-ui.js,1120,project-ui,setTimeout,0
+js/project-ui.js,1128,project-ui,setTimeout,0
+js/project-ui.js,1131,project-ui,setTimeout,0
+js/workflow-reform-v17.js,704,workflow-reform-v17,requestAnimationFrame,
