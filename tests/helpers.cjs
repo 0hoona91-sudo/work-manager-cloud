@@ -70,7 +70,7 @@ function loadRecurrence(state, options = {}) {
   assert.equal(matches.length, 1, 'Recurrence extraction contract changed');
   let id = 0;
   const events = {};
-  const ctx = context({ state, M: loadModel(), queueMicrotask, window: {WMDateOnly:require('../js/date-only.js'),WMRecurrenceRules:require('../js/recurrence-rules.js'),WMRecurrenceIdentity:require('../js/recurrence-identity.js'),addEventListener:(name,fn)=>{events[name]=fn;},...options.window}, document: { addEventListener() {} },
+  const ctx = context({ state, M: loadModel(), queueMicrotask,...(options.navigator?{navigator:options.navigator}:{}), window: {WMDateOnly:require('../js/date-only.js'),WMRecurrenceRules:require('../js/recurrence-rules.js'),WMRecurrenceIdentity:require('../js/recurrence-identity.js'),addEventListener:(name,fn)=>{events[name]=fn;},...options.window}, document: { addEventListener() {} },
     projectUid: prefix => `${prefix}-fixture-${++id}`, saveState: options.save || (async () => {}), renderTaskTable: options.render || (() => {}) });
   const node = matches[0];
   vm.runInContext(`(${source.slice(node.start, node.end)})();`, ctx, { timeout: 2000 });

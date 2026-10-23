@@ -1,0 +1,13 @@
+{
+  "projectId": "demo-work-manager",
+  "firebaseSdk": "12.18.0",
+  "firebaseTools": "15.34.1",
+  "java": "OpenJDK 21",
+  "emulatorJar": "cloud-firestore-emulator-v1.22.0.jar",
+  "status": "NOT_RUN",
+  "attempts": 1,
+  "cause": "Firebase CLI could not download https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar",
+  "productionProjectAccess": false,
+  "realSdkConcurrencyVerified": false,
+  "mockSdkTests": 22
+}

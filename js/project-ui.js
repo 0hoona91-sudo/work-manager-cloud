@@ -964,12 +964,16 @@ function installRollingRecurrencesV181(){
             registrationSnapshotV181=null;
           }
         }
-        applied=applyOccurrences(planOccurrences());
+        const proposal=planOccurrences();
+        const offline=window.cloudSync?.mode==='cloud'&&typeof navigator!=='undefined'&&!navigator.onLine;
+        status={phase:'planned',planned:proposal.additions.length};
+        applied=offline?{added:0,mapped:0,reserved:0}:applyOccurrences(proposal);
         after=JSON.stringify(state);
         status={phase:'saving',...applied};
-        if(command||applied.added||applied.mapped||applied.reserved)await baseSaveV181(...args);
+        let saved;
+        if(command||applied.added||applied.mapped||applied.reserved)saved=await baseSaveV181(...args);
         if(recurrenceContext().scope!==context.scope)throw new Error('저장 중 업무공간이 변경되었습니다. 결과를 확인해 주세요.');
-        status={phase:window.cloudSync?.mode==='cloud'&&typeof navigator!=='undefined'&&!navigator.onLine?'pending-sync':'saved',...applied};
+        status={phase:offline?'pending-online':saved?.recurrenceReconciled?'conflict-resolved':'saved',...applied};
         return {...status};
       }catch(error){
         // Preserve concurrent user edits. A failed remote write may still have

@@ -18,6 +18,8 @@ import {
   doc,
   documentId,
   getDocs,
+  getDocFromServer,
+  getDocsFromServer,
   increment,
   initializeFirestore,
   limit,
@@ -111,6 +113,9 @@ let renderRemote = null;
 let localOnly = false;
 let needsInitialUpload = false;
 let recurrenceReady = false;
+let recurrenceRecoveryRequired = false;
+let recurrenceLocalEditsPending = false;
+let queuedWorkspace = null;
 let lastSyncAt = null;
 const driveObjectUrls = new Map();
 const DRIVE_TOKEN_SESSION_KEY = "workManagerDriveSessionV23";
@@ -1127,6 +1132,7 @@ function appModalOpenForRemoteApply() {
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
+    if (recurrenceRecoveryRequired || recurrenceLocalEditsPending) return;
     if (saving || queuedState || backupImporting || backupRecoveryRequired || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
@@ -1135,12 +1141,14 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
+  if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (localOnly || !active) {
     queuedState = clone(snapshot);
     return;
   }
   queuedState = clone(snapshot);
+  queuedWorkspace = recurrenceWorkspace();
   const targetVersion = ++queuedVersion;
   return new Promise((resolve, reject) => {
     queuedResolvers.push({ targetVersion, resolve, reject });
@@ -1159,38 +1167,114 @@ async function flushQueue(metadata = {}) {
   setSyncStatus("syncing", navigator.onLine ? "저장 중" : "오프라인 저장 중");
   const snapshot = queuedState;
   const snapshotVersion = queuedVersion;
+  const workspace = queuedWorkspace || recurrenceWorkspace();
+  let guarded = false, reconciled = false;
   queuedState = null;
   try {
+    assertRecurrenceWorkspace(workspace);
     await ensureImageUploads(snapshot);
+    assertRecurrenceWorkspace(workspace);
     const nextMaps = serializeState(snapshot);
     const changes = diffMaps(shadowMaps, nextMaps);
+    guarded = needsRecurrenceClaim(changes);
     if (changes.length) {
       if (navigator.onLine) {
         try {
-          await commitOnlineChunks(changes, nextMaps, metadata);
+          const collisions = await commitOnlineChunks(changes, nextMaps, { ...metadata, recurrenceWorkspace: workspace });
+          if (collisions.length) {
+            await reconcileRecurrenceCollisions(collisions, snapshot, nextMaps, workspace);
+            reconciled = true;
+          }
         } catch (error) {
+          if (guarded || error.committedChunks > 0 || error.code?.startsWith("recurrence/")) throw error;
           if (!["unavailable", "deadline-exceeded", "failed-precondition"].includes(error?.code)) throw error;
           await commitOfflineChunks(changes, nextMaps, metadata);
         }
       } else await commitOfflineChunks(changes, nextMaps, metadata);
+      assertRecurrenceWorkspace(workspace);
       shadowMaps = mapClone(nextMaps);
       for (const name of DATA_COLLECTIONS) recordMaps[name] = new Map(nextMaps[name]);
+      if (guarded || reconciled || recurrenceLocalEditsPending) recurrenceLocalEditsPending = diffMaps(nextMaps, serializeState(stateRef)).length > 0;
       lastSyncAt = new Date();
     }
     setSyncStatus(navigator.onLine ? "online" : "offline", navigator.onLine ? "저장됨" : "오프라인 · 전송 대기");
     const done = queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
     queuedResolvers = queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
-    done.forEach(({ resolve }) => resolve());
+    done.forEach(({ resolve }) => resolve({ recurrenceReconciled: reconciled }));
   } catch (error) {
+    if (guarded || error.code?.startsWith("recurrence/")) {
+      recurrenceRecoveryRequired = true; error.recoveryRequired = true;
+      queuedState = null;
+    }
     console.error("Cloud save", error);
     setSyncStatus("error", friendlyError(error));
-    const done = queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
-    queuedResolvers = queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
+    const done = recurrenceRecoveryRequired ? queuedResolvers : queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
+    queuedResolvers = recurrenceRecoveryRequired ? [] : queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
     done.forEach(({ reject }) => reject(error));
     window.dispatchEvent(new CustomEvent("cloud-sync-error", { detail: friendlyError(error) }));
   } finally {
     saving = false;
     if (queuedState) void flushQueue(metadata);
+  }
+}
+
+function recurrenceError(code, message) {
+  const error = new Error(message); error.code = `recurrence/${code}`; return error;
+}
+function recurrenceWorkspace() {
+  return `${workspaceProfile?.workspace?.firebaseConfig?.projectId || ''}/${currentUser?.uid || ''}`;
+}
+function assertRecurrenceWorkspace(expected) {
+  if (expected !== recurrenceWorkspace()) throw recurrenceError("workspace-changed", "업무공간 또는 계정이 변경되어 대기 저장을 중단합니다.");
+}
+function needsRecurrenceClaim(changes) {
+  return changes.some(c => c.collection === "generatedKeys" && c.type === "create" || c.collection === "tasks" && c.type === "create" && c.after?.generatedKey);
+}
+async function reconcileRecurrenceCollisions(collisions, submitted, nextMaps, workspace) {
+  // Fetch only the affected server task bundles, never replace the whole local state.
+  const serverDb = db, replacements = [];
+  for (const collision of collisions) {
+    assertRecurrenceWorkspace(workspace);
+    const {remoteTaskId,lockId,lock} = collision;
+    const [task, checks, link, currentLock] = await Promise.all([
+      getDocFromServer(doc(serverDb,"tasks",remoteTaskId)),
+      getDocsFromServer(query(collection(serverDb,"checklistItems"),where("parentType","==","task"),where("parentId","==",remoteTaskId))),
+      getDocFromServer(doc(serverDb,"taskLinks",remoteTaskId)),
+      getDocFromServer(doc(serverDb,"generatedKeys",lockId))
+    ]);
+    if (!currentLock.exists() || JSON.stringify(withoutSyncFields(currentLock.data())) !== JSON.stringify(lock)) throw recurrenceError("lock-changed", "충돌 확인 중 생성키 잠금이 변경되었습니다.");
+    if (task.exists() && task.data().generatedKey !== lock.generatedKey) throw recurrenceError("owner-changed", "서버 업무 소유권을 확인할 수 없습니다.");
+    const maps = makeRecordMaps();
+    if (task.exists()) {
+      maps.tasks.set(remoteTaskId,withoutSyncFields(task.data()));
+      for (const check of checks.docs) maps.checklistItems.set(check.id,withoutSyncFields(check.data()));
+      if (link.exists()) maps.taskLinks.set(remoteTaskId,withoutSyncFields(link.data()));
+    }
+    maps.generatedKeys.set(lockId,lock);
+    replacements.push({collision,maps,task:deserializeState(maps).tasks[0] || null});
+  }
+  assertRecurrenceWorkspace(workspace);
+  // Validate every replacement first, including a newer queued save. No partial local reconciliation.
+  for (const target of [stateRef,queuedState].filter(Boolean)) for (const {collision} of replacements) {
+    const before = submitted.tasks.find(t=>t.id===collision.localTaskId);
+    const local = target.tasks.find(t=>t.id===collision.localTaskId);
+    if (!before || JSON.stringify(local) !== JSON.stringify(before) || collision.remoteTaskId !== collision.localTaskId && target.tasks.some(t=>t.id===collision.remoteTaskId)) {
+      throw recurrenceError("local-edit-conflict", "충돌한 임시 업무에 새 편집이 있습니다. 편집을 보존했으며 서버 결과와 비교가 필요합니다.");
+    }
+  }
+  for (const {collision,maps,task} of replacements) {
+    for (const target of [stateRef,queuedState].filter(Boolean)) {
+      const index = target.tasks.findIndex(t=>t.id===collision.localTaskId);
+      target.tasks.splice(index,1,...(task?[clone(task)]:[]));
+    }
+    const ids = new Set([collision.localTaskId,collision.remoteTaskId]);
+    for (const name of ["tasks","checklistItems","taskLinks"]) {
+      for (const [id,value] of nextMaps[name]) {
+        if (name === "tasks" ? ids.has(id) : name === "taskLinks" ? ids.has(value.taskId || id) : value.parentType === "task" && ids.has(value.parentId)) nextMaps[name].delete(id);
+      }
+      for (const [id,value] of maps[name]) nextMaps[name].set(id,clone(value));
+    }
+    nextMaps.generatedKeys.set(collision.lockId,clone(collision.lock));
   }
 }
 
@@ -1249,15 +1333,17 @@ function chunkChanges(changes, maps, maxWrites = 320) {
     bundles.get(key).push(change);
   }
   const chunks = [];
-  let current = [];
+  let current = [], claims = 0;
   for (const bundle of bundles.values()) {
-    if (current.length && current.length + bundle.length > maxWrites) {
+    const claim = needsRecurrenceClaim(bundle);
+    if (current.length && (current.length + bundle.length > maxWrites || claim && claims >= 10)) {
       chunks.push(current);
-      current = [];
+      current = []; claims = 0;
     }
+    if (bundle.length > maxWrites && needsRecurrenceClaim(bundle)) throw recurrenceError("bundle-too-large", "반복 회차의 업무·잠금 묶음이 트랜잭션 한도를 초과합니다. 저장하지 않았습니다.");
     if (bundle.length > maxWrites) {
       for (let index = 0; index < bundle.length; index += maxWrites) chunks.push(bundle.slice(index, index + maxWrites));
-    } else current.push(...bundle);
+    } else { current.push(...bundle); if(claim)claims++; }
   }
   if (current.length) chunks.push(current);
   return chunks;
@@ -1266,21 +1352,24 @@ function chunkChanges(changes, maps, maxWrites = 320) {
 async function commitOnlineChunks(changes, maps, metadata) {
   const chunks = chunkChanges(changes, maps);
   const backupBaseMaps = metadata.backupImport ? mapClone(shadowMaps) : null;
+  const collisions = [];
   for (let index = 0; index < chunks.length; index++) {
     try {
-      await commitTransaction(chunks[index], maps, { ...metadata, backupBaseMaps, reason: chunks.length > 1 ? `${metadata.reason || "데이터 변경"} (${index + 1}/${chunks.length})` : metadata.reason });
+      collisions.push(...(await commitTransaction(chunks[index], maps, { ...metadata, backupBaseMaps, reason: chunks.length > 1 ? `${metadata.reason || "데이터 변경"} (${index + 1}/${chunks.length})` : metadata.reason }) || []));
       if (backupBaseMaps) for (const change of chunks[index]) {
         if (change.type === "delete") backupBaseMaps[change.collection].delete(change.id);
         else backupBaseMaps[change.collection].set(change.id, clone(change.after));
       }
     } catch (error) {
-      if (metadata.backupImport) { error.committedChunks = index; error.totalChunks = chunks.length; }
+      error.committedChunks = index; error.totalChunks = chunks.length;
       throw error;
     }
   }
+  return collisions;
 }
 
 async function commitOfflineChunks(changes, maps, metadata) {
+  if (needsRecurrenceClaim(changes)) throw recurrenceError("online-required", "신규 반복 회차는 온라인 잠금 확인 후 저장할 수 있습니다.");
   const chunks = chunkChanges(changes, maps);
   for (let index = 0; index < chunks.length; index++) {
     await commitOfflineBatch(chunks[index], maps, { ...metadata, reason: chunks.length > 1 ? `${metadata.reason || "데이터 변경"} (${index + 1}/${chunks.length})` : metadata.reason });
@@ -1288,12 +1377,22 @@ async function commitOfflineChunks(changes, maps, metadata) {
 }
 
 async function commitTransaction(changes, nextMaps, metadata) {
+  if (changes.length > 320) throw recurrenceError("transaction-too-large", "트랜잭션 쓰기 한도를 초과했습니다.");
   const writeChanges = changes.filter((change) => change.collection !== "generatedKeys");
   const generatedCreates = changes.filter((change) => change.collection === "generatedKeys" && change.type === "create");
-  await runTransaction(db, async (transaction) => {
+  // A key may already be in the local shadow; every keyed task CREATE still needs a server guard.
+  for (const change of writeChanges) {
+    if (metadata.backupImport || change.collection !== "tasks" || change.type !== "create" || !change.after.generatedKey) continue;
+    const id = stableKeyId(change.after.generatedKey);
+    if (!generatedCreates.some(c => c.id === id)) generatedCreates.push({collection:"generatedKeys",id,type:"create",after:{generatedKey:change.after.generatedKey,taskId:change.id}});
+  }
+  const workspace = metadata.recurrenceWorkspace || recurrenceWorkspace(), transactionDb = db;
+  assertRecurrenceWorkspace(workspace);
+  return runTransaction(transactionDb, async (transaction) => {
+    assertRecurrenceWorkspace(workspace);
     const snapshots = new Map();
     // 일반 저장은 기존 읽기 범위를 유지한다. 백업은 생성·삭제도 기준값을 재검사한다.
-    const readChanges = metadata.backupImport ? [...changes] : [...writeChanges.filter((item) => item.type === "update"), ...generatedCreates];
+    const readChanges = metadata.backupImport ? [...changes] : [...generatedCreates, ...writeChanges.filter((item) => item.type === "update" || item.collection === "tasks" && item.type === "create" && item.after.generatedKey)];
     if (metadata.backupImport) {
       const base = metadata.backupBaseMaps || shadowMaps;
       const guarded = new Set(readChanges.map(change => `${change.collection}/${change.id}`));
@@ -1327,20 +1426,31 @@ async function commitTransaction(changes, nextMaps, metadata) {
         }
       }
     }
-    const skippedTaskIds = new Set();
+    const skippedTaskIds = new Set(), collisions = [];
     for (const lockChange of generatedCreates) {
       const snap = snapshots.get(`generatedKeys/${lockChange.id}`);
       if (snap.exists()) {
-        // 다른 탭/기기가 같은 회차를 먼저 확보했다면 문서 ID가 같더라도 다시 쓰지 않는다.
-        // 안정적 taskId와 함께 사용해 중복뿐 아니라 완료·수정 상태의 경합 덮어쓰기도 막는다.
+        const lock = withoutSyncFields(snap.data());
+        if (lock.generatedKey !== lockChange.after.generatedKey || !lock.taskId) throw recurrenceError("invalid-lock", "생성키 잠금 소유권을 확인할 수 없습니다.");
+        const remote = await transaction.get(doc(transactionDb, "tasks", lock.taskId));
+        if (remote.exists() && remote.data().generatedKey !== lock.generatedKey) throw recurrenceError("invalid-owner", "잠금과 서버 업무의 생성키가 다릅니다.");
         skippedTaskIds.add(lockChange.after.taskId);
+        collisions.push({localTaskId:lockChange.after.taskId, remoteTaskId:lock.taskId, lockId:lockChange.id, lock, deleted:!remote.exists()});
+      } else {
+        const create = writeChanges.find(c => c.collection === "tasks" && c.id === lockChange.after.taskId && c.type === "create");
+        if (create && snapshots.get(`tasks/${create.id}`)?.exists()) throw recurrenceError("id-collision", "잠금 없는 기존 업무 ID를 덮어쓸 수 없습니다.");
+        // A lock cannot be committed in a separate chunk from its new task.
+        const task = writeChanges.find(c => c.collection === "tasks" && c.id === lockChange.after.taskId && c.type !== "delete");
+        if (!task && !metadata.backupImport) throw recurrenceError("unpaired-lock", "업무와 생성키 잠금을 같은 트랜잭션으로 저장해야 합니다.");
       }
     }
+    assertRecurrenceWorkspace(workspace);
     const appliedWriteChanges = [];
     for (const change of writeChanges) {
       if (belongsToSkippedTask(change, skippedTaskIds)) continue;
       if (change.type === "update") {
         const snap = snapshots.get(`${change.collection}/${change.id}`);
+        if (change.collection === "tasks" && change.after?.generatedKey && !snap?.exists()) throw recurrenceError("missing-task", "서버에서 삭제된 반복 업무를 자동 복원하지 않습니다. 저장 결과를 확인해 주세요.");
         if (snap?.exists()) {
           const remote = snap.data() || {};
           const fields = change.fields.filter((field) => Object.hasOwn(change.after || {}, field)
@@ -1366,8 +1476,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
         transaction.update(ref, { ...patchFor(change), revision: Number(snap.data().revision || 0) + 1, updatedAt: serverTimestamp() });
       }
     }
-    for (const change of changes.filter((item) => item.collection === "generatedKeys")) {
-      if (change.type !== "create") continue;
+    for (const change of generatedCreates) {
       const snap = snapshots.get(`generatedKeys/${change.id}`);
       if (!snap.exists()) transaction.set(doc(db, "generatedKeys", change.id), { ...plain(change.after), createdAt: serverTimestamp() });
     }
@@ -1375,6 +1484,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
       const logRef = doc(collection(db, "changeLogs"));
       transaction.set(logRef, makeLog(appliedWriteChanges, metadata));
     }
+    return collisions;
   });
 }
 
@@ -1385,6 +1495,7 @@ function belongsToSkippedTask(change, taskIds) {
 }
 
 async function commitOfflineBatch(changes, nextMaps, metadata) {
+  if (needsRecurrenceClaim(changes)) throw recurrenceError("online-required", "신규 반복 회차의 오프라인 잠금 선점은 허용하지 않습니다.");
   const batch = writeBatch(db);
   const writeChanges = changes.filter((change) => change.collection !== "generatedKeys");
   const allowedChanges = changes.filter((change) => change.collection !== "generatedKeys" || change.type === "create");

@@ -1727,7 +1727,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261023-phase5b1');
+  const cloud=await import('./js/cloud-sync.js?v=20261023-phase5b2');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1744,7 +1744,13 @@ async function saveState(meta={}){
 
   // 클라우드 큐에는 즉시 최신 스냅샷을 넘겨 cloud-sync.js의 병합 저장을 유지한다.
   const cloudJob=window.cloudSync?window.cloudSync.save(snapshot,meta):Promise.resolve();
-  await Promise.all([localJob,cloudJob]);
+  const [,result]=await Promise.all([localJob,cloudJob]);
+  if(result?.recurrenceReconciled){
+    const corrected=clone(state);
+    const cacheJob=localSaveTailV33.then(()=>writeLocalState(corrected));
+    localSaveTailV33=cacheJob.catch(()=>{});await cacheJob;
+  }
+  return result;
 }
 function seed(){state.categories=['시설','안전','행정','기타'];state.owners=['담당자'];state.holidays=clone(holidaySeed);state.templates=[];state.tasks=[];state.projects=[];state.selectedCategories=[];state.changeLogs=[];state.settings={homeView:'gantt',localBeta:true}}
 
@@ -12120,8 +12126,8 @@ requestAnimationFrame(()=>{
 <script src="./js/date-only.js?v=20261023-phase4a"></script>
 <script src="./js/project-model.js?v=20261023-phase4b"></script>
 <script src="./js/recurrence-rules.js?v=20261023-phase5a"></script>
-<script src="./js/recurrence-identity.js?v=20261023-phase5b1"></script>
-<script src="./js/project-ui.js?v=20261023-phase5b1"></script>
+<script src="./js/recurrence-identity.js?v=20261023-phase5b2"></script>
+<script src="./js/project-ui.js?v=20261023-phase5b2"></script>
 
 <style id="google-tasks-v15-css">
 #taskListPage .pagehead{gap:12px;flex-wrap:wrap}

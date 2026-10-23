@@ -14,7 +14,7 @@ function harness(current=fixture()){
   const ctx=vm.createContext({window:{WMBackupSafety:B,WMBackupUI:{writeImportedCache:async next=>{events.push('cache');control.cache=plain(next)}}},
     stateRef:plain(current),recordMaps:C.serializeState(current),shadowMaps:C.serializeState(current),currentUser:{uid:'fixture-user'},buildingUser:{uid:'fixture-google'},workspaceProfile:{workspace:{firebaseConfig:{projectId:'fixture-project'}}},
     DATA_COLLECTIONS:Object.keys(maps).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(maps),active:true,localOnly:false,saving:false,queuedState:null,backupImporting:false,backupRecoveryRequired:false,
-    navigator:{onLine:true},serializeState:C.serializeState,deserializeState:C.deserializeState,clone,plain:clone,makeRecordMaps:()=>Object.fromEntries(Object.keys(maps).map(k=>[k,new Map()])),
+    TextEncoder,btoa,navigator:{onLine:true},serializeState:C.serializeState,deserializeState:C.deserializeState,clone,plain:clone,makeRecordMaps:()=>Object.fromEntries(Object.keys(maps).map(k=>[k,new Map()])),
     setSyncStatus:(...args)=>events.push(['status',...args]),renderRemote:()=>events.push('render'),db:{},
     doc:(...args)=>args.length===1?{collection:args[0].collection,id:`log-${++control.log}`}:{collection:args[1],id:args[2]},collection:(_db,name)=>({collection:name}),
     serverTimestamp:()=> 'SYNTHETIC_TIMESTAMP',deleteField:()=>({syntheticDelete:true}),makeLog:()=>({synthetic:true}),
@@ -30,7 +30,7 @@ function harness(current=fixture()){
       }
     },
   });
-  const names=new Set(['mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','commitTransaction','belongsToSkippedTask','patchFor']);
+  const names=new Set(['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','stableKeyId','mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','commitTransaction','belongsToSkippedTask','patchFor']);
   const source=read('js/cloud-sync.js'),nodes=parse(source,'module').body.filter(n=>n.type==='FunctionDeclaration'&&names.has(n.id.name));
   assert.equal(nodes.length,names.size,'Import extraction contract changed');vm.runInContext(nodes.map(n=>source.slice(n.start,n.end)).join('\n'),ctx);
   const api=vm.runInContext('({previewImport,importState,commitTransaction,saveBlocked:()=>backupRecoveryRequired})',ctx);

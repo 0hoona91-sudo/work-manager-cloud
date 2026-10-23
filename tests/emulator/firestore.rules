@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TEST ONLY. Replace with the verified private-workspace owner policy before any deployment review.
+    function owner() { return request.auth != null && request.auth.uid == 'synthetic-owner'; }
+    match /generatedKeys/{keyId} {
+      allow read: if owner();
+      allow create: if owner()
+        && request.resource.data.generatedKey.matches('wm-recurrence:v1:demo-work-manager:.*')
+        && request.resource.data.taskId is string
+        && getAfter(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.generatedKey == request.resource.data.generatedKey;
+      allow update, delete: if false;
+    }
+    match /{collection}/{id} {
+      allow read, write: if collection != 'generatedKeys' && owner();
+    }
+  }
+}
