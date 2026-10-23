@@ -28,13 +28,14 @@ async function main() {
     assert.equal(classify(1, 1, { observed: 0 }), 'XPASS');
     assert.throws(() => classify(2, 1, { observed: 0 }), assert.AssertionError);
   });
+  const scheduleOnly = process.argv.includes('--schedule-only');
   const dateOnly = process.argv.includes('--dates-only');
   const attachmentOnly = process.argv.includes('--attachments-only');
   const credentialOnly = process.argv.includes('--credentials-only');
   const backupOnly = process.argv.includes('--backups-only');
   const completionOnly = process.argv.includes('--completion-only');
-  if (dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly) cases.length = 0;
-  for (const suite of (dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date'])) {
+  if (scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly) cases.length = 0;
+  for (const suite of (scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date','schedule'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -58,7 +59,8 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: '975dc630d97aa07b27ea6b0a4e9319f7afd249c4',
+    refactorBase: 'b16c7bcfa4219300963c4a26ac677b9de9ef6d24',
+    scheduleSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     dateSourceSha256: Object.fromEntries(['index.html','js/date-only.js','js/project-model.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     backupSourceSha256: Object.fromEntries(['index.html','js/backup-safety.js','js/backup-ui.js','js/cloud-sync.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     completionSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file, createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
@@ -68,7 +70,7 @@ async function main() {
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase4a-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase4b-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }

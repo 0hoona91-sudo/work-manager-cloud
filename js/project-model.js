@@ -55,7 +55,12 @@
       : dates.addBusinessDays(start,offset,calendar(holidayCheck));
   }
 
-  function stageEnd(step,holidayCheck){
+  function stageEnd(step,holidayCheck,task){
+    if(isCompleted(task)){
+      const end=date(task.end);
+      if(!end)throw new Error('완료 단계의 저장된 예정 종료일이 없습니다. 원본 기록을 확인해 주세요.');
+      return end;
+    }
     const start = date(step.start);
     let end = step.endType==='date' ? date(step.endDate) : step.endType==='after' ? dateAfter(start,step.afterDays,step.includeHolidays,holidayCheck) : start;
     if(!end)end=start;
@@ -71,33 +76,93 @@
     if(!a||!b)return 0;
     return dates.difference(a,b);
   }
-  function initializeRelativeDates(project,holidayCheck){
-    if(!project?.stages)return project;
-    for(let i=1;i<project.stages.length;i++){
-      const previous=project.stages[i-1],stage=project.stages[i];
-      const baseline=stageEnd(previous,holidayCheck)||previous.start||project.start;
-      if(!Number.isFinite(Number(stage.relativeStartDays))||stage.relativeStartDays===undefined||stage.relativeStartDays===null)
-        stage.relativeStartDays=dayDifference(baseline,stage.start||baseline);
-      if(!Number.isFinite(Number(stage.relativeEndDays))||stage.relativeEndDays===undefined||stage.relativeEndDays===null)
-        stage.relativeEndDays=dayDifference(baseline,stageEnd(stage,holidayCheck)||stage.start||baseline);
+  // State is an explicit read-only input. Completed anchors never come from a draft.
+  function scheduleRecords(project,state){
+    const original=(state?.projects||[]).find(p=>p.id===project.id);
+    const tasks=new Map(), locked=new Map(), ids=new Set();
+    for(const step of project.stages||[]){
+      if(ids.has(step.id))throw new Error('중복된 단계 ID가 발견됐습니다.');
+      ids.add(step.id);
     }
+    for(const task of (state?.tasks||[]).filter(t=>t.projectId===project.id)){
+      if(tasks.has(task.projectStageId))throw new Error('단계에 연결된 업무가 중복되었습니다. 원본 연결을 확인해 주세요.');
+      tasks.set(task.projectStageId,task);
+      if(!ids.has(task.projectStageId)&&hasCompletionHistory(task))throw completionDeletionError();
+      if(!isCompleted(task))continue;
+      const step=original?.stages.find(s=>s.id===task.projectStageId);
+      if(!step||step.taskId!==task.id)throw new Error('완료 단계의 원본 연결을 확인할 수 없습니다. 저장을 중단합니다.');
+      stageEnd(step,null,task); // Validate the persisted planned end, never actualComplete.
+      locked.set(step.id,step);
+    }
+    return {original,tasks,locked};
+  }
+  function missingOffset(value){return value===undefined||value===null||value==='';}
+  function initializeOffsets(project,holidayCheck,records){
+    for(let i=1;i<project.stages.length;i++){
+      const stage=project.stages[i];
+      if(records.locked.has(stage.id))continue;
+      const oldIndex=records.original?.stages.findIndex(s=>s.id===stage.id)??-1;
+      // Derive legacy offsets from the saved pair before a draft edit/reorder.
+      const source=oldIndex>0?records.original.stages[oldIndex]:stage;
+      const previous=oldIndex>0?records.original.stages[oldIndex-1]:project.stages[i-1];
+      const baseline=stageEnd(previous,holidayCheck,records.tasks.get(previous.id))||previous.start||project.start;
+      for(const [key,value] of [['relativeStartDays',source.start||baseline],
+        ['relativeEndDays',stageEnd(source,holidayCheck)||source.start||baseline]]){
+        if(missingOffset(stage[key]))stage[key]=!missingOffset(source[key])?Number(source[key]):dayDifference(baseline,value);
+        if(!Number.isSafeInteger(Number(stage[key])))throw new Error('상대일수는 유한한 정수여야 합니다.');
+      }
+    }
+  }
+  function calculateSchedule(project,holidayCheck,state,apply){
+    const working=clone(project),records=scheduleRecords(working,state);
+    working.stages=working.stages.map(s=>records.locked.has(s.id)?clone(records.locked.get(s.id)):s);
+    initializeOffsets(working,holidayCheck,records);
+    if(apply)for(let i=0;i<working.stages.length;i++){
+      const stage=working.stages[i];
+      if(records.locked.has(stage.id))continue;
+      if(i===0){stage.start=stage.start||working.start;}
+      else{
+        const previous=working.stages[i-1];
+        const baseline=stageEnd(previous,holidayCheck,records.tasks.get(previous.id))||previous.start||working.start;
+        // Relative offsets are calendar days from the previous effective planned end.
+        // includeHolidays governs an 'after' duration, not the stored relative offsets.
+        stage.start=dateAfter(baseline,Number(stage.relativeStartDays),true,holidayCheck);
+        stage.endType='date';
+        stage.endDate=dateAfter(baseline,Number(stage.relativeEndDays),true,holidayCheck);
+      }
+      const start=date(stage.start),end=stageEnd(stage,holidayCheck);
+      if(start&&end&&end<start)throw new Error(`${i+1}단계의 종료일을 확인해 주세요.`);
+    }
+    return {working,records};
+  }
+  function commitSchedule(project,working,records){
+    // Publish only after the entire calculation succeeds. Keep editable checklist
+    // and resource references so existing UI event handlers remain attached.
+    working.stages.forEach((step,i)=>{
+      const target=project.stages[i];
+      if(records.locked.has(step.id)){
+        for(const key of Object.keys(target))delete target[key];
+        Object.assign(target,step);
+      }else for(const key of ['start','endType','endDate','relativeStartDays','relativeEndDays']){
+        if(Object.hasOwn(step,key))target[key]=step[key];
+      }
+    });
     return project;
   }
-  function applyRelativeDates(project,holidayCheck){
-    initializeRelativeDates(project,holidayCheck);
-    for(let i=1;i<(project.stages||[]).length;i++){
-      const previous=project.stages[i-1],stage=project.stages[i];
-      const baseline=stageEnd(previous,holidayCheck)||previous.start||project.start;
-      stage.start=dateAfter(baseline,Number(stage.relativeStartDays)||0,true,holidayCheck);
-      stage.endType='date';
-      stage.endDate=dateAfter(baseline,Number(stage.relativeEndDays)||0,true,holidayCheck);
-    }
-    return project;
+  function initializeRelativeDates(project,holidayCheck,state){
+    if(!project?.stages)return project;
+    const {working,records}=calculateSchedule(project,holidayCheck,state,false);
+    return commitSchedule(project,working,records);
+  }
+  function applyRelativeDates(project,holidayCheck,state){
+    if(!project?.stages)return project;
+    const {working,records}=calculateSchedule(project,holidayCheck,state,true);
+    return commitSchedule(project,working,records);
   }
   function sanitizeResources(resources){
     return (resources||[]).map(({data,objectUrl,blobUrl,previewUrl,...item})=>clone(item));
   }
-  function normalizeProject(draft,holidayCheck) {
+  function normalizeProject(draft,holidayCheck,state) {
     const p = clone(draft);
     p.name=String(p.name||'').trim();
     if(!p.name)throw new Error('프로젝트명을 입력해 주세요.');
@@ -107,12 +172,14 @@
     if(!p.start)throw new Error('프로젝트 시작일을 입력해 주세요.');
     if(p.end&&p.end<p.start)throw new Error('프로젝트 종료일은 시작일 이후여야 합니다.');
     if(!p.stages?.length)throw new Error('단계를 추가해 주세요.');
-    applyRelativeDates(p,holidayCheck);
+    applyRelativeDates(p,holidayCheck,state);
+    const {locked}=scheduleRecords(p,state);
     const ids=new Set(), taskIds=new Set();
     p.stages=p.stages.map((step,i)=>{
       const s=clone(step);s.id||=id('stage');s.taskId||=id('project-task');
       if(ids.has(s.id)||taskIds.has(s.taskId))throw new Error('중복된 단계 ID가 발견됐습니다.');
       ids.add(s.id);taskIds.add(s.taskId);
+      if(locked.has(s.id))return s;
       s.title=String(s.title||'').trim();if(!s.title)throw new Error(`${i+1}단계의 세부 업무명을 입력해 주세요.`);
       s.participants=[...new Set((s.participants||[]).filter(Boolean))];
       s.start=date(s.start||p.start);
@@ -160,23 +227,12 @@
     };
   }
   function reconcile(state, project, holidayCheck){
-    project=clone(project);
+    project=normalizeProject(project,holidayCheck,state);
     const allTasks=state.tasks||[], oldProjects=state.projects||[];
     const oldProject=oldProjects.find(p=>p.id===project.id);
     const projectTaskSet=new Map(allTasks.filter(t=>t.projectId===project.id).map(t=>[t.projectStageId,t]));
     const proposedIds=new Set(project.stages.map(s=>s.id));
     if(allTasks.some(t=>t.projectId===project.id&&!proposedIds.has(t.projectStageId)&&hasCompletionHistory(t)))throw completionDeletionError();
-    // Completed stages are historical records: preserve dates even if the
-    // project's overall schedule or a template is edited afterwards.
-    const oldStageMap=new Map((oldProject?.stages||[]).map(step=>[step.id,step]));
-    for(const step of project.stages){
-      const previousTask=projectTaskSet.get(step.id);
-      const originalStage=oldStageMap.get(step.id);
-      if(!previousTask||!(previousTask.status==='done'||previousTask.actualComplete)||!originalStage)continue;
-      for(const key of Object.keys(step))delete step[key];
-      Object.assign(step,clone(originalStage));
-      step.taskId=previousTask.id;
-    }
     const stageIds=new Set(project.stages.map(s=>s.id));
     const deleted=allTasks.filter(t=>t.projectId===project.id&&!stageIds.has(t.projectStageId));
     const updated=project.stages.map((step,index)=>buildStageTask(project,step,index,projectTaskSet.get(step.id),holidayCheck));

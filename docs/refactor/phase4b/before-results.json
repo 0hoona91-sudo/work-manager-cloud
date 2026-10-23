@@ -1,0 +1,26 @@
+{
+  "base": "b16c7bcfa4219300963c4a26ac677b9de9ef6d24",
+  "total": 1,
+  "counts": {
+    "PASS": 0,
+    "XFAIL": 1,
+    "FAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BUG-03",
+      "expected": [
+        "2026-01-01",
+        "2026-01-03"
+      ],
+      "observed": [
+        "2026-01-01",
+        "2026-01-12"
+      ],
+      "status": "XFAIL"
+    }
+  ],
+  "baseline": "../phase4a/after-results.json"
+}

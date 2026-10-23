@@ -9,7 +9,7 @@ const escp = value => String(value??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<'
 const fmtp = value => String(value||'');
 const valp = value => value?String(value):'';
 const projectUid = M.id;
-let editor=null, activeStage=0, dirty=false, saving=false;
+let editor=null, activeStage=0, dirty=false, saving=false, scheduleError='';
 let filterTerm='',filterCategory='all';
 let pendingFiles=new Map();
 const editorRoot=()=>document.querySelector('#modalRoot .project-editor-modal');
@@ -184,26 +184,43 @@ function stageEditor(){
     <div class="prj-stage-tools"><div><b>${activeStage+1}단계 설정</b><small>단계를 끌어서 순서를 바꾸거나 화살표로 이동할 수 있습니다.</small></div><div class="prj-stage-actions"><button type="button" class="prj-move" id="prj-move-left" ${activeStage===0?'disabled':''}>← 앞 단계</button><button type="button" class="prj-move" id="prj-move-right" ${activeStage===editor.stages.length-1?'disabled':''}>뒤 단계 →</button><button type="button" class="prj-delete-step" id="prj-remove-stage">이 단계 삭제</button></div></div>
     <div class="prj-field prj-full"><label>세부 업무명 *</label><input data-stage-field="title" value="${escp(s.title)}" placeholder="단계에서 수행할 업무명을 입력하세요"></div>
     <div class="prj-field prj-full"><label>참여자 <span class="prj-hint">여러 명 선택 가능</span></label><div class="prj-people">${state.owners.map(owner=>`<label><input type="checkbox" data-person="${escp(owner)}" ${s.participants.includes(owner)?'checked':''}><span>${escp(owner)}</span></label>`).join('')||'<p>먼저 설정에서 담당자를 등록해 주세요.</p>'}</div></div>
-    ${activeStage>0?`<div class="prj-schedule"><h4>일정 · 상위 업무 기준</h4><div class="prj-relative-date-v177"><p>이전 단계 종료일을 기준으로 자동 계산합니다.</p><label>시작일: 상위 업무 후 <input type="number" id="prj-relative-start-v177" step="1" value="${Number(s.relativeStartDays)||0}">일</label><label>종료일: 상위 업무 후 <input type="number" id="prj-relative-end-v177" step="1" value="${Number(s.relativeEndDays)||0}">일</label><p>계산 결과: ${escp(s.start||'-')} ~ ${escp(M.stageEnd(s,holidayCheck)||'-')}</p></div></div>`:`<div class="prj-schedule"><h4>일정</h4><div class="prj-date-row">${dateField('stageStart','시작일',s.start||editor.start,{required:true})}<div class="prj-field"><label>종료일 방식</label><div class="prj-end-options">${[['same','당일 마무리'],['date','날짜 지정'],['after','며칠 후']].map(([v,label])=>`<label><input type="radio" name="prjEndMode" value="${v}" ${s.endType===v?'checked':''}> ${label}</label>`).join('')}</div></div></div>
+    ${activeStage>0?`<div class="prj-schedule"><h4>일정 · 상위 업무 기준</h4><div class="prj-relative-date-v177"><p>이전 단계 종료일을 기준으로 자동 계산합니다.</p><label>시작일: 상위 업무 후 <input type="number" id="prj-relative-start-v177" step="1" value="${Number(s.relativeStartDays)||0}">일</label><label>종료일: 상위 업무 후 <input type="number" id="prj-relative-end-v177" step="1" value="${Number(s.relativeEndDays)||0}">일</label><p data-prj-schedule-result>${scheduleText(s)}</p></div></div>`:`<div class="prj-schedule"><h4>일정</h4><div class="prj-date-row">${dateField('stageStart','시작일',s.start||editor.start,{required:true})}<div class="prj-field"><label>종료일 방식</label><div class="prj-end-options">${[['same','당일 마무리'],['date','날짜 지정'],['after','며칠 후']].map(([v,label])=>`<label><input type="radio" name="prjEndMode" value="${v}" ${s.endType===v?'checked':''}> ${label}</label>`).join('')}</div></div></div>
       <div class="prj-end-details">${s.endType==='date'?dateField('stageEnd','종료일',s.endDate):s.endType==='after'?`<div class="prj-field"><label>시작일 이후</label><div class="prj-inline"><input type="number" id="prj-after-days" min="0" max="9999" value="${Number(s.afterDays)||0}"><span>일 후</span></div></div><label class="prj-small-check"><input type="checkbox" id="prj-count-holidays" ${s.includeHolidays?'checked':''}> 주말·휴일 포함</label>`:''}
        ${s.endType!=='same'?`<div class="prj-field"><label>종료일이 휴일이면</label><select id="prj-holiday-shift">${[['keep','그대로'],['prev','이전 근무일'],['next','다음 근무일']].map(([v,label])=>`<option value="${v}" ${s.holidayShift===v?'selected':''}>${label}</option>`).join('')}</select></div>`:''}
-      </div>
+      </div><p data-prj-schedule-result>${scheduleText(s)}</p>
     </div>`}
     <div class="prj-block"><div class="prj-block-header"><h4>체크리스트</h4><span>체크항목별 담당자와 마감일을 지정합니다.</span></div><div class="prj-check-head"><span></span><span>체크할 내용</span><span>담당자</span><span>마감일</span><span></span></div><div id="prj-check-list">${checkRows(s)}</div><button type="button" id="prj-add-check" class="prj-soft-btn">＋ 체크항목</button></div>
     <div class="prj-block"><div class="prj-block-header"><h4>진행자료</h4><span>사진·문서 원본은 기존 Google Drive 연결을 사용합니다.</span></div><div id="prj-resources">${resourceRows(s)}</div><button type="button" id="prj-add-resource" class="prj-soft-btn">＋ 자료 추가</button><input hidden id="prj-file-picker" type="file" multiple></div>
   </div>`;
 }
 function setDirty(){dirty=true;}
+function scheduleText(step){
+  try{return `계산 결과: ${escp(step.start||'-')} ~ ${escp(M.stageEnd(step,holidayCheck,projectStageTask(editor.id,step.id))||'-')}`;}
+  catch{return '계산 오류: 날짜 입력을 확인해 주세요.';}
+}
+function showScheduleStatus(){
+  const error=$p('#prjScheduleError');if(error){error.textContent=scheduleError;error.hidden=!scheduleError;}
+  const save=$p('#prjSave');if(save)save.disabled=Boolean(scheduleError)||saving;
+  const summary=$p('[data-prj-schedule-result]');
+  if(summary)summary.innerHTML=scheduleError?'계산 보류: 날짜 입력을 확인해 주세요.':scheduleText(editor.stages[activeStage]);
+}
+function recalculateEditor(){
+  try{M.applyRelativeDates(editor,holidayCheck,state);scheduleError='';}
+  catch(error){scheduleError=error.message||'프로젝트 일정을 계산하지 못했습니다.';}
+  showScheduleStatus();
+  return !scheduleError;
+}
 function renderTabs(){const tabs=$p('#prjTabs');if(tabs){tabs.innerHTML=stageTabs();bindTabs(tabs);}}
-function renderStage(){const target=$p('#prjStagePane');if(!target)return;const step=editor?.stages[activeStage];if(step)normalizeCheckAssignments(step);target.innerHTML=stageEditor();bindStageControls(target);}
+function renderStage(){const target=$p('#prjStagePane');if(!target)return;const step=editor?.stages[activeStage];if(step&&!M.isCompleted(projectStageTask(editor.id,step.id)))normalizeCheckAssignments(step);target.innerHTML=stageEditor();bindStageControls(target);showScheduleStatus();}
 function showEditor(){
   modal(editor?.updatedAt?'프로젝트 수정':'프로젝트 등록',`<div class="prj-editor">
-     <div id="prjHeader">${editorHeader()}</div><div id="prjTabs">${stageTabs()}</div><div id="prjStagePane">${stageEditor()}</div>
+     <p id="prjScheduleError" role="alert" hidden></p><div id="prjHeader">${editorHeader()}</div><div id="prjTabs">${stageTabs()}</div><div id="prjStagePane">${stageEditor()}</div>
      <p class="prj-editor-tip">각 단계는 저장 시 진행(예정) 업무에 독립적으로 등록됩니다. 체크리스트를 모두 체크하면 그 단계만 완료 처리됩니다.</p>
   </div>`,`<button type="button" class="btn" id="prjCancel">취소</button>${projectById(editor.id)?'<button type="button" class="btn danger" id="prjDelete">프로젝트 폐기</button>':''}<button type="button" class="btn primary" id="prjSave">프로젝트 저장</button>`,'project-editor-modal');
   const root=editorRoot();if(!root)return;
   bindEditorHeader(root);bindTabs($p('#prjTabs',root));bindStageControls($p('#prjStagePane',root));
   $p('#prjSave',root).onclick=()=>void saveEditor();
+  showScheduleStatus();
   $p('#prjCancel',root).onclick=cancelEditor;
   $$p('[data-close]',root).forEach(btn=>btn.onclick=cancelEditor);
   const remove=$p('#prjDelete',root);if(remove)remove.onclick=()=>void deleteProject();
@@ -213,8 +230,9 @@ function openEditor(id=null,stageId=null){
   editor=existing?M.clone(existing):M.freshProject(todayISO());
   // 실제 담당자 목록에 혼자만 등록되어 있는 환경에서는 모든 단계와 체크항목 담당자 자동 고정.
   if(state.owners.length===1 && !editor.manager)editor.manager=state.owners[0];
-  M.initializeRelativeDates(editor,holidayCheck);
+  recalculateEditor();
   editor.stages.forEach(s=>{
+    if(M.isCompleted(projectStageTask(editor.id,s.id)))return;
     s.checklist=M.checksForEdit(s,projectStageTask(editor.id,s.id));s.resources||=[];s.participants||=[];s.endType||='same';
     if(state.owners.length===1 && !s.participants.length)s.participants=[state.owners[0]];
     normalizeCheckAssignments(s);
@@ -244,9 +262,7 @@ function refreshCheckOwners(root,step){
 function updateDateField(key,value){
   const map={projectStart:()=>{editor.start=value;},projectEnd:()=>{editor.end=value;},stageStart:()=>{editor.stages[activeStage].start=value;},stageEnd:()=>{editor.stages[activeStage].endDate=value;}};
   if(map[key])map[key]();
-  if((key==='projectStart'||key==='stageStart') && /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))){
-    try{M.applyRelativeDates(editor,holidayCheck);}catch(error){console.debug('날짜 입력 중 계산 보류',error);}
-  }
+  if(map[key])recalculateEditor();
   else if(key.startsWith('check_')){
     const i=Number(key.split('_')[1]);const item=editor.stages[activeStage].checklist?.[i];if(item)item.dueDate=value;
   }
@@ -291,8 +307,8 @@ function bindEditorHeader(root){
   $$p('[data-project-root]',root).forEach(field=>field.addEventListener('input',()=>{
     editor[field.dataset.projectRoot]=field.value;
     if(field.dataset.projectRoot==='manager' && state.owners.length===1){
-      M.initializeRelativeDates(editor,holidayCheck);
-   editor.stages.forEach(s=>{if(!s.participants.length)s.participants=[field.value];normalizeCheckAssignments(s);});
+      recalculateEditor();
+      editor.stages.forEach(s=>{if(M.isCompleted(projectStageTask(editor.id,s.id)))return;if(!s.participants.length)s.participants=[field.value];normalizeCheckAssignments(s);});
       renderStage();
     }
     setDirty();
@@ -302,14 +318,15 @@ function bindEditorHeader(root){
 function bindTabs(root){
   $$p('[data-step-tab]',root).forEach(button=>{
     const i=Number(button.dataset.stepTab);
-    button.onclick=()=>{activeStage=i;renderTabs();renderStage();};
+    button.onclick=()=>{activeStage=i;recalculateEditor();renderTabs();renderStage();};
     button.ondragstart=e=>{e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';};
     button.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';};
-    button.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));if(M.moveStep(editor,from,i)){activeStage=i;setDirty();renderTabs();renderStage();}};
+    button.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));if(M.moveStep(editor,from,i)){activeStage=i;recalculateEditor();setDirty();renderTabs();renderStage();}};
   });
   const add=$p('#prj-add-step',root);if(add)add.onclick=()=>{
     activeStage=M.addStep(editor);
     if(state.owners.length===1)editor.stages[activeStage].participants=[state.owners[0]];
+    recalculateEditor();
     setDirty();renderTabs();renderStage();
   };
 }
@@ -317,7 +334,7 @@ function bindStageControls(root){
   const s=editor.stages[activeStage];if(!s)return;
   for(const [id,key] of [['prj-relative-start-v177','relativeStartDays'],['prj-relative-end-v177','relativeEndDays']]){
     const input=$p('#'+id,root);
-    if(input)input.oninput=()=>{s[key]=Number(input.value)||0;M.applyRelativeDates(editor,holidayCheck);setDirty();};
+    if(input)input.oninput=()=>{s[key]=Number(input.value);recalculateEditor();setDirty();};
   }
   $$p('[data-stage-field]',root).forEach(input=>input.oninput=()=>{s[input.dataset.stageField]=input.value;setDirty();});
   $$p('[data-person]',root).forEach(input=>input.onchange=()=>{
@@ -325,10 +342,10 @@ function bindStageControls(root){
     refreshCheckOwners(root,s);setDirty();
   });
   bindDateControls(root);
-  $$p('input[name="prjEndMode"]',root).forEach(input=>input.onchange=()=>{if(input.checked){s.endType=input.value;setDirty();renderStage();}});
-  const after=$p('#prj-after-days',root);if(after)after.oninput=()=>{s.afterDays=Number(after.value)||0;setDirty();};
-  const holidays=$p('#prj-count-holidays',root);if(holidays)holidays.onchange=()=>{s.includeHolidays=holidays.checked;setDirty();};
-  const shift=$p('#prj-holiday-shift',root);if(shift)shift.onchange=()=>{s.holidayShift=shift.value;setDirty();};
+  $$p('input[name="prjEndMode"]',root).forEach(input=>input.onchange=()=>{if(input.checked){s.endType=input.value;recalculateEditor();setDirty();renderStage();}});
+  const after=$p('#prj-after-days',root);if(after)after.oninput=()=>{s.afterDays=Number(after.value);recalculateEditor();setDirty();};
+  const holidays=$p('#prj-count-holidays',root);if(holidays)holidays.onchange=()=>{s.includeHolidays=holidays.checked;recalculateEditor();setDirty();};
+  const shift=$p('#prj-holiday-shift',root);if(shift)shift.onchange=()=>{s.holidayShift=shift.value;recalculateEditor();setDirty();};
   const addCheck=$p('#prj-add-check',root);if(addCheck)addCheck.onclick=()=>{
     s.checklist.push({id:projectUid('check'),text:'',owner:s.participants.length===1?s.participants[0]:'',dueDate:'',done:false});
     setDirty();renderStage();
@@ -355,14 +372,14 @@ function bindStageControls(root){
     if(editor.stages.length<=1){alert('프로젝트에는 최소 1개 단계가 필요합니다.');return;}
     if(!confirm(`'${s.title||`${activeStage+1}단계`}'를 정말 삭제할까요?\n해당 단계의 수행업무와 체크리스트도 삭제되고 뒤의 단계가 앞으로 당겨집니다.`))return;
     s.resources.forEach(item=>pendingFiles.delete(item.id));
-    M.removeStep(editor,activeStage,state.tasks);activeStage=Math.min(activeStage,editor.stages.length-1);setDirty();renderTabs();renderStage();
+    M.removeStep(editor,activeStage,state.tasks);activeStage=Math.min(activeStage,editor.stages.length-1);recalculateEditor();setDirty();renderTabs();renderStage();
   };
   if(M.isCompleted(projectStageTask(editor.id,s.id))){
     const note=document.createElement('p');note.textContent='완료 단계의 수행 기록은 보호됩니다. 내용을 변경하려면 단계 상세에서 명시적으로 재개해 주세요.';root.prepend(note);
     $$p('input,select,textarea,button',root).filter(el=>!el.matches('[data-prj-open-resource],#prj-move-left,#prj-move-right')).forEach(el=>el.disabled=true);
   }
 }
-function moveActive(to){if(M.moveStep(editor,activeStage,to)){activeStage=to;setDirty();renderTabs();renderStage();}}
+function moveActive(to){if(M.moveStep(editor,activeStage,to)){activeStage=to;recalculateEditor();setDirty();renderTabs();renderStage();}}
 async function openResource(ref){
   try{
     if(ref.driveFileId){await window.cloudSync?.openDriveFile(ref.driveFileId,ref.name,ref.mimeType);}
@@ -398,10 +415,10 @@ async function saveEditor(){
   let before=null;
   try{
     // 정확하지 않은 날짜나 빈 단계명으로 원본 업로드를 시작하지 않는다.
-    M.applyRelativeDates(editor,holidayCheck);
-    M.reconcile(state,M.normalizeProject(editor,holidayCheck),holidayCheck);
+    M.applyRelativeDates(editor,holidayCheck,state);
+    M.reconcile(state,M.normalizeProject(editor,holidayCheck,state),holidayCheck);
     await uploadPendingResources();
-    const project=M.normalizeProject(editor,holidayCheck);
+    const project=M.normalizeProject(editor,holidayCheck,state);
     before={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
     const result=M.reconcile(state,project,holidayCheck);
     state.projects=result.projects;state.tasks=result.tasks;

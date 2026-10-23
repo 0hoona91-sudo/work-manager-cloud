@@ -56,13 +56,13 @@ module.exports = ({ test, known }) => {
     M.setCheck(task, 'c', false, '2026-10-23');
     assert.equal(task.status, 'progress'); assert.equal(task.actualComplete, null);
   });
-  known('BUG-03', 'Dependent stage dates must use the preserved completed stage anchor', () => {
+  test('BUG-03', 'Dependent stage dates must use the preserved completed stage anchor', () => {
     const { M, p, state } = setup();
     Object.assign(state.tasks[0], { status: 'done', actualComplete: '2026-01-01' });
     const draft = M.clone(p); draft.stages[0].start = draft.stages[0].endDate = '2026-01-10';
     const next = M.reconcile(state, M.normalizeProject(draft));
-    return next.tasks.map(t => t.start);
-  }, ['2026-01-01', '2026-01-03'], ['2026-01-01', '2026-01-12'], source);
+    assert.deepEqual(plain(next.tasks.map(t => t.start)), ['2026-01-01', '2026-01-03']);
+  });
   test('BUG-04', 'Adding a new checklist item must not silently reopen completed history', () => {
     const { M, p } = setup();
     p.stages[0].checklist = [{ id: 'c1', text: 'Old', done: true }];
