@@ -1,0 +1,80 @@
+{
+  "base": "ea37aecb90d565bc0c791b63624b1834dfd16e99",
+  "total": 8,
+  "counts": {
+    "PASS": 5,
+    "XFAIL": 3,
+    "FAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "REPEAT-01",
+      "title": "Month end clamps correctly across short months and leap years",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "title": "Monthly generation has stable dates, fresh checklist IDs and is idempotent",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "title": "Canonical semiannual schedule generates every six months",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "title": "Recurrence end is inclusive and completed roots remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "title": "Supported selectedMonths filters dates and holiday shifts preserve weekends",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "title": "Schema11 cycleMonths must filter actual generated occurrences",
+      "status": "XFAIL",
+      "expected": [
+        "2026-10-01",
+        "2027-01-01"
+      ],
+      "observed": [
+        "2026-10-01",
+        "2026-11-01",
+        "2026-12-01",
+        "2027-01-01"
+      ]
+    },
+    {
+      "id": "BUG-11",
+      "title": "Legacy half cycle must generate the semiannual occurrence",
+      "status": "XFAIL",
+      "expected": [
+        "2026-01-31",
+        "2026-07-31"
+      ],
+      "observed": [
+        "2026-01-31"
+      ]
+    },
+    {
+      "id": "BUG-12",
+      "title": "Generated recurrence must carry a durable deduplication key",
+      "status": "XFAIL",
+      "expected": [
+        true,
+        true,
+        true
+      ],
+      "observed": [
+        false,
+        false,
+        false
+      ]
+    }
+  ]
+}

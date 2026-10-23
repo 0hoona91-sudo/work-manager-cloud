@@ -39,15 +39,15 @@ module.exports = ({ test, known }) => {
     assert.equal(R.dueShift('2026-10-24', 'next'), '2026-10-26');
     assert.equal(R.dueShift('2026-10-24', 'prev'), '2026-10-23');
   });
-  known('BUG-10', 'Schema11 cycleMonths must filter actual generated occurrences', () => {
+  test('BUG-10', 'Schema11 cycleMonths must filter actual generated occurrences', () => {
     const state = recurring('monthly', '2026-10-01', { cycleMonths: [1, 4, 7, 10] });
     loadRecurrence(state).ensureOccurrences();
-    return state.tasks.map(t => t.start);
-  }, ['2026-10-01', '2027-01-01'], ['2026-10-01', '2026-11-01', '2026-12-01', '2027-01-01'], source);
-  known('BUG-11', 'Legacy half cycle must generate the semiannual occurrence', () => {
+    assert.deepEqual(state.tasks.map(t => t.start), ['2026-10-01', '2027-01-01']);
+  });
+  test('BUG-11', 'Legacy half cycle must generate the semiannual occurrence', () => {
     const state = recurring('half', '2026-01-31'); loadRecurrence(state).ensureOccurrences();
-    return state.tasks.map(t => t.start);
-  }, ['2026-01-31', '2026-07-31'], ['2026-01-31'], source);
+    assert.deepEqual(state.tasks.map(t => t.start), ['2026-01-31', '2026-07-31']);
+  });
   known('BUG-12', 'Generated recurrence must carry a durable deduplication key', () => {
     const state = recurring(); loadRecurrence(state).ensureOccurrences();
     const generated = state.tasks.slice(1);

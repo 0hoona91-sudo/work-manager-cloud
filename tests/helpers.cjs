@@ -69,7 +69,7 @@ function loadRecurrence(state) {
   walk(parse(source), n => { if (n.type === 'FunctionDeclaration' && n.id?.name === 'installRollingRecurrencesV181') matches.push(n); });
   assert.equal(matches.length, 1, 'Recurrence extraction contract changed');
   let id = 0;
-  const ctx = context({ state, M: loadModel(), window: {}, document: { addEventListener() {} },
+  const ctx = context({ state, M: loadModel(), window: {WMDateOnly:require('../js/date-only.js'),WMRecurrenceRules:require('../js/recurrence-rules.js')}, document: { addEventListener() {} },
     projectUid: prefix => `${prefix}-fixture-${++id}`, saveState: async () => {}, renderTaskTable() {} });
   const node = matches[0];
   vm.runInContext(`(${source.slice(node.start, node.end)})();`, ctx, { timeout: 2000 });

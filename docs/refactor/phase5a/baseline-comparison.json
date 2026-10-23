@@ -1,0 +1,794 @@
+{
+  "baseline": "../phase4b/after-results.json",
+  "after": "after-results.json",
+  "retainedCount": 152,
+  "added": [
+    "RULE-01",
+    "RULE-02",
+    "RULE-03",
+    "RULE-04",
+    "RULE-05",
+    "RULE-06",
+    "RULE-07",
+    "RULE-08",
+    "RULE-09",
+    "RULE-10",
+    "RULE-11",
+    "RULE-12",
+    "RULE-13",
+    "RULE-14",
+    "RULE-15",
+    "RULE-16",
+    "RULE-17",
+    "RULE-TZ-01",
+    "RULE-TZ-02",
+    "RULE-TZ-03",
+    "RULE-UI-01"
+  ],
+  "unchangedXfailContracts": true,
+  "bug12ObservedUnchanged": true,
+  "protectedSourcesUnchanged": true,
+  "projectUiOutsideRecurrenceUnchanged": true,
+  "retained": [
+    {
+      "id": "HARNESS-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "STATIC-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "STATIC-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-01",
+      "before": "XFAIL",
+      "after": "XFAIL"
+    },
+    {
+      "id": "STATIC-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-02",
+      "before": "XFAIL",
+      "after": "XFAIL"
+    },
+    {
+      "id": "MODEL-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATA-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-08",
+      "before": "XFAIL",
+      "after": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "before": "XFAIL",
+      "after": "XFAIL"
+    },
+    {
+      "id": "REPEAT-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "before": "XFAIL",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-11",
+      "before": "XFAIL",
+      "after": "PASS"
+    },
+    {
+      "id": "BUG-12",
+      "before": "XFAIL",
+      "after": "XFAIL"
+    },
+    {
+      "id": "UI-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-14",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-15",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-16",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-17",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-18",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-19",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-20",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-21",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "AUTH-22",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-UI-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-UI-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "HIST-UI-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-14",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-15",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-TZ-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-TZ-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-TZ-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-TZ-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-14",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "DATE-UI-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-04",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-05",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-06",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-07",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-08",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-09",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-10",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-11",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-12",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-13",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-03",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-UI-01",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-UI-02",
+      "before": "PASS",
+      "after": "PASS"
+    },
+    {
+      "id": "SCHED-UI-03",
+      "before": "PASS",
+      "after": "PASS"
+    }
+  ]
+}
