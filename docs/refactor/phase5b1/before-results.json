@@ -1,0 +1,55 @@
+{
+  "base": "9c4ff82b702123220a9d809210fe0c31baf2535b",
+  "total": 8,
+  "counts": {
+    "PASS": 7,
+    "XFAIL": 1,
+    "FAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "REPEAT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-11",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-12",
+      "status": "XFAIL",
+      "expected": [
+        true,
+        true,
+        true
+      ],
+      "observed": [
+        false,
+        false,
+        false
+      ]
+    }
+  ]
+}

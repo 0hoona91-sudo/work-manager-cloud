@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { loadRecurrence, plain } = require('./helpers.cjs');
+const { loadRecurrence, loadCloud, plain } = require('./helpers.cjs');
 const { recurring } = require('./fixtures.cjs');
 const source = 'js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json';
 module.exports = ({ test, known }) => {
@@ -48,10 +48,13 @@ module.exports = ({ test, known }) => {
     const state = recurring('half', '2026-01-31'); loadRecurrence(state).ensureOccurrences();
     assert.deepEqual(state.tasks.map(t => t.start), ['2026-01-31', '2026-07-31']);
   });
-  known('BUG-12', 'Generated recurrence must carry a durable deduplication key', () => {
+  test('BUG-12', 'Generated recurrence must carry a durable deduplication key', () => {
     const state = recurring(); loadRecurrence(state).ensureOccurrences();
     const generated = state.tasks.slice(1);
     assert.equal(generated.length, 3);
-    return generated.map(t => typeof t.generatedKey === 'string' && t.generatedKey.length > 0);
-  }, [true, true, true], [false, false, false], source);
+    assert.deepEqual(generated.map(t => typeof t.generatedKey === 'string' && t.generatedKey.length > 0), [true, true, true]);
+    const C=loadCloud(),maps=C.serializeState(state),restored=C.deserializeState(maps);
+    assert.equal(maps.generatedKeys.size,3);
+    assert.deepEqual(plain(restored.tasks.slice(1).map(t=>t.generatedKey)),generated.map(t=>t.generatedKey));
+  });
 };

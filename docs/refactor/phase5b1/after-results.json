@@ -1,0 +1,1043 @@
+{
+  "generatedAt": "2026-10-23T20:43:03.951Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "9c4ff82b702123220a9d809210fe0c31baf2535b",
+  "recurrenceSourceSha256": {
+    "index.html": "43f337f3d0ce42ebdcc3fb6c3d4ee94dcdfb50e3addbf58398bf9ad1381d00ef",
+    "js/recurrence-rules.js": "760c9f25e5d0fdf7b652b2fdebd03d4c4b72e75e964a54ab56fd10b14da5afdc",
+    "js/recurrence-identity.js": "771b9fe705c2920ee960efa1f72c13109424b912776c96f1a3fb960b3a5ba7a2",
+    "js/project-ui.js": "135be16cb0c5cb9903569cb7ede55130944644b85eb1f56f363613f6330c707c",
+    "js/cloud-sync.js": "f477c7327f610234f8bee53163f7e80bc22a44b83ed2f47eeb41f9434e5ee594"
+  },
+  "scheduleSourceSha256": {
+    "index.html": "43f337f3d0ce42ebdcc3fb6c3d4ee94dcdfb50e3addbf58398bf9ad1381d00ef",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "135be16cb0c5cb9903569cb7ede55130944644b85eb1f56f363613f6330c707c"
+  },
+  "dateSourceSha256": {
+    "index.html": "43f337f3d0ce42ebdcc3fb6c3d4ee94dcdfb50e3addbf58398bf9ad1381d00ef",
+    "js/date-only.js": "eafb1e28c8e84a60f025466b4b6855a7363d03678056de183037d62de1b5b725",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95"
+  },
+  "backupSourceSha256": {
+    "index.html": "43f337f3d0ce42ebdcc3fb6c3d4ee94dcdfb50e3addbf58398bf9ad1381d00ef",
+    "js/backup-safety.js": "0446cbecc5866844efbb3079ca77f2560ddb4cd8496d30d6550eb70b6dea9dac",
+    "js/backup-ui.js": "ed85310512eea3ca9f1ff05c651498a3f62519833b6763cdd05b12febf6aeb91",
+    "js/cloud-sync.js": "f477c7327f610234f8bee53163f7e80bc22a44b83ed2f47eeb41f9434e5ee594"
+  },
+  "completionSourceSha256": {
+    "index.html": "43f337f3d0ce42ebdcc3fb6c3d4ee94dcdfb50e3addbf58398bf9ad1381d00ef",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "135be16cb0c5cb9903569cb7ede55130944644b85eb1f56f363613f6330c707c"
+  },
+  "credentialSourceSha256": "d6fe6a52171774da951e1751a8ba8983c8ed7bae723ba13f41eca5ee480be109",
+  "attachmentSourceSha256": "f477c7327f610234f8bee53163f7e80bc22a44b83ed2f47eeb41f9434e5ee594",
+  "checkoutHead": "9c4ff82b702123220a9d809210fe0c31baf2535b",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 193,
+  "counts": {
+    "PASS": 189,
+    "FAIL": 0,
+    "XFAIL": 4,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "HARNESS-01",
+      "title": "Outcome gate rejects changed failure signatures and unexpected passes",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-01",
+      "title": "All production classic/module JavaScript parses in its actual mode",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-02",
+      "title": "Local imports and script/stylesheet references resolve except the tracked Tasks model",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-01",
+      "title": "Google Tasks model import must resolve",
+      "expected": true,
+      "observed": false,
+      "source": "js/google-tasks-sync.js:2 / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "STATIC-03",
+      "title": "All other inline and external CSS parses",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-02",
+      "title": "Dashboard style block must have valid CSS syntax",
+      "expected": null,
+      "observed": {
+        "reason": "Unexpected }",
+        "line": 197
+      },
+      "source": "index.html #app-v21-navy-dashboard-style / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "MODEL-01",
+      "title": "Date normalization accepts compact dates and leap day, rejects invalid day",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "title": "Stage end counts working days and shifts holiday deadlines",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "title": "Legacy absolute stage dates become stable relative offsets",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "title": "Unchanged completed stage retains its dates and completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "title": "Checklist completion requires explicit history-preserving reopen before unchecking",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-03",
+      "title": "Dependent stage dates must use the preserved completed stage anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-04",
+      "title": "Adding a new checklist item must not silently reopen completed history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-05",
+      "title": "Deleting a completed stage is rejected and retains the original task history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-06",
+      "title": "Negative stage offsets must be timezone independent (UTC+14)",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-01",
+      "title": "Schema11 roundtrip preserves tasks, history, templates, rules, projects and settings",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "title": "Removed recurrence retains its stored generation lock",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "title": "Project and template attachments exclude inline data and transient URLs",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "title": "Local-only holiday setting is excluded from cloud records",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "title": "Backup merges disjoint IDs and identical records without duplication or mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "title": "Backup conflict must not silently overwrite completed history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-08",
+      "title": "Object-form template checklist must retain text instead of string coercion",
+      "expected": [
+        "First"
+      ],
+      "observed": [
+        "[object Object]"
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "title": "Task projectResources must exclude inline bytes and transient URLs too",
+      "expected": [
+        {
+          "id": "fixture-file"
+        }
+      ],
+      "observed": [
+        {
+          "id": "fixture-file",
+          "data": "SYNTHETIC_INLINE_DATA",
+          "previewUrl": "blob:fixture"
+        }
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "REPEAT-01",
+      "title": "Month end clamps correctly across short months and leap years",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "title": "Monthly generation has stable dates, fresh checklist IDs and is idempotent",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "title": "Canonical semiannual schedule generates every six months",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "title": "Recurrence end is inclusive and completed roots remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "title": "Supported selectedMonths filters dates and holiday shifts preserve weekends",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "title": "Schema11 cycleMonths must filter actual generated occurrences",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-11",
+      "title": "Legacy half cycle must generate the semiannual occurrence",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-12",
+      "title": "Generated recurrence must carry a durable deduplication key",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-01",
+      "title": "Desktop quick-task validates blank name and registers one synthetic task",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "title": "Mobile quick-task opens, accepts input and cancels without mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-01",
+      "title": "HTML cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "title": "SVG script cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "title": "XHTML downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "title": "XML downloads despite text MIME",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "title": "PDF extension cannot disguise HTML response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "title": "Image extension cannot disguise SVG response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Forged image MIME with HTML bytes downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "title": "Recognized MIME must match extension",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "title": "Normal PNG still renders",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "title": "Normal PDF still opens",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "title": "Ordinary binary downloads unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "title": "Explicit active-file download preserves bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "title": "Blocked popup falls back to download",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "title": "Legacy missing declared MIME still previews a verified image",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "title": "Hydrated HTML cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "title": "Newly uploaded SVG cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-01",
+      "title": "MOCK Google login, Drive profile, private auth and Firestore binding remain usable",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "title": "MOCK reload restores the private SDK session without password or Drive prompt",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "title": "MOCK expired private session falls back to existing Drive credentials",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "title": "Cache stores an allowlist without password, OAuth token or arbitrary profile fields",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "title": "Legacy full-profile cache is sanitized on module load",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "title": "MOCK logout clears caches and private SDK sessions; relogin still works",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "title": "MOCK Google account switch separates cache, tokens and private auth",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "title": "Profiles with wrong or missing Google owner are rejected before private login",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "title": "Malformed profile types are rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "title": "Drive token expires in memory and session storage",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "title": "Missing identity and malformed expiry cannot restore Drive tokens",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-12",
+      "title": "Drive/Tasks tokens stay separate from password-free persistent profile",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-13",
+      "title": "MOCK Drive reauthentication rejects a different Google identity",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-14",
+      "title": "Logout clears app cache even when SDK signout fails",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-15",
+      "title": "Profile error logs omit arbitrary error payloads",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-16",
+      "title": "Legacy Drive token expires even if still held in memory",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-17",
+      "title": "Legacy Drive token cannot cross Google accounts",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-18",
+      "title": "Cloud adapter does not persist a second copy of the current Drive token",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-19",
+      "title": "MOCK delayed SDK auth restoration is awaited before password fallback",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-20",
+      "title": "MOCK auth observer clears old credentials on external account change",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-21",
+      "title": "Cloud cleanup event clears legacy token, profile references and listeners",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-22",
+      "title": "Blocked browser storage does not prevent authenticated workspace connection",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-01",
+      "title": "Completed checklist text, date, participants and attachment refs survive stage edits",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-02",
+      "title": "Whole project edits preserve the completed task and stage without input mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-03",
+      "title": "Completed checklist cannot reopen a task implicitly",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-04",
+      "title": "Explicit reopen appends a detached snapshot once, preserving IDs and attachments",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-05",
+      "title": "Reopened all-checked tasks do not auto-complete during an ordinary project save",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-06",
+      "title": "Active checklist completion works and a second explicit reopen records a separate cycle",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-07",
+      "title": "Project deletion is blocked before mutation when any completion record exists",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-08",
+      "title": "Reopened stage history cannot be deleted by a later project edit",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-09",
+      "title": "Repeated completed project edits do not create duplicate history or change IDs",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-10",
+      "title": "Optional completion snapshots roundtrip through unchanged schema11 serialization",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-11",
+      "title": "Oversized history is rejected before reopening instead of losing the completed record",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-12",
+      "title": "Pending stage removal and automatic completion remain available",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-13",
+      "title": "New rolling occurrences do not inherit the source task completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-01",
+      "title": "Project completion modal locks checks; explicit reopen stores history and rolls back failed save",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-03",
+      "title": "General status/save guards protect completed records; new clones do not copy history",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-02",
+      "title": "General completed-task edit uses a read-only view and explicit reopen retains prior record",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-01",
+      "title": "Completed current task defeats an older planned backup even with incoming choice",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-02",
+      "title": "Completion history cannot be removed, edited or duplicated by merge or restore",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-03",
+      "title": "Same ID equal content ignores key order; new tasks are added once",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-04",
+      "title": "Different content is a conflict; selected ordinary edits retain unknown fields",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-05",
+      "title": "Project stages, protected task IDs and attachment refs remain linked on conflict",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-06",
+      "title": "Generated keys cannot add a second task ID or resurrect a durable lock",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-07",
+      "title": "Attachment ID metadata conflicts cannot replace current file refs",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-08",
+      "title": "Malformed JSON, missing collections, invalid schema, dates, IDs and history are refused",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-09",
+      "title": "Dangling project, task and attachment refs and inline file bytes are refused before writing",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-10",
+      "title": "Restore warns about removals but retains omitted completed tasks and unknown root fields",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-11",
+      "title": "Cancel and stale review do not call snapshot, publish or persistence",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-12",
+      "title": "Snapshot must be durable first; committed state equals reviewed result",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-13",
+      "title": "Snapshot failure and changes during snapshot preparation abort before any data write",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-14",
+      "title": "Write failure preserves memory and exposes recovery-required status without success",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-15",
+      "title": "Restore needs separate confirmation and forged reviews are rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-01",
+      "title": "Actual import file picker previews differences and cancel changes nothing",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-02",
+      "title": "Confirmed local import stores recovery first and failures display recovery-required",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-03",
+      "title": "Successful merge matches preview and stale UI cannot apply an obsolete review",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-04",
+      "title": "Recovery preparation cannot write a previous account snapshot into another account cache",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-01",
+      "title": "MOCK cloud preview is read-only; approval saves exact result and preserves history",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-02",
+      "title": "MOCK queued remote edits and account changes invalidate the reviewed baseline",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-03",
+      "title": "MOCK codec field loss is surfaced as validation errors before any snapshot or write",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-04",
+      "title": "MOCK partial cloud commit has no offline fallback, no publish and blocks further saves",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-05",
+      "title": "MOCK import transactions compare remote create, update, delete and key-lock baselines before writes",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-06",
+      "title": "MOCK durable generated-key locks and fresh plan verification prevent recurring-task resurrection",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-07",
+      "title": "MOCK checklist-only import checks the parent task for a new remote completion",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-08",
+      "title": "MOCK late unrelated remote changes are kept and reported as recovery-required",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-01",
+      "title": "Normalize existing compact and separated inputs without Date rollover",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-02",
+      "title": "Reject invalid dates, timestamps and missing inputs with explicit errors",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-03",
+      "title": "Gregorian leap centuries and month ends are explicit",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-04",
+      "title": "Signed day offsets cross leap days, month and year boundaries reversibly",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-05",
+      "title": "Invalid offsets and out-of-range results fail instead of truncating or rolling over",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-06",
+      "title": "Weekends and registered holidays are recognized without external state",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-07",
+      "title": "Business offsets exclude the start and skip consecutive holidays in both directions",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-08",
+      "title": "Previous/next shifts are inclusive, idempotent and honor consecutive holidays",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-09",
+      "title": "All-holiday calendars terminate at the exact iteration budget",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-10",
+      "title": "Calendar and loop limits cannot disable the safety boundary",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-01",
+      "title": "DateOnly and project facade return identical golden dates in UTC",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-02",
+      "title": "DateOnly and project facade return identical golden dates in Asia/Seoul",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-03",
+      "title": "DateOnly and project facade return identical golden dates in Pacific/Kiritimati",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-04",
+      "title": "DateOnly and project facade return identical golden dates in America/New_York",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-11",
+      "title": "Engine runs without browser, clock, randomness or network capabilities",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-12",
+      "title": "Legacy holiday Date callbacks and absent callbacks retain their original meaning",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-13",
+      "title": "Project holiday searches fail safely without modifying the source draft",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-14",
+      "title": "Created and edited schema11 projects retain IDs, completion history and file references",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-UI-01",
+      "title": "Browser script order supports real project create/edit with stable task IDs",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-01",
+      "title": "Completed anchor is restored before a four-stage cascade and invalid draft validation",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-02",
+      "title": "Actual completion date never replaces the persisted planned end",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-03",
+      "title": "An active parent edit flows through all active successors",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-04",
+      "title": "A completed middle stage stops upstream changes and anchors its own successor",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-05",
+      "title": "Signed start/end offsets use the same anchor across year boundaries",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-06",
+      "title": "Leap month ends, business duration and consecutive holiday shifts keep their rule meanings",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-07",
+      "title": "Completed planned end stays fixed even when the holiday calendar later changes",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-08",
+      "title": "Legacy missing offsets derive from saved stages before editing an active parent",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-09",
+      "title": "Moving completed stages and adding a stage preserve existing IDs and locked records",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-10",
+      "title": "Repeated calculations are idempotent and schema11 preserves history and attachment IDs",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-11",
+      "title": "A later invalid interval aborts all mutations in apply, normalize and reconcile",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-12",
+      "title": "Missing completed anchors and duplicate task links fail instead of inventing history",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-13",
+      "title": "Explicit reopen permits recalculation while its previous completion snapshot remains intact",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-01",
+      "title": "Locked project cascade is identical in UTC",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-02",
+      "title": "Locked project cascade is identical in Asia/Seoul",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-03",
+      "title": "Locked project cascade is identical in Pacific/Kiritimati",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-01",
+      "title": "Completed editor is locked; relative edits display the saved result and cancel writes nothing",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-02",
+      "title": "Start/end edits, add and reorder update previews before saving; invalid dates disable save",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-03",
+      "title": "Library registration retains business-day creation and stored calendar offsets on project edits",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-01",
+      "title": "Canonical frequencies and legacy half resolve without rewriting source fields",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-02",
+      "title": "cycleMonths and selectedMonths retain their filter meaning and equal aliases agree",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-03",
+      "title": "Conflicting aliases and malformed rule values fail without partially accepting data",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-04",
+      "title": "Template precedence is explicit and warns; missing fields fall back to nested task rules",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-05",
+      "title": "Weekly generation honors every selected weekday and does not realign the stored root",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-06",
+      "title": "Missing weekly day defaults to anchor weekday; empty month arrays keep unrestricted months",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-07",
+      "title": "Half and semiannual produce the same leap-aware, month-end dates",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-08",
+      "title": "Monthly clamping preserves the original day after February and selected-month alignment",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-09",
+      "title": "Quarterly and yearly preserve month-end cadence and leap-day anniversary",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-10",
+      "title": "End boundary is inclusive, explicit no-end wins over stale legacy end, rolling stays three months",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-11",
+      "title": "Holiday shift retains raw occurrence identity and does not generate visible dates beyond end",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-12",
+      "title": "Existing completed, reopened and manually moved occurrences remain byte-for-byte unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-13",
+      "title": "Existing root/history and inherited holiday marker are preserved; new shifted clones use raw dates",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-14",
+      "title": "Bad rules, dates and ends produce diagnostics and no source writes",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-15",
+      "title": "Explicit end-choice handler does not delete or rewrite any existing generated occurrence",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-16",
+      "title": "Schema11 roundtrip preserves recurrence source fields, scheduled dates and file references",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-17",
+      "title": "Pure planner uses no browser, implicit clock, randomness or input mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-01",
+      "title": "Recurrence raw and shifted dates match in UTC",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-02",
+      "title": "Recurrence raw and shifted dates match in Asia/Seoul",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-03",
+      "title": "Recurrence raw and shifted dates match in Pacific/Kiritimati",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-UI-01",
+      "title": "Browser module loads and repeated rendering preserves completed history and existing dates",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-01",
+      "title": "Keys are deterministic, namespace-separated and based on raw date",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-02",
+      "title": "Different roots using the same template and date both get distinct recurrence keys",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-03",
+      "title": "Holiday-collapsed weekdays keep two raw slots and two distinct keys",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-04",
+      "title": "Planning is pure and applying twice adds nothing while preserving manual/history records",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-05",
+      "title": "Keyless legacy mapping requires a trustworthy origin and raw date, preserves all other fields",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-06",
+      "title": "Ambiguous legacy dates stop that root without deleting, merging or overwriting records",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-07",
+      "title": "Foreign key ownership and duplicate legacy slots are reported without destructive resolution",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-08",
+      "title": "Existing normal key remains intact and its raw-slot alias suppresses later recreation",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-09",
+      "title": "Deleted cloud locks and local reserved keys both prevent resurrection",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-10",
+      "title": "Codec preserves exact keys and server generatedKeys locks after task removal",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-11",
+      "title": "Stale, cross-workspace and tampered plans are rejected before mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-12",
+      "title": "Registration save creates and persists a single batch, concurrent supplement calls share it",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-13",
+      "title": "Independent ready procedure waits for sync and extends an existing rolling series",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-14",
+      "title": "Failed persistence is not success; generated memory is rolled back and unsafe retries blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-15",
+      "title": "Failure during concurrent editing never overwrites the newer user change",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-16",
+      "title": "Recurrence installer leaves renderer untouched, even with a due ungenerated schedule",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-17",
+      "title": "Cloud read-only context exposes workspace and surviving locks without auth or writes (MOCK)",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-18",
+      "title": "A dense weekly rolling plan is applied completely; a second plan adds zero",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-19",
+      "title": "An existing legacy key with foreign cloud ownership is reported and never rewritten",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-UI-01",
+      "title": "Real browser render paths generate no tasks, keys or saves before explicit supplementation",
+      "status": "PASS"
+    }
+  ]
+}

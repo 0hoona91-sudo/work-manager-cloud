@@ -63,16 +63,18 @@ function loadCloud() {
   vm.runInContext(selected.map(n => source.slice(n.start, n.end)).join('\n'), ctx, { timeout: 2000 });
   return vm.runInContext('({serializeState, deserializeState, mergeById, setShadow: maps => { shadowMaps = maps; }})', ctx);
 }
-function loadRecurrence(state) {
+function loadRecurrence(state, options = {}) {
   const source = read('js/project-ui.js');
   const matches = [];
   walk(parse(source), n => { if (n.type === 'FunctionDeclaration' && n.id?.name === 'installRollingRecurrencesV181') matches.push(n); });
   assert.equal(matches.length, 1, 'Recurrence extraction contract changed');
   let id = 0;
-  const ctx = context({ state, M: loadModel(), window: {WMDateOnly:require('../js/date-only.js'),WMRecurrenceRules:require('../js/recurrence-rules.js')}, document: { addEventListener() {} },
-    projectUid: prefix => `${prefix}-fixture-${++id}`, saveState: async () => {}, renderTaskTable() {} });
+  const events = {};
+  const ctx = context({ state, M: loadModel(), queueMicrotask, window: {WMDateOnly:require('../js/date-only.js'),WMRecurrenceRules:require('../js/recurrence-rules.js'),WMRecurrenceIdentity:require('../js/recurrence-identity.js'),addEventListener:(name,fn)=>{events[name]=fn;},...options.window}, document: { addEventListener() {} },
+    projectUid: prefix => `${prefix}-fixture-${++id}`, saveState: options.save || (async () => {}), renderTaskTable: options.render || (() => {}) });
   const node = matches[0];
   vm.runInContext(`(${source.slice(node.start, node.end)})();`, ctx, { timeout: 2000 });
+  if(options.harness)return {api:ctx.window.WMTaskRecurrenceV181,save:(...args)=>ctx.saveState(...args),render:()=>ctx.renderTaskTable(),window:ctx.window,events};
   return ctx.window.WMTaskRecurrenceV181;
 }
 module.exports = { root, read, plain, FIXED_NOW, parse, walk, blocks, loadModel, loadCloud, loadRecurrence };

@@ -36,7 +36,7 @@ async function main() {
   const backupOnly = process.argv.includes('--backups-only');
   const completionOnly = process.argv.includes('--completion-only');
   if (recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly) cases.length = 0;
-  for (const suite of (recurrenceOnly ? ['recurrence','recurrence-rules'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date','schedule','recurrence-rules'])) {
+  for (const suite of (recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date','schedule','recurrence-rules','recurrence-identity'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -60,8 +60,8 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: 'ea37aecb90d565bc0c791b63624b1834dfd16e99',
-    recurrenceSourceSha256: Object.fromEntries(['index.html','js/recurrence-rules.js','js/project-ui.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
+    refactorBase: '9c4ff82b702123220a9d809210fe0c31baf2535b',
+    recurrenceSourceSha256: Object.fromEntries(['index.html','js/recurrence-rules.js','js/recurrence-identity.js','js/project-ui.js','js/cloud-sync.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     scheduleSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     dateSourceSha256: Object.fromEntries(['index.html','js/date-only.js','js/project-model.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     backupSourceSha256: Object.fromEntries(['index.html','js/backup-safety.js','js/backup-ui.js','js/cloud-sync.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
@@ -72,7 +72,7 @@ async function main() {
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase5a-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase5b1-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }

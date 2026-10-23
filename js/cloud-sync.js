@@ -110,6 +110,7 @@ let remoteApplyTimer = 0;
 let renderRemote = null;
 let localOnly = false;
 let needsInitialUpload = false;
+let recurrenceReady = false;
 let lastSyncAt = null;
 const driveObjectUrls = new Map();
 const DRIVE_TOKEN_SESSION_KEY = "workManagerDriveSessionV23";
@@ -848,6 +849,11 @@ function controller() {
     get workspaceKey() { return workspaceProfile?.workspace?.firebaseConfig?.projectId || (localOnly ? "local-preview" : "workspace"); },
     get mode() { return localOnly ? "local" : "cloud"; },
     hasDriveAccess() { return localOnly || hasBuildingDriveToken(); },
+    get recurrenceContext() {
+      return { scope: workspaceProfile?.workspace?.firebaseConfig?.projectId || '',
+        ready: recurrenceReady && active && Boolean(currentUser) && !needsInitialUpload,
+        locks: [...recordMaps.generatedKeys.values()].map(clone) };
+    },
     stableTaskId: stableKeyId,
     activate,
     save,
@@ -873,6 +879,7 @@ function controller() {
 }
 
 async function activate({ onRemote } = {}) {
+  recurrenceReady = false;
   renderRemote = onRemote || null;
   active = true;
   if (localOnly) return;
@@ -895,6 +902,7 @@ async function activate({ onRemote } = {}) {
   } else {
     setSyncStatus(navigator.onLine ? "online" : "offline", navigator.onLine ? "최신 상태" : "오프라인");
   }
+  recurrenceReady = true;
 }
 
 function applySnapshotChanges(name, snapshot) {

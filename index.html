@@ -1727,7 +1727,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261021-privacy-clean-v1');
+  const cloud=await import('./js/cloud-sync.js?v=20261023-phase5b1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -2254,7 +2254,7 @@ migrateStateV2=function(){migrateStateV2Original();state.settings=state.settings
 
 (async()=>{try{await loadState();migrateStateV2();initSelectors();bind();bindCloudUi();renderHome();renderTaskTable();renderDbTable();renderHolidays();renderHistory();renderSettings();await window.cloudSync?.activate({onRemote:()=>{
   renderCategoryMulti();renderHome();renderTaskTable();renderDbTable();renderHolidays();renderHistory();renderSettings();
-}});}catch(err){console.error('앱 시작 실패',err)}})();
+}});window.__RECURRENCE_DATA_READY__=true;window.dispatchEvent(new Event('wm-data-ready'));}catch(err){console.error('앱 시작 실패',err)}})();
 
 // ========================= APP V4 OVERRIDES =========================
 function ganttWindowV4(selectedStart,selectedEnd,scale){
@@ -3491,9 +3491,11 @@ const migrateStateV8Base=migrateStateV2;
 migrateStateV2=function(){migrateStateV8Base();migrateV8Data()};
 
 function ownerProfileV8(name){
-  migrateV8Data();
   if(!name)return{mark:'',color:'#EEF3EF'};
-  return state.settings.ownerProfiles[name]||{mark:'👤',color:'#E4ECE6'};
+  const existing=state.settings?.ownerProfiles?.[name];
+  if(existing)return existing;
+  const index=(state.owners||[]).filter(Boolean).indexOf(name);
+  return index<0?{mark:'👤',color:'#E4ECE6'}:{mark:V8_OWNER_MARKS[index%V8_OWNER_MARKS.length],color:V8_OWNER_COLORS[index%V8_OWNER_COLORS.length]};
 }
 function ownerDisplayV8(name,showName=true){
   if(!name)return'<span class="owner-empty">미지정</span>';
@@ -3672,7 +3674,7 @@ function taskListVisibleV8(){
   return taskListVisibleV6();
 }
 function renderTaskTable(){
-  ensureV7Ui();migrateV8Data();
+  ensureV7Ui();
   const th=$('#taskListPage .datatable thead tr');
   if(th)th.innerHTML='<th><input type="checkbox" id="selectAllTasks" title="현재 화면 전체선택"></th><th>긴급</th><th>구분</th><th>업무명</th><th>담당자</th><th>진행 월/분기/반기</th><th>일정 </th><th>반복</th><th>상태</th><th>비고</th>';
   const arr=taskListVisibleV8();
@@ -3697,7 +3699,7 @@ function renderTaskTable(){
 }
 
 function renderDbTable(){
-  ensureV7Ui();migrateV8Data();
+  ensureV7Ui();
   const th=$('#dbPage .datatable thead tr');
   if(th)th.innerHTML='<th>연번</th><th>구분</th><th>업무명</th><th>담당자</th><th>진행 주기</th><th>자동등록</th><th>연계 관계</th><th>비고</th><th></th>';
   const q=$('#dbSearch').value.trim().toLowerCase();
@@ -3989,7 +3991,7 @@ function bindDbSelectionsV10(arr){
 }
 
 function renderDbTable(){
-  ensureV7Ui();migrateV8Data();ensureDbRegisterUiV10();
+  ensureV7Ui();ensureDbRegisterUiV10();
   const th=$('#dbPage .datatable thead tr');
   if(th)th.innerHTML='<th class="db-select-cell"><input type="checkbox" id="dbSelectAll" title="현재 DB 목록 전체선택"></th><th>연번</th><th>구분</th><th>업무명</th><th>담당자</th><th>진행 주기</th><th>자동등록</th><th>연계 관계</th><th>비고</th><th></th>';
   const arr=dbVisibleRowsV10();
@@ -12118,7 +12120,8 @@ requestAnimationFrame(()=>{
 <script src="./js/date-only.js?v=20261023-phase4a"></script>
 <script src="./js/project-model.js?v=20261023-phase4b"></script>
 <script src="./js/recurrence-rules.js?v=20261023-phase5a"></script>
-<script src="./js/project-ui.js?v=20261023-phase5a"></script>
+<script src="./js/recurrence-identity.js?v=20261023-phase5b1"></script>
+<script src="./js/project-ui.js?v=20261023-phase5b1"></script>
 
 <style id="google-tasks-v15-css">
 #taskListPage .pagehead{gap:12px;flex-wrap:wrap}
