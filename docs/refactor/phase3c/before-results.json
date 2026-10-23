@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-10-23T09:07:32.717Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "468bf5a11ea807586c2ae0a1c6c234def6f43590",
+  "credentialSourceSha256": "d6fe6a52171774da951e1751a8ba8983c8ed7bae723ba13f41eca5ee480be109",
+  "attachmentSourceSha256": "b9fcafcb1e1ed736624ee8447abbc14a77a14cda3a5ed51e2c1abaf1615abac5",
+  "checkoutHead": "7da8ed981605931c1f31a2d72f3e5e07542ef474",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 23,
+  "counts": {
+    "PASS": 6,
+    "FAIL": 13,
+    "XFAIL": 4,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "MODEL-01",
+      "title": "Date normalization accepts compact dates and leap day, rejects invalid day",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "title": "Stage end counts working days and shifts holiday deadlines",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "title": "Legacy absolute stage dates become stable relative offsets",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "title": "Unchanged completed stage retains its dates and completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "title": "Explicit checklist completion and reopen update only the target task",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-03",
+      "title": "Dependent stage dates must use the preserved completed stage anchor",
+      "expected": [
+        "2026-01-01",
+        "2026-01-03"
+      ],
+      "observed": [
+        "2026-01-01",
+        "2026-01-12"
+      ],
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-04",
+      "title": "Adding a new checklist item must not silently reopen completed history",
+      "expected": [
+        "done",
+        "2026-10-23"
+      ],
+      "observed": [
+        "progress",
+        null
+      ],
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-05",
+      "title": "Deleting a stage must retain its completed task history",
+      "expected": {
+        "retained": true,
+        "deleted": []
+      },
+      "observed": {
+        "retained": false,
+        "deleted": [
+          "task-b"
+        ]
+      },
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-06",
+      "title": "Negative stage offsets must be timezone independent (UTC+14)",
+      "expected": "2026-01-09",
+      "observed": "2026-01-08",
+      "source": "js/project-model.js / phase1 evidence/timezone-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "HIST-01",
+      "title": "Completed checklist text, date, participants and attachment refs survive stage edits",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    actualComplete: '2026-01-01',\n    category: 'fixture-category',\n    checklist: [\n      {\n...\n        owner: 'fixture-owner',\n+       text: 'Changed'\n-       text: 'Original record'\n      }\n    ],\n    dbAuto: false,\n    deadline: '2026-01-01',\n    end: '2026-01-01',\n...\n    ],\n+   projectResources: [],\n-   projectResources: [\n-     {\n-       driveFileId: 'synthetic-file',\n-       id: 'resource-a',\n-       mimeType: 'application/pdf',\n-       name: 'fixture.pdf'\n-     }\n-   ],\n    projectStageId: 'a',\n    projectStageOrder: 1,\n    repeat: null,\n    seriesId: null,\n+   start: '2026-09-01',\n-   start: '2026-01-01',\n    status: 'done',\n    templateId: null\n  }\n\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:18:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-02",
+      "title": "Whole project edits preserve the completed task and stage without input mutation",
+      "status": "FAIL",
+      "error": "SyntaxError: \"undefined\" is not valid JSON\n    at JSON.parse (<anonymous>)\n    at plain (/workspace/work-manager-cloud/tests/helpers.cjs:9:29)\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:24:22)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-03",
+      "title": "Completed checklist cannot reopen a task implicitly",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:30:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-04",
+      "title": "Explicit reopen appends a detached snapshot once, preserving IDs and attachments",
+      "status": "FAIL",
+      "error": "TypeError: M.reopenTask is not a function\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:35:20)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-05",
+      "title": "Reopened all-checked tasks do not auto-complete during an ordinary project save",
+      "status": "FAIL",
+      "error": "TypeError: M.reopenTask is not a function\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:44:44)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-06",
+      "title": "Active checklist completion works and a second explicit reopen records a separate cycle",
+      "status": "FAIL",
+      "error": "TypeError: M.reopenTask is not a function\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:50:51)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-07",
+      "title": "Project deletion is blocked before mutation when any completion record exists",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:60:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-08",
+      "title": "Reopened stage history cannot be deleted by a later project edit",
+      "status": "FAIL",
+      "error": "TypeError: M.reopenTask is not a function\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:64:44)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-09",
+      "title": "Repeated completed project edits do not create duplicate history or change IDs",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    actualComplete: '2026-01-01',\n    category: 'fixture-category',\n    checklist: [\n      {\n...\n    manualOverride: true,\n+   name: 'Project 2-1단계[a]',\n-   name: 'Fixture project-1단계[a]',\n    notes: 'Original performance note',\n    owner: 'fixture-owner',\n    periodLabel: '프로젝트',\n    projectId: 'fixture-project',\n    projectManager: 'fixture-owner',\n\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:72:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-10",
+      "title": "Optional completion snapshots roundtrip through unchanged schema11 serialization",
+      "status": "FAIL",
+      "error": "TypeError: M.reopenTask is not a function\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:76:36)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-11",
+      "title": "Oversized history is rejected before reopening instead of losing the completed record",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /이력.*용량/. Input:\n\n'TypeError: M.reopenTask is not a function'\n\n    at Object.run (/workspace/work-manager-cloud/tests/completion.test.cjs:85:12)\n    at main (/workspace/work-manager-cloud/tests/run.cjs:47:27)"
+    },
+    {
+      "id": "HIST-12",
+      "title": "Pending stage removal and automatic completion remain available",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-01",
+      "title": "Project completion modal locks checks; explicit reopen stores history and rolls back failed save",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at /workspace/work-manager-cloud/tests/completion.test.cjs:98:14\n    at async withPage (/workspace/work-manager-cloud/tests/browser.test.cjs:51:5)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:47:16)"
+    },
+    {
+      "id": "HIST-UI-02",
+      "title": "General completed-task edit uses a read-only view and explicit reopen retains prior record",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at /workspace/work-manager-cloud/tests/completion.test.cjs:111:14\n    at async withPage (/workspace/work-manager-cloud/tests/browser.test.cjs:51:5)\n    at async main (/workspace/work-manager-cloud/tests/run.cjs:47:16)"
+    }
+  ]
+}

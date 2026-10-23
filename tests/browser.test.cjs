@@ -91,3 +91,4 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
       assert.equal(await page.evaluate(() => JSON.stringify(state.tasks)), before);
     }));
 };
+module.exports.withPage = withPage;

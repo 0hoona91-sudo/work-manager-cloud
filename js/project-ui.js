@@ -351,11 +351,16 @@ function bindStageControls(root){
   $p('#prj-move-left',root).onclick=()=>moveActive(activeStage-1);
   $p('#prj-move-right',root).onclick=()=>moveActive(activeStage+1);
   $p('#prj-remove-stage',root).onclick=()=>{
+    if(M.hasCompletionHistory(projectStageTask(editor.id,s.id))){alert('완료 이력이 있는 단계는 삭제할 수 없습니다. 원본 단계를 유지해 주세요.');return;}
     if(editor.stages.length<=1){alert('프로젝트에는 최소 1개 단계가 필요합니다.');return;}
     if(!confirm(`'${s.title||`${activeStage+1}단계`}'를 정말 삭제할까요?\n해당 단계의 수행업무와 체크리스트도 삭제되고 뒤의 단계가 앞으로 당겨집니다.`))return;
     s.resources.forEach(item=>pendingFiles.delete(item.id));
-    M.removeStep(editor,activeStage);activeStage=Math.min(activeStage,editor.stages.length-1);setDirty();renderTabs();renderStage();
+    M.removeStep(editor,activeStage,state.tasks);activeStage=Math.min(activeStage,editor.stages.length-1);setDirty();renderTabs();renderStage();
   };
+  if(M.isCompleted(projectStageTask(editor.id,s.id))){
+    const note=document.createElement('p');note.textContent='완료 단계의 수행 기록은 보호됩니다. 내용을 변경하려면 단계 상세에서 명시적으로 재개해 주세요.';root.prepend(note);
+    $$p('input,select,textarea,button',root).filter(el=>!el.matches('[data-prj-open-resource],#prj-move-left,#prj-move-right')).forEach(el=>el.disabled=true);
+  }
 }
 function moveActive(to){if(M.moveStep(editor,activeStage,to)){activeStage=to;setDirty();renderTabs();renderStage();}}
 async function openResource(ref){
@@ -394,7 +399,7 @@ async function saveEditor(){
   try{
     // 정확하지 않은 날짜나 빈 단계명으로 원본 업로드를 시작하지 않는다.
     M.applyRelativeDates(editor,holidayCheck);
-    M.normalizeProject(editor,holidayCheck);
+    M.reconcile(state,M.normalizeProject(editor,holidayCheck),holidayCheck);
     await uploadPendingResources();
     const project=M.normalizeProject(editor,holidayCheck);
     before={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
@@ -411,6 +416,7 @@ async function saveEditor(){
 }
 async function deleteProject(){
   if(saving||!editor)return;
+  if(state.tasks.some(t=>t.projectId===editor.id&&M.hasCompletionHistory(t))){alert('완료 이력이 있는 프로젝트는 폐기할 수 없습니다. 원본 프로젝트를 유지해 주세요.');return;}
   if(!confirm(`'${editor.name}' 프로젝트와 연결된 모든 단계 업무를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`))return;
   const prior={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
   saving=true;
@@ -421,11 +427,65 @@ async function deleteProject(){
   }catch(error){state.projects=prior.projects;state.tasks=prior.tasks;alert(`프로젝트 삭제 실패: ${error?.message||error}`);}
   finally{saving=false;}
 }
+function completionHistoryHtml(task){
+  return (task.completionHistory||[]).map(record=>`<details class="completion-history"><summary>이전 완료일: ${escp(record.snapshot.actualComplete||'미기록')} · 재개: ${escp(record.reopenedAt)}</summary>${completionRecordHtml(record.snapshot)}</details>`).join('');
+}
+function completionRecordHtml(task){
+  return `<p><b>${escp(task.name)}</b> · 담당자: ${escp(task.owner||'미정')}</p><p>일정: ${escp(task.start)} ~ ${escp(task.end)} · 완료일: ${escp(task.actualComplete||'미기록')}</p>
+    <ul>${(task.checklist||[]).map(c=>`<li>${c.done?'☑':'☐'} ${escp(c.text)} · ${escp(c.owner||'')} · ${escp(c.dueDate||'')}</li>`).join('')}</ul>
+    <p>관련 공문: ${escp(task.relatedDocumentTitle||'없음')}</p><p style="white-space:pre-wrap">${escp(task.notes||'')}</p><p style="white-space:pre-wrap">${escp((task.methodBlocks||[]).filter(b=>b.type==='text').map(b=>b.text||'').join('\n')||task.method||'')}</p>`;
+}
+function bindCompletionResources(record,container){
+  if(!container)return;
+  const refs=[...(record.projectResources||[]),...(record.attachments||[]),...(record.methodBlocks||[]).filter(b=>b.type!=='text')];
+  for(const ref of refs){
+    const button=document.createElement('button');button.type='button';button.className='btn';button.textContent=ref.name||ref.caption||'첨부자료';
+    button.onclick=()=>void openResource(ref);container.appendChild(button);
+  }
+}
+function bindHistoryResources(task){
+  const body=$p('#modalRoot .modal-body');if(!body)return;
+  for(const [i,record] of (task.completionHistory||[]).entries())bindCompletionResources(record.snapshot,$$p('.completion-history',body)[i]);
+}
+async function reopenTaskWithHistory(task,button=null){
+  if(!M.isCompleted(task)||button?.disabled)return false;
+  if(!confirm('이전 완료 기록을 보존하고 이 업무를 진행 상태로 재개할까요?\n체크리스트와 첨부자료는 유지됩니다.'))return false;
+  const before=M.clone(task),project=projectById(task.projectId),projectBefore=project?M.clone(project):null;
+  const view=state.settings?.taskListViewV35;
+  if(button)button.disabled=true;
+  try{
+    M.reopenTask(task);
+    if(project)project.workflowClosedAtV174=null;
+    state.settings||={};state.settings.taskListViewV35='active';
+    recalcLinks();
+    await saveState({reason:'완료 이력 보존 · 명시적 업무 재개'});
+    closeModal();
+    if(typeof syncTaskViewUiV35==='function')syncTaskViewUiV35();
+    renderTaskTable();renderHome();renderProjectPage();
+    if(typeof applySidebarVisibilityV33==='function')applySidebarVisibilityV33();
+    toast('이전 완료 기록을 보존하고 업무를 재개했습니다.');
+    return true;
+  }catch(error){
+    for(const key of Object.keys(task))delete task[key];Object.assign(task,before);
+    if(project){for(const key of Object.keys(project))delete project[key];Object.assign(project,projectBefore);}
+    state.settings||={};if(view===undefined)delete state.settings.taskListViewV35;else state.settings.taskListViewV35=view;
+    recalcLinks();toast(error?.message||'재개 내용을 저장하지 못했습니다.');return false;
+  }finally{if(button?.isConnected)button.disabled=false;}
+}
+function completedTaskModal(task){
+  modal(escp(task.name),`<p>완료 기록은 읽기 전용입니다. 수정하려면 먼저 명시적으로 재개해 주세요.</p>${completionRecordHtml(task)}${completionHistoryHtml(task)}`,
+    '<button type="button" class="btn" id="duplicateTaskV119">업무 복제</button><button type="button" class="btn" id="prjReopenTask">이력 보존 후 재개</button><button class="btn" data-close>닫기</button>','small');
+  bindCompletionResources(task,$p('#modalRoot .modal-body'));
+  $p('#duplicateTaskV119').onclick=()=>void duplicateTaskV119(task.id);
+  $p('#prjReopenTask').onclick=event=>void reopenTaskWithHistory(task,event.currentTarget);
+  bindHistoryResources(task);
+}
 function projectTaskModal(task){
   const project=projectById(task.projectId),i=project?.stages.findIndex(s=>s.id===task.projectStageId)??-1;
   const stage=i>=0?project.stages[i]:null;
   if(!stage)return false;
   const checks=task.checklist||[];
+  const completed=M.isCompleted(task);
   const body=`<div class="prj-task-view"><p><b>${escp(project.name)}</b> · ${i+1}단계 · ${escp(task.start)} ~ ${escp(task.end||'')}</p>
     <div id="prj-task-status" class="prj-task-status">${checks.length?`${checks.filter(c=>c.done).length}/${checks.length}개 완료`:'체크리스트 없음'}</div>
     ${checks.length?`<div class="prj-task-checks">${checks.map(c=>`<label class="prj-task-check ${c.done?'checked':''}"><input type="checkbox" data-prj-complete="${escp(c.id)}" ${c.done?'checked':''}><span><b>${escp(c.text)}</b><small>담당자: ${escp(c.owner||'미정')} · 마감일: ${escp(c.dueDate||'미정')}</small></span></label>`).join('')}</div>`:'<p class="muted">체크리스트를 추가하면 모두 완료 시 이 단계만 자동 완료됩니다. 체크항목이 없는 단계는 수동으로 완료할 수 있습니다.</p>'}
@@ -433,11 +493,18 @@ function projectTaskModal(task){
     <label class="prj-soft-btn prj-stage-add-resource-v175">＋ 관련 자료 추가<input type="file" id="prjTaskAddResourceV175" multiple hidden></label>
     <small class="prj-resource-hint-v175">현재 단계에만 파일이 추가되며 다른 단계에는 영향을 주지 않습니다.</small>
     </div>`;
-  const footer=`<button type="button" class="btn" id="prjEditFromTask">프로젝트 수정</button>${!checks.length?`<button type="button" class="btn primary" id="prjManualComplete">${effectiveStatus(task)==='done'?'진행업무로 되돌리기':'이 단계 완료'}</button>`:''}<button type="button" class="btn" data-close>닫기</button>`;
-  modal(escp(task.name),body,footer,'small prj-task-modal');
+  const footer=`<button type="button" class="btn" id="prjEditFromTask">프로젝트 수정</button>${completed?'<button type="button" class="btn" id="prjReopenTask">이력 보존 후 재개</button>':!checks.length?'<button type="button" class="btn primary" id="prjManualComplete">이 단계 완료</button>':''}<button type="button" class="btn" data-close>닫기</button>`;
+  modal(escp(task.name),body+completionHistoryHtml(task),footer,'small prj-task-modal');
+  bindHistoryResources(task);
+  const reopen=$p('#prjReopenTask');if(reopen)reopen.onclick=event=>void reopenTaskWithHistory(task,event.currentTarget);
+  if(completed){
+    $$p('[data-prj-complete],#prjTaskAddResourceV175').forEach(el=>el.disabled=true);
+    const note=document.createElement('p');note.textContent='완료 단계는 읽기 전용입니다. 체크리스트·자료를 변경하려면 이력 보존 후 재개하세요.';$p('#modalRoot .modal-body').prepend(note);
+  }
   $p('#prjEditFromTask').onclick=()=>openEditor(project.id,stage.id);
   $$p('[data-task-resource]').forEach(b=>b.onclick=()=>{const ref=stage.resources.find(r=>r.id===b.dataset.taskResource);if(ref)void openResource(ref);});
   const addResource=$p('#prjTaskAddResourceV175');if(addResource)addResource.onchange=async event=>{
+    if(M.isCompleted(task))return;
     const files=[...(event.target.files||[])];if(!files.length)return;
     addResource.disabled=true;
     const savedBefore=M.clone(stage.resources||[]);
@@ -469,7 +536,7 @@ function projectTaskModal(task){
     }finally{addResource.disabled=false;}
   };
   $$p('[data-prj-complete]').forEach(input=>input.onchange=()=>{
-    M.setCheck(task,input.dataset.prjComplete,input.checked,todayISO());
+    if(!M.setCheck(task,input.dataset.prjComplete,input.checked,todayISO())){input.checked=Boolean(task.checklist.find(c=>c.id===input.dataset.prjComplete)?.done);return;}
     input.closest('.prj-task-check')?.classList.toggle('checked',input.checked);
     const status=$p('#prj-task-status');if(status)status.textContent=`${task.checklist.filter(c=>c.done).length}/${task.checklist.length}개 완료 · ${effectiveStatus(task)==='done'?'단계 완료':'진행 중'}`;
     // 모달/체크 입력은 재생성하지 않아 빠른 다중 체크가 누락되지 않는다.
@@ -477,7 +544,8 @@ function projectTaskModal(task){
     renderTaskTable();renderHome();renderProjectPage();
   });
   const manual=$p('#prjManualComplete');if(manual)manual.onclick=()=>{
-    task.status=effectiveStatus(task)==='done'?'progress':'done';task.actualComplete=task.status==='done'?todayISO():null;
+    if(M.isCompleted(task))return;
+    task.status='done';task.actualComplete=todayISO();
     void saveState({reason:'프로젝트 단계 수동 완료 변경'}).catch(error=>{console.error(error);toast('단계 상태 저장 실패');});
     renderTaskTable();renderHome();renderProjectPage();projectTaskModal(task);
   };
@@ -488,13 +556,23 @@ const baseOpenChecklist=openChecklist;
 openChecklist=function(id){
   const task=state.tasks.find(t=>t.id===id);
   if(task?.projectId){projectTaskModal(task);return;}
-  return baseOpenChecklist(id);
+  if(M.isCompleted(task)){completedTaskModal(task);return;}
+  const result=baseOpenChecklist(id);
+  if(task?.completionHistory?.length){$p('#modalRoot .modal-body')?.insertAdjacentHTML('beforeend',completionHistoryHtml(task));bindHistoryResources(task);}
+  return result;
 };
 const baseOpenTaskForm=openTaskForm;
 openTaskForm=function(id=null){
   const task=id?state.tasks.find(t=>t.id===id):null;
   if(task?.projectId){openEditor(task.projectId,task.projectStageId);return;}
-  return baseOpenTaskForm(id);
+  if(M.isCompleted(task)){completedTaskModal(task);return;}
+  const result=baseOpenTaskForm(id);
+  const save=$p('#saveTask'),original=save?.onclick;
+  if(save)save.onclick=function(...args){
+    if(M.isCompleted(state.tasks.find(t=>t.id===id))){toast('완료 기록은 보호됩니다. 이력 보존 후 재개해 주세요.');return;}
+    return original?.apply(this,args);
+  };
+  return result;
 };
 const baseShowPage=showPage;
 showPage=function(id){
@@ -937,6 +1015,7 @@ function installRollingRecurrencesV181(){
         if(limit&&start>limit)break;
         const end=addDays(start,Math.max(0,duration));
         const clone=M.clone(root);
+        delete clone.completionHistory;
         clone.id=projectUid('task');clone.start=start;clone.end=end;clone.deadline=end;
         clone.repeatGeneratedV181=true;clone.repeatOriginV181=root.id;clone.repeatScheduledDateV181=start;
         clone.repeatUntilV181=limit;clone.status='planned';clone.actualComplete=null;
@@ -1139,5 +1218,5 @@ function installNavAndHomeHolidayEnhancementsV182(){
 }
 installNavAndHomeHolidayEnhancementsV182();
 
-window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility};
+window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility,reopenTaskWithHistory};
 })();

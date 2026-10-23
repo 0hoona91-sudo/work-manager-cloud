@@ -7,6 +7,21 @@
   'use strict';
   const id = (prefix) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,11)}`;
   const clone = (item) => JSON.parse(JSON.stringify(item));
+  const isCompleted = task => Boolean(task && (task.status==='done'||task.actualComplete));
+  const hasCompletionHistory = task => isCompleted(task)||Boolean(task?.completionHistory?.length);
+  function completionDeletionError(){return new Error('완료 이력이 있는 단계 또는 프로젝트는 삭제할 수 없습니다. 이력 보관 정책이 마련될 때까지 원본을 유지해 주세요.');}
+  function reopenTask(task,reopenedAt=new Date().toISOString()){
+    if(!isCompleted(task))return false;
+    if(task.completionHistory!==undefined&&!Array.isArray(task.completionHistory))throw new Error('완료 이력 형식을 확인해 주세요.');
+    const {completionHistory=[],...snapshot}=clone(task);
+    const history=[...completionHistory,{id:`${task.id}:completion:${completionHistory.length+1}`,reopenedAt,snapshot}];
+    // Do not risk dropping a record to fit Firestore's document limit. No truncation.
+    if(new TextEncoder().encode(JSON.stringify({...task,completionHistory:history})).length>512*1024)
+      throw new Error('완료 이력 용량이 큽니다. 별도 보관 방식을 마련하기 전에는 재개할 수 없습니다.');
+    task.completionHistory=history;
+    task.status='progress';task.actualComplete=null;
+    return true;
+  }
   // 프로젝트의 모든 날짜 입력에서 공통 사용. 내부 저장은 YYYY-MM-DD로 유지한다.
   // YYYYMD(202691), YYYYMDD(2026926), YYYYMMDD 및 구분자 입력을 지원한다.
   // 7자리의 10~12월(예: 2026101)은 두 자리 월을 우선한다.
@@ -45,9 +60,10 @@
     return {id:id('project'), name:'', category:'',manager:'',start:now,end:'',stages:[freshStep()],createdAt:new Date().toISOString(),updatedAt:''};
   }
   function addStep(project){ project.stages.push(freshStep()); return project.stages.length-1; }
-  function removeStep(project,index){
+  function removeStep(project,index,tasks=[]){
     if (project.stages.length<=1) throw new Error('프로젝트에는 단계가 최소 1개 필요합니다.');
     if(index<0 || index>=project.stages.length) throw new Error('삭제할 단계가 없습니다.');
+    if(tasks.some(t=>t.projectId===project.id&&t.projectStageId===project.stages[index].id&&hasCompletionHistory(t)))throw completionDeletionError();
     return project.stages.splice(index,1)[0];
   }
   function moveStep(project,from,to) {
@@ -156,6 +172,7 @@
     return (step.checklist||[]).map(c=>({...c,done:lookup.has(c.id)?Boolean(lookup.get(c.id).done):Boolean(c.done)}));
   }
   function buildStageTask(project,step,index,previous,holidayCheck){
+    if(isCompleted(previous))return clone(previous);
     const old=previous||{};
     const oldChecks=existingCheckMap(previous);
     const checks=(step.checklist||[]).map(c=>({
@@ -163,13 +180,11 @@
     }));
     const end=stageEnd(step,holidayCheck);
     const isDone=checks.length>0&&checks.every(c=>c.done);
-    const hasChangedChecks=old.checklist?.length!==checks.length || (old.checklist||[]).some(c=>!checks.some(x=>x.id===c.id));
     let status=old.status||'planned',actualComplete=old.actualComplete||null;
     if(checks.length){
-      // 프로젝트 단계 체크리스트가 있으면 해당 단계만 자동으로 완료/재개된다.
-      if(isDone){status='done';actualComplete=actualComplete||new Date().toISOString().slice(0,10);}
-      else if(status==='done'||actualComplete){status='progress';actualComplete=null;}
-    } else if(hasChangedChecks && (status==='done'||actualComplete)) {status='progress';actualComplete=null;}
+      // Reopening is explicit. A later project save must not undo that command.
+      if(isDone&&!old.completionHistory?.length){status='done';actualComplete=actualComplete||new Date().toISOString().slice(0,10);}
+    }
     return {...old,
       id:step.taskId,projectId:project.id,projectStageId:step.id,projectStageOrder:index+1,
       name:visibleStage(project,step,index),category:project.category,owner:step.participants[0]||project.manager,
@@ -180,9 +195,12 @@
     };
   }
   function reconcile(state, project, holidayCheck){
+    project=clone(project);
     const allTasks=state.tasks||[], oldProjects=state.projects||[];
     const oldProject=oldProjects.find(p=>p.id===project.id);
     const projectTaskSet=new Map(allTasks.filter(t=>t.projectId===project.id).map(t=>[t.projectStageId,t]));
+    const proposedIds=new Set(project.stages.map(s=>s.id));
+    if(allTasks.some(t=>t.projectId===project.id&&!proposedIds.has(t.projectStageId)&&hasCompletionHistory(t)))throw completionDeletionError();
     // Completed stages are historical records: preserve dates even if the
     // project's overall schedule or a template is edited afterwards.
     const oldStageMap=new Map((oldProject?.stages||[]).map(step=>[step.id,step]));
@@ -190,12 +208,9 @@
       const previousTask=projectTaskSet.get(step.id);
       const originalStage=oldStageMap.get(step.id);
       if(!previousTask||!(previousTask.status==='done'||previousTask.actualComplete)||!originalStage)continue;
-      step.start=originalStage.start;
-      step.endType=originalStage.endType;
-      step.endDate=originalStage.endDate;
-      step.afterDays=originalStage.afterDays;
-      step.includeHolidays=originalStage.includeHolidays;
-      step.holidayShift=originalStage.holidayShift;
+      for(const key of Object.keys(step))delete step[key];
+      Object.assign(step,clone(originalStage));
+      step.taskId=previousTask.id;
     }
     const stageIds=new Set(project.stages.map(s=>s.id));
     const deleted=allTasks.filter(t=>t.projectId===project.id&&!stageIds.has(t.projectStageId));
@@ -208,6 +223,7 @@
     return result;
   }
   function setCheck(task,checkId,done,completedDate){
+    if(isCompleted(task))return false;
     const check=(task?.checklist||[]).find(c=>c.id===checkId);
     if(!check)return false;
     check.done=Boolean(done);
@@ -216,9 +232,11 @@
     }else{task.status='progress';task.actualComplete=null;}
     return true;
   }
-  function removeProject(state,projectId){return {
+  function removeProject(state,projectId){
+    if((state.tasks||[]).some(t=>t.projectId===projectId&&hasCompletionHistory(t)))throw completionDeletionError();
+    return {
     projects:(state.projects||[]).filter(p=>p.id!==projectId),
     tasks:(state.tasks||[]).filter(t=>t.projectId!==projectId)
   };}
-  return {id,clone,date,freshStep,freshProject,addStep,removeStep,moveStep,stageEnd,initializeRelativeDates,applyRelativeDates,normalizeProject,visibleStage,checksForEdit,buildStageTask,reconcile,setCheck,removeProject};
+  return {id,clone,date,isCompleted,hasCompletionHistory,reopenTask,freshStep,freshProject,addStep,removeStep,moveStep,stageEnd,initializeRelativeDates,applyRelativeDates,normalizeProject,visibleStage,checksForEdit,buildStageTask,reconcile,setCheck,removeProject};
 });

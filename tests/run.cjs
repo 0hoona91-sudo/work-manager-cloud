@@ -30,8 +30,9 @@ async function main() {
   });
   const attachmentOnly = process.argv.includes('--attachments-only');
   const credentialOnly = process.argv.includes('--credentials-only');
-  if (attachmentOnly || credentialOnly) cases.length = 0;
-  for (const suite of (credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential'])) {
+  const completionOnly = process.argv.includes('--completion-only');
+  if (attachmentOnly || credentialOnly || completionOnly) cases.length = 0;
+  for (const suite of (completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -55,14 +56,15 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: '468bf5a11ea807586c2ae0a1c6c234def6f43590',
+    refactorBase: '7da8ed981605931c1f31a2d72f3e5e07542ef474',
+    completionSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file, createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     credentialSourceSha256: createHash('sha256').update(fs.readFileSync(path.join(root, 'js/workspace-profile.js'))).digest('hex'),
     attachmentSourceSha256: createHash('sha256').update(fs.readFileSync(path.join(root, 'js/cloud-sync.js'))).digest('hex'),
     checkoutHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase3b-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase3c-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }

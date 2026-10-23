@@ -45,11 +45,14 @@ module.exports = ({ test, known }) => {
     assert.deepEqual(plain(next.tasks[0]), plain(state.tasks[0]));
     assert.deepEqual(plain(next.deletedTaskIds), []);
   });
-  test('MODEL-05', 'Explicit checklist completion and reopen update only the target task', () => {
+  test('MODEL-05', 'Checklist completion requires explicit history-preserving reopen before unchecking', () => {
     const M = loadModel(), task = { status: 'planned', actualComplete: null, checklist: [{ id: 'c', done: false }] };
     assert.equal(M.setCheck(task, 'missing', true, '2026-10-23'), false);
     M.setCheck(task, 'c', true, '2026-10-23');
     assert.equal(task.status, 'done'); assert.equal(task.actualComplete, '2026-10-23');
+    assert.equal(M.setCheck(task, 'c', false, '2026-10-23'), false);
+    M.reopenTask(task);
+    assert.equal(task.completionHistory[0].snapshot.actualComplete, '2026-10-23');
     M.setCheck(task, 'c', false, '2026-10-23');
     assert.equal(task.status, 'progress'); assert.equal(task.actualComplete, null);
   });
@@ -60,21 +63,24 @@ module.exports = ({ test, known }) => {
     const next = M.reconcile(state, M.normalizeProject(draft));
     return next.tasks.map(t => t.start);
   }, ['2026-01-01', '2026-01-03'], ['2026-01-01', '2026-01-12'], source);
-  known('BUG-04', 'Adding a new checklist item must not silently reopen completed history', () => {
+  test('BUG-04', 'Adding a new checklist item must not silently reopen completed history', () => {
     const { M, p } = setup();
     p.stages[0].checklist = [{ id: 'c1', text: 'Old', done: true }];
     const old = M.buildStageTask(p, p.stages[0], 0);
     p.stages[0].checklist.push({ id: 'c2', text: 'New', done: false });
     const next = M.buildStageTask(p, p.stages[0], 0, old);
-    return [next.status, next.actualComplete];
-  }, ['done', '2026-10-23'], ['progress', null], source);
-  known('BUG-05', 'Deleting a stage must retain its completed task history', () => {
+    assert.deepEqual([next.status, next.actualComplete], ['done', '2026-10-23']);
+    assert.deepEqual(plain(next),plain(old));
+  });
+  test('BUG-05', 'Deleting a completed stage is rejected and retains the original task history', () => {
     const { M, p, state } = setup();
     Object.assign(state.tasks[1], { status: 'done', actualComplete: '2026-01-03' });
     const draft = M.clone(p); M.removeStep(draft, 1);
-    const next = M.reconcile(state, M.normalizeProject(draft));
-    return { retained: next.tasks.some(t => t.id === 'task-b' && t.status === 'done'), deleted: plain(next.deletedTaskIds) };
-  }, { retained: true, deleted: [] }, { retained: false, deleted: ['task-b'] }, source);
+    const before=plain(state);
+    assert.throws(()=>M.reconcile(state, M.normalizeProject(draft)),/완료 이력/);
+    assert.deepEqual(plain(state),before);
+    assert.ok(state.tasks.some(t=>t.id==='task-b'&&t.status==='done'&&t.actualComplete==='2026-01-03'));
+  });
   known('BUG-06', 'Negative stage offsets must be timezone independent (UTC+14)', () => {
     const script = `const {loadModel}=require('./tests/helpers.cjs');const {project}=require('./tests/fixtures.cjs');
       const M=loadModel(),p=project();p.stages[0].start=p.stages[0].endDate='2026-01-10';

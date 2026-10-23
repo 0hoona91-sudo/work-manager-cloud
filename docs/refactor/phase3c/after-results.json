@@ -1,0 +1,541 @@
+{
+  "generatedAt": "2026-10-23T09:21:27.885Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "7da8ed981605931c1f31a2d72f3e5e07542ef474",
+  "completionSourceSha256": {
+    "index.html": "3c18afed0e780b1620364b94c12e58a81e767a3659d2ff6bf0a6930859ec5aa3",
+    "js/project-model.js": "60aa47c704ff798254dcdf27f1afad9df8fae6d75856cf1daaf73126e3838916",
+    "js/project-ui.js": "03642841735bb8e0773a59b9ef3b6ca5e60d73682e62c9b373369abbbb371674"
+  },
+  "credentialSourceSha256": "d6fe6a52171774da951e1751a8ba8983c8ed7bae723ba13f41eca5ee480be109",
+  "attachmentSourceSha256": "b9fcafcb1e1ed736624ee8447abbc14a77a14cda3a5ed51e2c1abaf1615abac5",
+  "checkoutHead": "7da8ed981605931c1f31a2d72f3e5e07542ef474",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 87,
+  "counts": {
+    "PASS": 77,
+    "FAIL": 0,
+    "XFAIL": 10,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "HARNESS-01",
+      "title": "Outcome gate rejects changed failure signatures and unexpected passes",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-01",
+      "title": "All production classic/module JavaScript parses in its actual mode",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-02",
+      "title": "Local imports and script/stylesheet references resolve except the tracked Tasks model",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-01",
+      "title": "Google Tasks model import must resolve",
+      "expected": true,
+      "observed": false,
+      "source": "js/google-tasks-sync.js:2 / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "STATIC-03",
+      "title": "All other inline and external CSS parses",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-02",
+      "title": "Dashboard style block must have valid CSS syntax",
+      "expected": null,
+      "observed": {
+        "reason": "Unexpected }",
+        "line": 197
+      },
+      "source": "index.html #app-v21-navy-dashboard-style / phase1 02-technical-debt.md",
+      "status": "XFAIL"
+    },
+    {
+      "id": "MODEL-01",
+      "title": "Date normalization accepts compact dates and leap day, rejects invalid day",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "title": "Stage end counts working days and shifts holiday deadlines",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "title": "Legacy absolute stage dates become stable relative offsets",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "title": "Unchanged completed stage retains its dates and completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "title": "Checklist completion requires explicit history-preserving reopen before unchecking",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-03",
+      "title": "Dependent stage dates must use the preserved completed stage anchor",
+      "expected": [
+        "2026-01-01",
+        "2026-01-03"
+      ],
+      "observed": [
+        "2026-01-01",
+        "2026-01-12"
+      ],
+      "source": "js/project-model.js / phase1 evidence/model-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-04",
+      "title": "Adding a new checklist item must not silently reopen completed history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-05",
+      "title": "Deleting a completed stage is rejected and retains the original task history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-06",
+      "title": "Negative stage offsets must be timezone independent (UTC+14)",
+      "expected": "2026-01-09",
+      "observed": "2026-01-08",
+      "source": "js/project-model.js / phase1 evidence/timezone-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "DATA-01",
+      "title": "Schema11 roundtrip preserves tasks, history, templates, rules, projects and settings",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "title": "Removed recurrence retains its stored generation lock",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "title": "Project and template attachments exclude inline data and transient URLs",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "title": "Local-only holiday setting is excluded from cloud records",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "title": "Backup merges disjoint IDs and identical records without duplication or mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "title": "Backup conflict must not silently overwrite completed history",
+      "expected": [
+        "done",
+        "2026-10-01"
+      ],
+      "observed": [
+        "planned",
+        null
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-08",
+      "title": "Object-form template checklist must retain text instead of string coercion",
+      "expected": [
+        "First"
+      ],
+      "observed": [
+        "[object Object]"
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "title": "Task projectResources must exclude inline bytes and transient URLs too",
+      "expected": [
+        {
+          "id": "fixture-file"
+        }
+      ],
+      "observed": [
+        {
+          "id": "fixture-file",
+          "data": "SYNTHETIC_INLINE_DATA",
+          "previewUrl": "blob:fixture"
+        }
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "REPEAT-01",
+      "title": "Month end clamps correctly across short months and leap years",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "title": "Monthly generation has stable dates, fresh checklist IDs and is idempotent",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "title": "Canonical semiannual schedule generates every six months",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "title": "Recurrence end is inclusive and completed roots remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "title": "Supported selectedMonths filters dates and holiday shifts preserve weekends",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-10",
+      "title": "Schema11 cycleMonths must filter actual generated occurrences",
+      "expected": [
+        "2026-10-01",
+        "2027-01-01"
+      ],
+      "observed": [
+        "2026-10-01",
+        "2026-11-01",
+        "2026-12-01",
+        "2027-01-01"
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-11",
+      "title": "Legacy half cycle must generate the semiannual occurrence",
+      "expected": [
+        "2026-01-31",
+        "2026-07-31"
+      ],
+      "observed": [
+        "2026-01-31"
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-12",
+      "title": "Generated recurrence must carry a durable deduplication key",
+      "expected": [
+        true,
+        true,
+        true
+      ],
+      "observed": [
+        false,
+        false,
+        false
+      ],
+      "source": "js/project-ui.js installRollingRecurrencesV181 / phase1 evidence/browser-results.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "UI-01",
+      "title": "Desktop quick-task validates blank name and registers one synthetic task",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "title": "Mobile quick-task opens, accepts input and cancels without mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-01",
+      "title": "HTML cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "title": "SVG script cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "title": "XHTML downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "title": "XML downloads despite text MIME",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "title": "PDF extension cannot disguise HTML response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "title": "Image extension cannot disguise SVG response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Forged image MIME with HTML bytes downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "title": "Recognized MIME must match extension",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "title": "Normal PNG still renders",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "title": "Normal PDF still opens",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "title": "Ordinary binary downloads unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "title": "Explicit active-file download preserves bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "title": "Blocked popup falls back to download",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "title": "Legacy missing declared MIME still previews a verified image",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "title": "Hydrated HTML cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "title": "Newly uploaded SVG cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-01",
+      "title": "MOCK Google login, Drive profile, private auth and Firestore binding remain usable",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "title": "MOCK reload restores the private SDK session without password or Drive prompt",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "title": "MOCK expired private session falls back to existing Drive credentials",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "title": "Cache stores an allowlist without password, OAuth token or arbitrary profile fields",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "title": "Legacy full-profile cache is sanitized on module load",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "title": "MOCK logout clears caches and private SDK sessions; relogin still works",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "title": "MOCK Google account switch separates cache, tokens and private auth",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "title": "Profiles with wrong or missing Google owner are rejected before private login",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "title": "Malformed profile types are rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "title": "Drive token expires in memory and session storage",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "title": "Missing identity and malformed expiry cannot restore Drive tokens",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-12",
+      "title": "Drive/Tasks tokens stay separate from password-free persistent profile",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-13",
+      "title": "MOCK Drive reauthentication rejects a different Google identity",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-14",
+      "title": "Logout clears app cache even when SDK signout fails",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-15",
+      "title": "Profile error logs omit arbitrary error payloads",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-16",
+      "title": "Legacy Drive token expires even if still held in memory",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-17",
+      "title": "Legacy Drive token cannot cross Google accounts",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-18",
+      "title": "Cloud adapter does not persist a second copy of the current Drive token",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-19",
+      "title": "MOCK delayed SDK auth restoration is awaited before password fallback",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-20",
+      "title": "MOCK auth observer clears old credentials on external account change",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-21",
+      "title": "Cloud cleanup event clears legacy token, profile references and listeners",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-22",
+      "title": "Blocked browser storage does not prevent authenticated workspace connection",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-01",
+      "title": "Completed checklist text, date, participants and attachment refs survive stage edits",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-02",
+      "title": "Whole project edits preserve the completed task and stage without input mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-03",
+      "title": "Completed checklist cannot reopen a task implicitly",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-04",
+      "title": "Explicit reopen appends a detached snapshot once, preserving IDs and attachments",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-05",
+      "title": "Reopened all-checked tasks do not auto-complete during an ordinary project save",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-06",
+      "title": "Active checklist completion works and a second explicit reopen records a separate cycle",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-07",
+      "title": "Project deletion is blocked before mutation when any completion record exists",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-08",
+      "title": "Reopened stage history cannot be deleted by a later project edit",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-09",
+      "title": "Repeated completed project edits do not create duplicate history or change IDs",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-10",
+      "title": "Optional completion snapshots roundtrip through unchanged schema11 serialization",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-11",
+      "title": "Oversized history is rejected before reopening instead of losing the completed record",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-12",
+      "title": "Pending stage removal and automatic completion remain available",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-13",
+      "title": "New rolling occurrences do not inherit the source task completion history",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-01",
+      "title": "Project completion modal locks checks; explicit reopen stores history and rolls back failed save",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-03",
+      "title": "General status/save guards protect completed records; new clones do not copy history",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-02",
+      "title": "General completed-task edit uses a read-only view and explicit reopen retains prior record",
+      "status": "PASS"
+    }
+  ]
+}

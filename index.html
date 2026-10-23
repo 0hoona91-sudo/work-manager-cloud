@@ -2027,7 +2027,7 @@ function recurrenceDatesV2(from,until,cycle,weekdays,months){
   }
   return [...new Set(out)];
 }
-function cloneOccurrenceV2(base,ds,seriesId,index,repeatMeta){const dur=Math.max(0,Math.round((dateOf(base.end||base.start)-dateOf(base.start))/86400000)||0),dueOff=Math.max(0,Math.round((dateOf(base.deadline||base.end||base.start)-dateOf(base.start))/86400000)||0);const shifted=repeatMeta.holidayShift==='keep'?ds:shiftWorkday(ds,repeatMeta.holidayShift||'prev');return {...clone(base),id:uid('task'),seriesId,repeat:repeatMeta,repeatIndex:index,start:shifted,end:addDays(shifted,dur),deadline:addDays(shifted,dueOff),actualComplete:null,status:'planned',relatedDocumentTitle:'',checklist:(base.checklist||[]).map(c=>({...c,id:uid('c'),done:false})),generatedKey:`${seriesId}:${ds}`}}
+function cloneOccurrenceV2(base,ds,seriesId,index,repeatMeta){const fresh=clone(base);delete fresh.completionHistory;const dur=Math.max(0,Math.round((dateOf(base.end||base.start)-dateOf(base.start))/86400000)||0),dueOff=Math.max(0,Math.round((dateOf(base.deadline||base.end||base.start)-dateOf(base.start))/86400000)||0);const shifted=repeatMeta.holidayShift==='keep'?ds:shiftWorkday(ds,repeatMeta.holidayShift||'prev');return {...fresh,id:uid('task'),seriesId,repeat:repeatMeta,repeatIndex:index,start:shifted,end:addDays(shifted,dur),deadline:addDays(shifted,dueOff),actualComplete:null,status:'planned',relatedDocumentTitle:'',checklist:(base.checklist||[]).map(c=>({...c,id:uid('c'),done:false})),generatedKey:`${seriesId}:${ds}`}}
 function openTaskForm(id=null){
   const t=id?state.tasks.find(x=>x.id===id):null;modal(t?'업무 수정':'업무 작성',taskFormHtml(t),`<button class="btn" data-close>취소</button>${t?'<button class="btn danger" id="deleteTask">삭제</button>':''}<button class="btn primary" id="saveTask">저장</button>`);const work=clone(t||{category:state.categories[0]||'',urgent:false,status:'planned',owner:state.owners[0]||'',start:todayISO(),end:todayISO(),deadline:todayISO(),unconfirmed:false,checklist:[],templateId:null,notes:'',repeat:null,groupId:null,step:1});let checks=clone(work.checklist||[]);let steps=[];if(t?.groupId){steps=state.tasks.filter(x=>x.groupId===t.groupId&&x.step>(t.step||1)).sort((a,b)=>a.step-b.step).map(x=>clone(x))}
   function renderChecks(){const root=$('#tfChecks');root.innerHTML=checks.map((c,i)=>`<div class="step-check-row"><span>□</span><input type="text" value="${esc(c.text)}" data-ci="${i}"><button class="btn small danger" data-rmci="${i}" type="button">×</button></div>`).join('');$$('[data-ci]').forEach(x=>x.oninput=()=>checks[+x.dataset.ci].text=x.value);$$('[data-rmci]').forEach(x=>x.onclick=()=>{checks.splice(+x.dataset.rmci,1);renderChecks()})}
@@ -2217,13 +2217,14 @@ function rebuildRepeatSeriesV3(existing,base,meta,linked,steps){
   if(existing?.seriesId)oldParents=state.tasks.filter(x=>x.seriesId===sid);else if(existing)oldParents=[existing];
   const preserve=new Map(oldParents.map(x=>[recurrenceKeyV3(x),x]));
   const groups=new Set(oldParents.map(x=>x.groupId).filter(Boolean));
+  if(state.tasks.some(x=>(oldParents.includes(x)||x.parentSeriesId===sid||groups.has(x.groupId))&&window.WMProjectModel?.hasCompletionHistory(x))){alert('완료 이력이 있는 반복업무는 일괄 재생성할 수 없습니다. 기존 이력을 유지해 주세요.');return 0;}
   if(existing?.seriesId)state.tasks=state.tasks.filter(x=>x.seriesId!==sid&&x.parentSeriesId!==sid&&!groups.has(x.groupId));
   else if(existing)state.tasks=state.tasks.filter(x=>x.id!==existing.id&&!groups.has(x.groupId));
   dates.forEach((ds,i)=>{let occ=cloneOccurrenceV2(base,ds,sid,i+1,meta);occ.repeatRawDate=ds;occ.generatedKey=`${sid}:${ds}`;occ=preserveOccurrenceV3(occ,preserve.get(ds));occ.groupId=linked?uid('grp'):null;state.tasks.push(occ);if(linked)createLinkedStepsV2(occ,steps)});
   return dates.length;
 }
 function repairLegacyRepeatsV3(){
-  let repaired=0;for(const t of [...state.tasks]){if(!t.repeat||t.seriesId||t.parentSeriesId)continue;const meta={...t.repeat,from:t.repeat.from||t.start,until:t.repeat.until||t.repeatUntil||t.end||t.start,weekdays:t.repeat.weekdays||[],months:t.repeat.months||[]};const dates=recurrenceDatesV2(meta.from,meta.until,meta.cycle,meta.weekdays,meta.months);if(dates.length<=1)continue;const sid=uid('series'),idx=state.tasks.indexOf(t);if(idx<0)continue;const old=clone(t);const first=preserveOccurrenceV3(cloneOccurrenceV2(old,dates[0],sid,1,meta),old);first.id=t.id;first.repeatRawDate=dates[0];first.generatedKey=`${sid}:${dates[0]}`;state.tasks[idx]=first;for(let i=1;i<dates.length;i++){const occ=cloneOccurrenceV2(old,dates[i],sid,i+1,meta);occ.repeatRawDate=dates[i];occ.generatedKey=`${sid}:${dates[i]}`;state.tasks.push(occ)}repaired+=dates.length-1}if(repaired)saveState();return repaired
+  let repaired=0;for(const t of [...state.tasks]){if(!t.repeat||t.seriesId||t.parentSeriesId||t.status==='done'||t.actualComplete||t.completionHistory?.length)continue;const meta={...t.repeat,from:t.repeat.from||t.start,until:t.repeat.until||t.repeatUntil||t.end||t.start,weekdays:t.repeat.weekdays||[],months:t.repeat.months||[]};const dates=recurrenceDatesV2(meta.from,meta.until,meta.cycle,meta.weekdays,meta.months);if(dates.length<=1)continue;const sid=uid('series'),idx=state.tasks.indexOf(t);if(idx<0)continue;const old=clone(t);const first=preserveOccurrenceV3(cloneOccurrenceV2(old,dates[0],sid,1,meta),old);first.id=t.id;first.repeatRawDate=dates[0];first.generatedKey=`${sid}:${dates[0]}`;state.tasks[idx]=first;for(let i=1;i<dates.length;i++){const occ=cloneOccurrenceV2(old,dates[i],sid,i+1,meta);occ.repeatRawDate=dates[i];occ.generatedKey=`${sid}:${dates[i]}`;state.tasks.push(occ)}repaired+=dates.length-1}if(repaired)saveState();return repaired
 }
 // Patch only the save handler setup by wrapping openTaskForm after the original rendered form is ready.
 const openTaskFormV2Original=openTaskForm;
@@ -4641,6 +4642,7 @@ function canCompleteTaskV18(task){
   return !(task?.checklist?.length)||task.checklist.every(item=>item.done);
 }
 function applyTaskStatusFieldsV18(task,next){
+  if(window.WMProjectModel?.isCompleted(task))return task;
   task.status=next;
   if(next==='done')task.actualComplete=task.actualComplete||todayISO();
   else task.actualComplete=null;
@@ -4674,6 +4676,7 @@ closeModal=function(){
 
 async function persistTaskStatusV18(task,next,{closeAfter=false}={}){
   if(!task)return false;
+  if(window.WMProjectModel?.isCompleted(task)){toast('완료 업무는 이력 보존 후 재개 버튼을 사용해 주세요.');return false;}
   if(next==='done'&&!canCompleteTaskV18(task)){
     toast('체크리스트를 먼저 모두 완료해 주세요.');
     openChecklist(task.id);
@@ -7397,49 +7400,9 @@ syncTaskViewUiV35=function(){
 };
 
 async function reopenCompletedTaskLocalV18(task,button=null){
-  if(!task||effectiveStatus(task)!=='done')return false;
-  const ok=window.confirm('이 업무를 진행(예정) 업무로 되돌릴까요?\n\n체크리스트, 관련 공문, 메모, 첨부자료와 일정은 그대로 유지됩니다.');
-  if(!ok)return false;
-
-  const previous={
-    status:task.status||'done',
-    actualComplete:task.actualComplete||null,
-    view:state.settings?.taskListViewV35||'completed'
-  };
-  if(button){button.disabled=true;button.textContent='되돌리는 중…'}
-  try{
-    // 모달에서 방금 수정한 관련 공문 값이 있으면 같은 저장에 함께 포함한다.
-    if(typeof flushRelatedDocumentLocalV1==='function')await flushRelatedDocumentLocalV1(task,{save:false});
-    else if(typeof captureRelatedDocumentV15==='function')captureRelatedDocumentV15(task);
-
-    task.status='progress';
-    task.actualComplete=null;
-    state.settings=state.settings||{};
-    state.settings.taskListViewV35='active';
-    recalcLinks();
-    await saveState({reason:'완료 취소 · 진행(예정) 업무로 복귀'});
-
-    closeModal();
-    if(typeof syncTaskViewUiV35==='function')syncTaskViewUiV35();
-    renderTaskTable();
-    renderHome();
-    if(typeof applySidebarVisibilityV33==='function')applySidebarVisibilityV33();
-    toast('진행(예정) 업무로 되돌렸습니다.');
-    return true;
-  }catch(error){
-    console.error('완료업무 복귀 실패',error);
-    task.status=previous.status;
-    task.actualComplete=previous.actualComplete;
-    state.settings=state.settings||{};
-    state.settings.taskListViewV35=previous.view;
-    recalcLinks();
-    if(typeof syncTaskViewUiV35==='function')syncTaskViewUiV35();
-    renderTaskTable();renderHome();
-    if(button&&button.isConnected){button.disabled=false;button.textContent='진행업무로 되돌리기'}
-    toast('업무를 되돌리지 못했습니다. 다시 시도해 주세요.');
-    return false;
-  }
+  return window.WMProjectUI?.reopenTaskWithHistory(task,button) || false;
 }
+
 window.reopenCompletedTaskLocalV18=reopenCompletedTaskLocalV18;
 
 /* 기존 체크리스트 상세을 그대로 사용하되 완료업무일 때만
@@ -11633,6 +11596,7 @@ function ensureQuickTaskButtonV119(){
 
 function cloneManualTaskV119(source){
   const copy=clone(source);
+  delete copy.completionHistory;
   const newId=uid('task');
   copy.id=newId;
   copy.status='planned';
