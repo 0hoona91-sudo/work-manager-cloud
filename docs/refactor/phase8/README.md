@@ -13,3 +13,5 @@
 8d 설정·이력·테마는 미착수. 최종 406개 기준 검사와 Actions는 아직 수행하지 않았다. 8단계 완료 판정은 보류한다.
 
 재개 8a: 홈 위젯의 resize/orientationchange 리스너를 key별 mount/dispose가 가능한 작은 `WMFeatureViewport` 경계에 연결했다. 같은 프레임의 두 이벤트는 한 번만 처리한다. 기존 홈·검색 Chromium 2건과 mount/dispose 계약 1건 모두 PASS. 다른 홈 wrapper들은 종전 기능을 보존하기 위해 일괄 제거하지 않았다.
+
+재개 8b: 기존 save-command/journal/충돌 UI의 초안 보호·중복 제출·실패 표시·완료 읽기 전용 검사를 재사용해 CMD-UI-01/02, CONFLICT-UI-01/03, HIST-UI-02 = 5 PASS를 확인했다. 관련 저장 계층은 재작성하지 않았다. 업무 메뉴의 중복 resize/orientationchange 핸들러 두 쌍을 최종 메뉴 표시가 소유하는 viewport mount 한 곳으로 연결했다. PC↔모바일 회전 시 표시와 검색 필터 유지 집중 Chromium 검사가 PASS. 모달 전반의 이벤트 생명주기와 원격 snapshot 경쟁은 최종 통합 회귀 및 후속 UI 검증 범위로 남는다.

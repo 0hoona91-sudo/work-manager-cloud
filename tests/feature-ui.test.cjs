@@ -24,4 +24,12 @@ module.exports=({test,EnvironmentUnavailable})=>{
   old();assert.equal(listeners.size,2);listeners.get('resize')();listeners.get('orientationchange')();scheduled();assert.equal(calls,1);
   current();assert.equal(listeners.size,0);assert.equal(removed,2);
  });
+ test('FEATURE-UI-04','Task navigation labels agree after mobile rotation and desktop resize',()=>withPage({width:1440,height:900},EnvironmentUnavailable,async page=>{
+  const labels=()=>page.locator('.navbtn[data-page="taskListPage"][data-task-view-v35="active"] span:last-child').allTextContents();
+  let values=await labels();assert.ok(values.length>0);assert.ok(values.every(v=>v==='진행(예정) 업무'));
+  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.dispatchEvent(new Event('orientationchange')));await page.waitForTimeout(50);
+  values=await labels();assert.ok(values.every(v=>v==='진행업무'));
+  await page.setViewportSize({width:1440,height:900});await page.waitForTimeout(50);
+  values=await labels();assert.ok(values.every(v=>v==='진행(예정) 업무'));
+ }));
 };
