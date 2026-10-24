@@ -1,0 +1,219 @@
+{
+  "generatedAt": "2026-10-24T14:54:32.918Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "b1f448ec0620b0ccba4f3614d6335e04726e07a0",
+  "rulesSourceSha256": {
+    "js/firestore-rules-policy.js": "08b28881a7542d03020490571bb954854b249f269f9d4f007d9b35bc69d60904",
+    "js/workspace-rules-ui.js": "51630fef08776d948bbc7efb21d80da066c24255ec5be61fad5ad7c9a992e502",
+    "js/workspace-preflight.js": "714324c6338bc27e5240b0ee5f83b0c735c467e83d1839860f40cfab7de98a7a",
+    "tests/emulator/firestore.rules": "32b12095f6cce803cb41c65c8b23bbd507a19eff051889407e36cfb34ca9c7f6"
+  },
+  "commandSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/cloud-sync.js": "97110b522a5a1f2817971f7caef386188095dfd44bf16b241bf3bf54013c6976",
+    "js/save-command.js": "d1ad5165e1849a825cc2cda05fd43090375b8b4b527d628d989b1c58fc8f1749",
+    "js/save-command-adapter.js": "485b605a07e8023540208beed430e72e20e6f58b36341e7741329a789f3fe66a",
+    "js/task-save-conflict.js": "830864b4af78e0314e8466de47ac5fc9553e1c93c554c31aba0300c51a71aed6",
+    "js/operation-journal.js": "358a405f5c1625cf9de07b46e3f195c105d2831c13c35c979554a390f39dd6f0",
+    "js/recovery-ui.js": "004c64e58d15c1a3b085698585f2fbbdaceaea1193db3c592becd6249b59ad2e"
+  },
+  "recurrenceSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/recurrence-rules.js": "760c9f25e5d0fdf7b652b2fdebd03d4c4b72e75e964a54ab56fd10b14da5afdc",
+    "js/recurrence-identity.js": "517997699409c63df23580460fcca876d01a6d1e6a420b37d26fd7ebd3c8a490",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66",
+    "js/cloud-sync.js": "97110b522a5a1f2817971f7caef386188095dfd44bf16b241bf3bf54013c6976"
+  },
+  "scheduleSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "dateSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/date-only.js": "eafb1e28c8e84a60f025466b4b6855a7363d03678056de183037d62de1b5b725",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95"
+  },
+  "backupSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/backup-safety.js": "0446cbecc5866844efbb3079ca77f2560ddb4cd8496d30d6550eb70b6dea9dac",
+    "js/backup-ui.js": "ed85310512eea3ca9f1ff05c651498a3f62519833b6763cdd05b12febf6aeb91",
+    "js/cloud-sync.js": "97110b522a5a1f2817971f7caef386188095dfd44bf16b241bf3bf54013c6976"
+  },
+  "completionSourceSha256": {
+    "index.html": "4a772aafeac805afd0999930f6053f2a2c24234d1c6fca581c763d6288371325",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "credentialSourceSha256": "befcdce476234929def09c13f84723c1b54e822fbb723af7c831a3b1f9a4835c",
+  "attachmentSourceSha256": "97110b522a5a1f2817971f7caef386188095dfd44bf16b241bf3bf54013c6976",
+  "checkoutHead": "f76181cabf4db8eb9e5dd44c940d58986096b7fd",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 31,
+  "counts": {
+    "PASS": 31,
+    "FAIL": 0,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "AUTH-01",
+      "title": "MOCK Google login, Drive profile, private auth and Firestore binding remain usable",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "title": "MOCK reload restores the private SDK session without password or Drive prompt",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "title": "MOCK expired private session falls back to existing Drive credentials",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "title": "Cache stores an allowlist without password, OAuth token or arbitrary profile fields",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "title": "Legacy full-profile cache is sanitized on module load",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "title": "MOCK logout clears caches and private SDK sessions; relogin still works",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "title": "MOCK Google account switch separates cache, tokens and private auth",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "title": "Profiles with wrong or missing Google owner are rejected before private login",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "title": "Malformed profile types are rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "title": "Drive token expires in memory and session storage",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "title": "Missing identity and malformed expiry cannot restore Drive tokens",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-12",
+      "title": "Drive token remains isolated and retired Tasks credential is cleared",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-13",
+      "title": "MOCK Drive reauthentication rejects a different Google identity",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-14",
+      "title": "Logout clears app cache even when SDK signout fails",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-15",
+      "title": "Profile error logs omit arbitrary error payloads",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-16",
+      "title": "Legacy Drive token expires even if still held in memory",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-17",
+      "title": "Legacy Drive token cannot cross Google accounts",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-18",
+      "title": "Cloud adapter does not persist a second copy of the current Drive token",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-19",
+      "title": "MOCK delayed SDK auth restoration is awaited before password fallback",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-20",
+      "title": "MOCK auth observer clears old credentials on external account change",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-21",
+      "title": "Cloud cleanup event clears legacy token, profile references and listeners",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-22",
+      "title": "Blocked browser storage does not prevent authenticated workspace connection",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-01",
+      "title": "MOCK concurrent refresh requests share one popup",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-02",
+      "title": "MOCK cancelled consent is not retried automatically and a later request works",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-03",
+      "title": "MOCK logout invalidates a late consent response even after same-account relogin",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-04",
+      "title": "MOCK account switch during consent cannot install the old token",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-05",
+      "title": "MOCK exact expiry boundary refuses token while just-before remains valid",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-06",
+      "title": "MOCK 401 retries once; 403 does not trigger consent; workspace switch blocks retry",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-07",
+      "title": "MOCK legacy consent shares requests and refuses changed workspace or revoked epoch",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-08",
+      "title": "MOCK upload auth expiry reuses file ID; account switch prevents replay",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-09",
+      "title": "MOCK legacy cached token cannot cross workspaces under the same Google account",
+      "status": "PASS"
+    }
+  ]
+}

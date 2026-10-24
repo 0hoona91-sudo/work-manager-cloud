@@ -159,6 +159,8 @@ function restoreDriveToken(user = buildingUser) {
   return driveAccessToken;
 }
 
+let driveAuthorizationPending = null;
+let driveCredentialEpoch = 0;
 function clearDriveToken() {
   driveAccessToken = "";
   driveAccessTokenExpiresAt = 0;
@@ -258,6 +260,7 @@ function migrateWorkspaceProfileCache() {
 }
 
 async function clearAccountCredentials() {
+  driveCredentialEpoch++;
   clearWorkspaceProfileCache();
   clearDriveToken();
   purgeRetiredTasksCredential();
@@ -382,12 +385,22 @@ export async function checkBuildingAuthorization(user = buildingUser) {
   return buildingAuthorization;
 }
 
-export async function ensureBuildingDriveAccess({ forceRefresh = false } = {}) {
+export async function ensureBuildingDriveAccess(options = {}) {
+  if (driveAuthorizationPending) return driveAuthorizationPending;
+  const pending = authorizeDriveOnce(options);
+  driveAuthorizationPending = pending;
+  try { return await pending; } finally { if (driveAuthorizationPending === pending) driveAuthorizationPending = null; }
+}
+
+async function authorizeDriveOnce({ forceRefresh = false } = {}) {
   await initBuildingIdentity();
   if (!buildingUser) {
     await signInBuildingGoogle({ selectAccount: true });
   }
-  const authorization = await checkBuildingAuthorization(buildingUser);
+  const identity = buildingUser;
+  const epoch = driveCredentialEpoch;
+  const authorization = await checkBuildingAuthorization(identity);
+  if (epoch !== driveCredentialEpoch || buildingUser?.uid !== identity?.uid || buildingAuth.currentUser?.uid !== identity?.uid) throw new Error("인증 중 계정이 변경되었습니다.");
   if (!authorization.allowed) {
     const error = new Error("이 Google 계정은 업무관리시스템 사용 승인을 받지 않았습니다.");
     error.code = "app/access-denied";
@@ -396,8 +409,9 @@ export async function ensureBuildingDriveAccess({ forceRefresh = false } = {}) {
   if (forceRefresh) clearDriveToken();
   if (restoreDriveToken(buildingUser)) return buildingUser;
   const expectedUid = buildingUser.uid;
+  const expectedEpoch = driveCredentialEpoch;
   const result = await reauthenticateWithPopup(buildingUser, googleProvider(false, true));
-  if (result.user?.uid !== expectedUid || buildingAuth.currentUser?.uid !== expectedUid || buildingUser?.uid !== expectedUid) {
+  if (expectedEpoch !== driveCredentialEpoch || result.user?.uid !== expectedUid || buildingAuth.currentUser?.uid !== expectedUid || buildingUser?.uid !== expectedUid) {
     clearDriveToken();
     throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
   }
@@ -407,6 +421,7 @@ export async function ensureBuildingDriveAccess({ forceRefresh = false } = {}) {
 }
 
 export function invalidateBuildingDriveAccessToken() {
+  driveCredentialEpoch++;
   clearDriveToken();
 }
 

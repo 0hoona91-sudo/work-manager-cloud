@@ -166,6 +166,7 @@ function legacyWorkspaceEligible() {
 }
 
 function clearLegacyDriveToken() {
+  clearLegacyDriveToken.epoch = (clearLegacyDriveToken.epoch || 0) + 1;
   legacyDriveAccessToken = "";
   legacyDriveAccessTokenExpiresAt = 0;
   legacyDriveAccessTokenUid = "";
@@ -177,12 +178,13 @@ function rememberLegacyDriveToken(token) {
   const user = getBuildingUser();
   if (typeof token !== "string" || !token || !user?.uid || !user.email) { clearLegacyDriveToken(); return ""; }
   legacyDriveAccessToken = token;
+  rememberLegacyDriveToken.workspace = workspaceProfile?.workspace?.firebaseConfig?.projectId || "";
   legacyDriveAccessTokenUid = user.uid;
   legacyDriveAccessTokenEmail = user.email.trim().toLowerCase();
   legacyDriveAccessTokenExpiresAt = Date.now() + LEGACY_DRIVE_TOKEN_LIFETIME_MS;
   try {
     sessionStorage.setItem(LEGACY_DRIVE_TOKEN_SESSION_KEY, JSON.stringify({
-      token, uid: legacyDriveAccessTokenUid, email: legacyDriveAccessTokenEmail,
+      token, uid: legacyDriveAccessTokenUid, email: legacyDriveAccessTokenEmail, workspace: rememberLegacyDriveToken.workspace,
       expiresAt: legacyDriveAccessTokenExpiresAt,
     }));
   } catch {}
@@ -194,18 +196,19 @@ function restoreLegacyDriveToken() {
   const email = String(user?.email || "").trim().toLowerCase();
   if (!user?.uid || !email) { clearLegacyDriveToken(); return ""; }
   if (legacyDriveAccessToken) {
-    if (legacyDriveAccessTokenUid === user.uid && legacyDriveAccessTokenEmail === email
+    if (rememberLegacyDriveToken.workspace === (workspaceProfile?.workspace?.firebaseConfig?.projectId || "") && legacyDriveAccessTokenUid === user.uid && legacyDriveAccessTokenEmail === email
       && Number.isFinite(legacyDriveAccessTokenExpiresAt) && legacyDriveAccessTokenExpiresAt > now) return legacyDriveAccessToken;
     clearLegacyDriveToken();
     return "";
   }
   try {
     const saved = JSON.parse(sessionStorage.getItem(LEGACY_DRIVE_TOKEN_SESSION_KEY) || "null");
-    if (typeof saved?.token !== "string" || !saved.token || saved.uid !== user.uid || saved.email !== email
+    if ((saved?.workspace || "") !== (workspaceProfile?.workspace?.firebaseConfig?.projectId || "") || typeof saved?.token !== "string" || !saved.token || saved.uid !== user.uid || saved.email !== email
       || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= now || saved.expiresAt > now + LEGACY_DRIVE_TOKEN_LIFETIME_MS) {
       clearLegacyDriveToken();
       return "";
     }
+    rememberLegacyDriveToken.workspace = saved.workspace || "";
     legacyDriveAccessToken = saved.token;
     legacyDriveAccessTokenUid = saved.uid;
     legacyDriveAccessTokenEmail = saved.email;
@@ -215,9 +218,18 @@ function restoreLegacyDriveToken() {
 }
 
 async function ensureLegacyDriveAccess() {
+  if (ensureLegacyDriveAccess.pending) return ensureLegacyDriveAccess.pending;
+  const pending = authorizeLegacyDriveOnce();
+  ensureLegacyDriveAccess.pending = pending;
+  try { return await pending; } finally { if (ensureLegacyDriveAccess.pending === pending) ensureLegacyDriveAccess.pending = null; }
+}
+async function authorizeLegacyDriveOnce() {
   const restored = restoreLegacyDriveToken();
   if (restored) return restored;
   if (!legacyWorkspaceEligible()) throw new Error("이 업무공간에는 이전 Cloud Drive 복구가 필요하지 않습니다.");
+  const epoch = clearLegacyDriveToken.epoch;
+  const workspace = workspaceProfile?.workspace?.firebaseConfig?.projectId;
+  const originalUid = getBuildingUser()?.uid;
   const appName = "work-manager-legacy-drive-v122";
   let legacyApp = getApps().find((candidate) => candidate.name === appName);
   if (!legacyApp) legacyApp = initializeApp(legacyFirebaseConfig, appName);
@@ -239,7 +251,7 @@ async function ensureLegacyDriveAccess() {
   } catch (error) {
     throw new Error(`이전 Cloud의 Google Drive 권한을 확인하지 못했습니다. ${friendlyError(error)}`);
   }
-  if (!expectedUser?.uid || getBuildingUser()?.uid !== expectedUser.uid
+  if (epoch !== clearLegacyDriveToken.epoch || workspace !== workspaceProfile?.workspace?.firebaseConfig?.projectId || originalUid !== getBuildingUser()?.uid || !expectedUser?.uid || getBuildingUser()?.uid !== expectedUser.uid
     || String(result.user?.email || "").toLowerCase() !== hint.toLowerCase()) {
     clearLegacyDriveToken();
     if (legacyDriveAuth.currentUser) await signOut(legacyDriveAuth);
@@ -751,6 +763,8 @@ async function authenticateBuildingAndWorkspace() {
   db = connection.db;
   currentUser = connection.user;
   workspaceProfile = connection.profile;
+  assertRecurrenceWorkspace(workspace);
+  if (googleUid !== getBuildingUser()?.uid) throw new Error("Drive 인증 중 계정이 변경되었습니다.");
   buildingUser = getBuildingUser() || buildingUser;
   const token = getBuildingDriveAccessToken();
   if (token) rememberDriveAccessToken(token, buildingUser);
@@ -1805,6 +1819,8 @@ function mergeById(current, incoming) {
 async function ensureDriveAccess() {
   if (localOnly) return "";
   await ensureBuildingDriveAccess();
+  assertRecurrenceWorkspace(workspace);
+  if (googleUid !== getBuildingUser()?.uid) throw new Error("Drive 인증 중 계정이 변경되었습니다.");
   buildingUser = getBuildingUser() || buildingUser;
   const token = getBuildingDriveAccessToken();
   if (!token) throw new Error("Google Drive 권한을 확인하지 못했습니다.");
@@ -1851,13 +1867,15 @@ function isNetworkFetchError(error) {
 }
 
 async function currentDriveToken({ forceRefresh = false } = {}) {
+  const workspace = recurrenceWorkspace(), googleUid = getBuildingUser()?.uid;
   if (forceRefresh) {
     clearDriveAccessToken();
-    invalidateBuildingDriveAccessToken?.();
     await ensureBuildingDriveAccess({ forceRefresh: true });
   } else {
     await ensureBuildingDriveAccess();
   }
+  assertRecurrenceWorkspace(workspace);
+  if (googleUid !== getBuildingUser()?.uid) throw new Error("Drive 인증 중 계정이 변경되었습니다.");
   buildingUser = getBuildingUser() || buildingUser;
   const token = getBuildingDriveAccessToken();
   if (!token) throw new Error("Google Drive 권한을 확인하지 못했습니다.");
@@ -1865,23 +1883,29 @@ async function currentDriveToken({ forceRefresh = false } = {}) {
 }
 
 async function uploadDriveMediaWithRetry(fileId, file, mimeType, { attempts = 3 } = {}) {
+  const workspace = recurrenceWorkspace();
   let lastError = null;
   for (let attempt = 1; attempt <= attempts; attempt++) {
+    assertRecurrenceWorkspace(workspace);
     let token = await currentDriveToken();
+    assertRecurrenceWorkspace(workspace);
     try {
       let response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,mimeType,size`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
         body: file,
       });
+      assertRecurrenceWorkspace(workspace);
       if (response.status === 401 && attempt < attempts) {
         token = await currentDriveToken({ forceRefresh: true });
+        assertRecurrenceWorkspace(workspace);
         response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,mimeType,size`, {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": mimeType },
           body: file,
         });
       }
+      assertRecurrenceWorkspace(workspace);
       if (response.ok) return response;
       if (!isRetryableDriveStatus(response.status) || attempt >= attempts) {
         let message = `Google Drive 업로드 실패 (${response.status})`;
@@ -2199,17 +2223,20 @@ async function repairLegacyDriveAttachments() {
 }
 
 async function driveFetchResponse(url, options = {}, { retryAuth = true } = {}) {
+  const workspace = recurrenceWorkspace();
   let requestOptions = { ...options, headers: { ...(options.headers || {}) } };
   let response = await fetch(url, requestOptions);
+  assertRecurrenceWorkspace(workspace);
   if (response.status === 401 && retryAuth && !localOnly) {
     clearDriveAccessToken();
-    invalidateBuildingDriveAccessToken?.();
     const freshToken = await currentDriveToken({ forceRefresh: true });
     requestOptions = {
       ...requestOptions,
       headers: { ...requestOptions.headers, Authorization: `Bearer ${freshToken}` },
     };
+    assertRecurrenceWorkspace(workspace);
     response = await fetch(url, requestOptions);
+    assertRecurrenceWorkspace(workspace);
   }
   if (response.status === 401) {
     clearDriveAccessToken();

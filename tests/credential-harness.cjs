@@ -73,7 +73,7 @@ function workspace(shared = state()) {
 function cloud(shared = state()) {
   const source = read('js/cloud-sync.js');
   const names = new Set(['rememberDriveAccessToken','restoreDriveAccessToken','clearDriveAccessToken',
-    'rememberLegacyDriveToken','restoreLegacyDriveToken','clearLegacyDriveToken','ensureLegacyDriveAccess','legacyWorkspaceEligible']);
+    'rememberLegacyDriveToken','restoreLegacyDriveToken','clearLegacyDriveToken','ensureLegacyDriveAccess','authorizeLegacyDriveOnce','legacyWorkspaceEligible']);
   const defs = parse(source,'module').body.filter(n => n.type === 'FunctionDeclaration' && names.has(n.id.name)).map(n => source.slice(n.start,n.end)).join('\n');
   const ctx = vm.createContext({ Date: { now: () => shared.now }, sessionStorage: shared.session,
     getBuildingUser: () => shared.next, getBuildingDriveAccessToken: () => shared.canonicalToken || '',
