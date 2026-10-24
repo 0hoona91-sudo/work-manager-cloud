@@ -76,7 +76,7 @@ async function exercise(fixture, EnvironmentUnavailable) {
       window.cleanupFailedDriveFile = async () => { throw Error('Unexpected cleanup'); };
       window.isNetworkFetchError = () => false;
       (0, eval)('const driveObjectUrls = new Map(); const MAX_DRIVE_FILE_BYTES = 50*1024*1024;\n' + code);
-    }, { bytes: [...data], type: fixture.type, blockPopup: fixture.blockPopup || false, code: attachmentCode() });
+    }, { bytes: [...data], type: fixture.type, blockPopup: fixture.blockPopup || false, code: read('js/backup-files.js')+'\n'+attachmentCode() });
     if (fixture.action === 'cache' || fixture.action === 'upload-cache') {
       const observation = await page.evaluate(async ({ action, name }) => {
         if (action === 'upload-cache') {

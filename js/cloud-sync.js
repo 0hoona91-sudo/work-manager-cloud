@@ -1,3 +1,4 @@
+import "./backup-files.js?v=phase7";
 import "./attachment-store.js?v=phase7";
 import "./workspace-rules-ui.js?v=phase6f-rules-v1";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
@@ -276,14 +277,19 @@ async function driveFileResponse(fileId, token, fields = "") {
 }
 
 async function readDriveFileBlob(fileId, { allowLegacyPrompt = false } = {}) {
+  const workspace=recurrenceWorkspace();
   if (!fileId) throw new Error("Drive 파일 ID가 없습니다.");
   let currentToken = await ensureDriveAccess();
+  assertRecurrenceWorkspace(workspace);
   let response = await driveFileResponse(fileId, currentToken);
+  assertRecurrenceWorkspace(workspace);
   if (response.status === 401) {
     currentToken = await currentDriveToken({ forceRefresh: true });
+    assertRecurrenceWorkspace(workspace);
     response = await driveFileResponse(fileId, currentToken);
+    assertRecurrenceWorkspace(workspace);
   }
-  if (response.ok) return { blob: await response.blob(), source: "current" };
+  if (response.ok) {const blob=await window.WMBackupFiles.read(response);assertRecurrenceWorkspace(workspace);return {blob,source:"current"};}
   if (![403, 404].includes(response.status) || !legacyWorkspaceEligible()) {
     throw new Error(`Google Drive 원본 읽기 실패 (${response.status})`);
   }
@@ -294,9 +300,11 @@ async function readDriveFileBlob(fileId, { allowLegacyPrompt = false } = {}) {
     error.code = "app/legacy-drive-auth-required";
     throw error;
   }
+  assertRecurrenceWorkspace(workspace);
   response = await driveFileResponse(fileId, legacyToken);
+  assertRecurrenceWorkspace(workspace);
   if (!response.ok) throw new Error(`이전 Cloud Google Drive 원본 읽기 실패 (${response.status})`);
-  return { blob: await response.blob(), source: "legacy" };
+  const blob=await window.WMBackupFiles.read(response);assertRecurrenceWorkspace(workspace);return {blob,source:"legacy"};
 }
 
 async function readDriveFile(fileId, item = {}, { allowLegacyPrompt = true } = {}) {

@@ -1899,7 +1899,7 @@ function generateRepeats(year){year=Number(year);let count=0;for(const t of stat
  const bases=state.tasks.filter(x=>x.repeat&&!x.generatedFromManual&&!x.generatedKey).slice();
  for(const b of bases){const cyc=b.repeat.cycle;if(!cyc)continue;const anchor=dateOf(b.start);if(!anchor)continue;const addCopy=(ds,key)=>{if(ds===b.start||state.tasks.some(x=>x.generatedKey===key))return;let dur=Math.max(0,Math.round((dateOf(b.end||b.start)-anchor)/86400000));state.tasks.push({...clone(b),id:uid('task'),generatedKey:key,generatedFromManual:b.id,start:ds,end:addDays(ds,dur),deadline:addDays(ds,Math.max(0,Math.round((dateOf(b.deadline||b.end||b.start)-anchor)/86400000))),actualComplete:null,status:'planned',relatedDocumentTitle:'',checklist:(b.checklist||[]).map(c=>({...c,id:uid('c'),done:false})),groupId:null,link:null});count++};if(cyc==='weekly'){let d=new Date(year,0,1,12),e=new Date(year,11,31,12);while(d<=e){if(d.getDay()===anchor.getDay()){let ds=iso(d);if(b.repeat.holidayShift!=='keep')ds=shiftWorkday(ds,b.repeat.holidayShift||'prev');addCopy(ds,`${b.id}:${iso(d)}`)}d.setDate(d.getDate()+1)}}else{let months=cyc==='monthly'?Array.from({length:12},(_,i)=>i+1):cyc==='quarterly'?[3,6,9,12]:cyc==='half'?[6,12]:[anchor.getMonth()+1];for(const m of months){let last=Number(endOfMonth(year,m).slice(-2)),day=Math.min(anchor.getDate(),last);let ds=`${year}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;if(b.repeat.holidayShift!=='keep')ds=shiftWorkday(ds,b.repeat.holidayShift||'prev');addCopy(ds,`${b.id}:${year}-${m}`)}}}
  recalcLinks();saveState();renderHome();renderTaskTable();return count}
-async function exportJson(){const backup=clone(state);const stripBlock=block=>{if(!block||typeof block!=='object')return;if(block.localFileId){delete block.localFileId;block.localFileMissing=true}if(block.driveFileId)block.localFileMissing=true};for(const t of backup.templates||[]){for(const b of t.methodBlocks||[])stripBlock(b);for(const a of t.attachments||[])stripBlock(a);for(const step of t.linkedSteps||[])for(const b of step.methodBlocks||[])stripBlock(b)}backup.changeLogs=(backup.changeLogs||[]).map(log=>({...log,actorUid:undefined,actorEmail:log.actorEmail==='LOCAL'?'LOCAL':undefined}));backup.backupMeta={app:'업무관리시스템 Local Beta',schemaVersion:11,exportedAt:new Date().toISOString(),localFilesIncluded:false,note:'로컬 사진/첨부파일 원본은 이 JSON에 포함되지 않습니다.'};const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});download(blob,`업무관리_Local_백업_${todayISO()}.json`);toast('JSON 백업을 저장했습니다. 로컬 사진·첨부파일 원본은 포함되지 않습니다.')}
+async function exportJson(){const backup=window.WMBackupFiles.jsonSnapshot(state);const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});download(blob,`업무관리_데이터백업_${todayISO()}.json`);toast('JSON 데이터 백업: 외부 첨부 원본은 포함하지 않습니다. 파일 ID와 기존 기록은 보존합니다.')}
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csvValue(v){const s=String(v??'');return `"${s.replaceAll('"','""')}"`}
 function exportCsv(kind){let rows;if(kind==='task')rows=[['업무ID','구분','업무명','긴급','상태','시작일','종료일','마감일','완료일','담당자','관련 공문 제목','비고'],...state.tasks.map(t=>[t.id,t.category,t.name,t.urgent?'Y':'N',statusLabel(effectiveStatus(t)),t.start,t.end,t.deadline,t.actualComplete||'',t.owner,t.relatedDocumentTitle||'',t.notes||''])];else rows=[['DBID','구분','업무명','수행주기','체크리스트','키워드','비고'],...state.templates.map(t=>[t.id,t.category,t.name,templatePeriodLabel(t),(t.checklist||[]).join(' | '),t.keywords||'',t.notes||''])];const csv='\ufeff'+rows.map(r=>r.map(csvValue).join(',')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),`${kind==='task'?'수행업무':'업무DB'}_${todayISO()}.csv`)}
@@ -8790,6 +8790,7 @@ function buildHandoverDataV110(){
     projectManager:String(task.projectManager||''),
     projectParticipants:(task.projectParticipants||[]).map(String),
     projectResources:handoverAttachmentsV110(task.projectResources),
+    attachments:handoverAttachmentsV110(task.attachments),
     templateId:String(task.templateId||''),
     autoSourceTemplateId:String(task.autoSourceTemplateId||''),
     dbSourceTemplateId:String(task.dbSourceTemplateId||''),
@@ -9371,6 +9372,7 @@ requestAnimationFrame(()=>{
 #handoverExportStatusV120.is-working{font-weight:800;color:var(--accent-deep,#315f8e)}
 </style>
 
+<script src="./js/backup-files.js?v=phase7"></script>
 <script id="local-v120-handover-zip-script">
 function handoverScrubSourceRefsV120(value){
   return JSON.parse(JSON.stringify(value,(key,item)=>{
@@ -9380,7 +9382,11 @@ function handoverScrubSourceRefsV120(value){
 }
 const buildHandoverHtmlV120Base=buildHandoverHtmlV110;
 buildHandoverHtmlV110=function(data){
-  return buildHandoverHtmlV120Base(handoverScrubSourceRefsV120(data));
+  const html=buildHandoverHtmlV120Base(handoverScrubSourceRefsV120(data));
+  const safe=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const manifest=data.meta?.attachmentManifest;
+  const note=manifest?`외부 원본 포함 ${data.meta.includedFileCount}건 / 누락 ${data.meta.missingFileCount}건. manifest.json의 SHA-256을 원본과 대조할 수 있습니다.`:'이 문서는 외부 첨부 원본을 포함하지 않습니다.';
+  return html.replace('</body>',`<section><h2>첨부 원본 포함 여부</h2><p>${safe(note)}</p><ul>${(manifest?.files||[]).filter(f=>!f.included).map(f=>`<li>${safe(f.name)}: ${safe(f.reason)}</li>`).join('')}</ul></section></body>`);
 };
 
 function sanitizeArchiveFileNameV120(name,mimeType,index){
@@ -9409,6 +9415,7 @@ function sanitizeArchiveFileNameV120(name,mimeType,index){
 }
 
 function dataUriToBlobV120(dataUri){
+  if(String(dataUri||'').length>70*1024*1024)throw new Error('인라인 이미지 크기 한도 초과');
   const match=String(dataUri||'').match(/^data:([^;,]+)?(;base64)?,(.*)$/s);
   if(!match)return null;
   const mime=match[1]||'application/octet-stream';
@@ -9439,7 +9446,7 @@ async function handoverResolveOriginalV120(item){
           mimeType:item.mimeType||result.mimeType||result.blob.type||'application/octet-stream',
           key:`drive:${item.sourceDriveFileId}`
         };
-      }catch(error){console.warn('인수인계 Cloud 첨부 읽기 실패',error)}
+      }catch(error){throw new Error('Drive 원본 읽기 실패: '+error.message)}
     }
   }
   if(item?.embeddedImage?.startsWith('data:')){
@@ -9472,46 +9479,17 @@ function walkHandoverFileItemsV120(data){
       addAttachments(step.attachments);
     });
   });
-  (data.allTasks||data.tasks||[]).forEach(task=>{addBlocks(task.methodBlocks);addAttachments(task.projectResources);});
+  (data.allTasks||data.tasks||[]).forEach(task=>{addBlocks(task.methodBlocks);addAttachments(task.projectResources);addAttachments(task.attachments);});
   return items;
 }
 
-async function prepareHandoverZipV120(data,onProgress=()=>{}){
-  data.meta.attachmentMode='zip';
-  const items=walkHandoverFileItemsV120(data);
-  const archiveEntries=[];
-  const dedup=new Map();
-  let included=0,missing=0,totalBytes=0;
-
-  for(let i=0;i<items.length;i++){
-    const item=items[i];
-    onProgress(`첨부자료 확인 중 · ${i+1}/${items.length}`);
-    let resolved=null;
-    try{resolved=await handoverResolveOriginalV120(item)}catch(error){console.warn(error)}
-    if(!resolved?.blob){
-      item.archivePath='';
-      item.originalMissing=true;
-      missing++;
-      continue;
-    }
-    let path=dedup.get(resolved.key);
-    if(!path){
-      const filename=sanitizeArchiveFileNameV120(resolved.name,resolved.mimeType,archiveEntries.length+1);
-      path='첨부자료/'+filename;
-      dedup.set(resolved.key,path);
-      archiveEntries.push({name:path,blob:resolved.blob});
-      totalBytes+=Number(resolved.blob.size||0);
-      included++;
-    }
-    item.archivePath=path;
-    item.originalMissing=false;
-    if(item.embeddedImage)item.embeddedImage='';
-  }
-
-  data.meta.includedFileCount=included;
-  data.meta.missingFileCount=missing;
-  data.meta.includedBytes=totalBytes;
-  return archiveEntries;
+function attachmentBackupScopeV7(){return [window.cloudSync?.workspaceKey,window.cloudSync?.workspaceUser?.uid,window.cloudSync?.user?.uid,window.__workspaceLocalStateKey].join('/');}
+let handoverAbortV7=null;
+async function prepareHandoverZipV120(data,onProgress=()=>{},signal){
+  const result=await window.WMBackupFiles.prepare(walkHandoverFileItemsV120(data),handoverResolveOriginalV120,{signal,scope:attachmentBackupScopeV7,nameFor:sanitizeArchiveFileNameV120,progress:onProgress});
+  data.meta.attachmentMode=result.manifest.complete?'zip':'zip-partial';data.meta.attachmentManifest=result.manifest;
+  data.meta.includedFileCount=result.entries.length;data.meta.missingFileCount=result.manifest.files.filter(f=>!f.included).length;data.meta.includedBytes=result.total;
+  return result.entries;
 }
 
 const ZIP_CRC_TABLE_V120=(()=>{
@@ -9539,7 +9517,7 @@ function zipSet16V120(view,offset,value){view.setUint16(offset,value,true)}
 function zipSet32V120(view,offset,value){view.setUint32(offset,value>>>0,true)}
 
 async function buildZipBlobV120(entries,onProgress=()=>{}){
-  if(entries.length>65535)throw new Error('ZIP에 넣을 파일 수가 너무 많습니다.');
+  window.WMBackupFiles.validateEntries(entries);
   const encoder=new TextEncoder();
   const localParts=[],centralParts=[];
   let offset=0,centralSize=0;
@@ -9606,8 +9584,10 @@ async function exportHandoverZipV120(){
     if(button){button.disabled=true;button.textContent='생성 중...'}
     setHandoverExportStatusV120('인수인계 데이터를 준비하고 있습니다.',true);
 
+    handoverAbortV7=new AbortController();const scope=attachmentBackupScopeV7();
+    const cancel=document.createElement('button');cancel.id='cancelHandoverV7';cancel.textContent='생성 취소';cancel.onclick=()=>handoverAbortV7?.abort();button?.after(cancel);
     const data=buildHandoverDataV110();
-    const attachmentEntries=await prepareHandoverZipV120(data,text=>setHandoverExportStatusV120(text,true));
+    const attachmentEntries=await prepareHandoverZipV120(data,text=>setHandoverExportStatusV120(text,true),handoverAbortV7.signal);
 
     const totalMb=Number(data.meta.includedBytes||0)/1024/1024;
     if(totalMb>300&&!confirm(`첨부자료가 약 ${totalMb.toFixed(1)}MB입니다. ZIP 생성을 계속할까요?`)){
@@ -9633,19 +9613,23 @@ async function exportHandoverZipV120(){
     const entries=[
       {name:'업무_인수인계서.html',blob:new Blob([handoverHtml],{type:'text/html;charset=utf-8'})},
       {name:'README.txt',blob:new Blob([readme],{type:'text/plain;charset=utf-8'})},
+      {name:'manifest.json',blob:new Blob([JSON.stringify(data.meta.attachmentManifest,null,2)],{type:'application/json'})},
       ...attachmentEntries
     ];
     const zipBlob=await buildZipBlobV120(entries,text=>setHandoverExportStatusV120(text,true));
-    download(zipBlob,`업무_인수인계_첨부포함_${todayISO()}.zip`);
+    if(handoverAbortV7.signal.aborted)throw new Error('ZIP 생성을 취소했습니다.');
+    if(scope!==attachmentBackupScopeV7())throw new Error('업무공간이 변경되어 ZIP 다운로드를 중단했습니다.');
+    download(zipBlob,`업무_인수인계_${data.meta.missingFileCount?'원본일부누락':'첨부포함'}_${todayISO()}.zip`);
 
     const missing=data.meta.missingFileCount||0;
     setHandoverExportStatusV120(`완료 · 첨부자료 ${data.meta.includedFileCount||0}건 포함${missing?` · 원본 미포함 ${missing}건`:''}`);
-    if(typeof toast==='function')toast('첨부자료를 포함한 인수인계 ZIP을 생성했습니다.');
+    if(typeof toast==='function')toast(missing?`부분 백업: 원본 ${missing}건 누락. manifest.json을 확인하세요.`:'첨부자료를 포함한 인수인계 ZIP을 생성했습니다.');
   }catch(error){
     console.error('첨부 포함 인수인계 ZIP 생성 실패',error);
     setHandoverExportStatusV120('ZIP 생성 중 오류가 발생했습니다.');
     alert(error?.message||'첨부자료 포함 인수인계 ZIP 생성 중 오류가 발생했습니다.');
   }finally{
+    document.getElementById('cancelHandoverV7')?.remove();handoverAbortV7=null;
     if(button){button.disabled=false;button.textContent=oldText}
   }
 }
@@ -11942,18 +11926,7 @@ window.handoverCloudFileProviderV120={
     if(window.cloudSync?.readDriveFile){
       return window.cloudSync.readDriveFile(fileId,item,{allowLegacyPrompt:true});
     }
-    let token=await driveTokenForHandoverCloudV2();
-    const request=()=>fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}});
-    let response=await request();
-    if(response.status===401){
-      try{sessionStorage.removeItem('workManagerDriveSessionV23')}catch{}
-      await window.cloudSync?.ensureDriveAccess();
-      token=await driveTokenForHandoverCloudV2();
-      response=await request();
-    }
-    if(!response.ok)throw new Error(`Google Drive 원본 읽기 실패 (${response.status})`);
-    const blob=await response.blob();
-    return{blob,name:item?.name||'첨부파일',mimeType:item?.mimeType||blob.type||'application/octet-stream'};
+    throw new Error('Drive 연결이 준비되지 않았습니다. 계정을 확인하고 다시 시도하세요.');
   }
 };
 

@@ -1,0 +1,314 @@
+{
+  "generatedAt": "2026-10-24T15:11:21.933Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "b1f448ec0620b0ccba4f3614d6335e04726e07a0",
+  "rulesSourceSha256": {
+    "js/firestore-rules-policy.js": "08b28881a7542d03020490571bb954854b249f269f9d4f007d9b35bc69d60904",
+    "js/workspace-rules-ui.js": "51630fef08776d948bbc7efb21d80da066c24255ec5be61fad5ad7c9a992e502",
+    "js/workspace-preflight.js": "714324c6338bc27e5240b0ee5f83b0c735c467e83d1839860f40cfab7de98a7a",
+    "tests/emulator/firestore.rules": "32b12095f6cce803cb41c65c8b23bbd507a19eff051889407e36cfb34ca9c7f6"
+  },
+  "commandSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/cloud-sync.js": "38b4d4ee695f83d8f29dc779e150b11511aa53b43c05a2d200df0402d4d4161f",
+    "js/save-command.js": "d1ad5165e1849a825cc2cda05fd43090375b8b4b527d628d989b1c58fc8f1749",
+    "js/save-command-adapter.js": "485b605a07e8023540208beed430e72e20e6f58b36341e7741329a789f3fe66a",
+    "js/task-save-conflict.js": "830864b4af78e0314e8466de47ac5fc9553e1c93c554c31aba0300c51a71aed6",
+    "js/operation-journal.js": "358a405f5c1625cf9de07b46e3f195c105d2831c13c35c979554a390f39dd6f0",
+    "js/recovery-ui.js": "004c64e58d15c1a3b085698585f2fbbdaceaea1193db3c592becd6249b59ad2e"
+  },
+  "recurrenceSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/recurrence-rules.js": "760c9f25e5d0fdf7b652b2fdebd03d4c4b72e75e964a54ab56fd10b14da5afdc",
+    "js/recurrence-identity.js": "517997699409c63df23580460fcca876d01a6d1e6a420b37d26fd7ebd3c8a490",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66",
+    "js/cloud-sync.js": "38b4d4ee695f83d8f29dc779e150b11511aa53b43c05a2d200df0402d4d4161f"
+  },
+  "scheduleSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "dateSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/date-only.js": "eafb1e28c8e84a60f025466b4b6855a7363d03678056de183037d62de1b5b725",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95"
+  },
+  "backupSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/backup-safety.js": "0446cbecc5866844efbb3079ca77f2560ddb4cd8496d30d6550eb70b6dea9dac",
+    "js/backup-ui.js": "ed85310512eea3ca9f1ff05c651498a3f62519833b6763cdd05b12febf6aeb91",
+    "js/cloud-sync.js": "38b4d4ee695f83d8f29dc779e150b11511aa53b43c05a2d200df0402d4d4161f"
+  },
+  "completionSourceSha256": {
+    "index.html": "7eb5326e1af159153c5775dd9c3b650e4e0d1be6b7b061aa21c9be275bd4b247",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "credentialSourceSha256": "befcdce476234929def09c13f84723c1b54e822fbb723af7c831a3b1f9a4835c",
+  "attachmentSourceSha256": "38b4d4ee695f83d8f29dc779e150b11511aa53b43c05a2d200df0402d4d4161f",
+  "checkoutHead": "d74ce77d70f37f360e7cb2e2935490eec1fa20b3",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 46,
+  "counts": {
+    "PASS": 44,
+    "FAIL": 0,
+    "XFAIL": 2,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "DATA-01",
+      "title": "Schema11 roundtrip preserves tasks, history, templates, rules, projects and settings",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "title": "Removed recurrence retains its stored generation lock",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "title": "Project and template attachments exclude inline data and transient URLs",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "title": "Local-only holiday setting is excluded from cloud records",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "title": "Backup merges disjoint IDs and identical records without duplication or mutation",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "title": "Backup conflict must not silently overwrite completed history",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-08",
+      "title": "Object-form template checklist must retain text instead of string coercion",
+      "expected": [
+        "First"
+      ],
+      "observed": [
+        "[object Object]"
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "title": "Task projectResources must exclude inline bytes and transient URLs too",
+      "expected": [
+        {
+          "id": "fixture-file"
+        }
+      ],
+      "observed": [
+        {
+          "id": "fixture-file",
+          "data": "SYNTHETIC_INLINE_DATA",
+          "previewUrl": "blob:fixture"
+        }
+      ],
+      "source": "js/cloud-sync.js / phase1 evidence/model-results.json, blob-result.json",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BACKUP-01",
+      "title": "Completed current task defeats an older planned backup even with incoming choice",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-02",
+      "title": "Completion history cannot be removed, edited or duplicated by merge or restore",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-03",
+      "title": "Same ID equal content ignores key order; new tasks are added once",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-04",
+      "title": "Different content is a conflict; selected ordinary edits retain unknown fields",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-05",
+      "title": "Project stages, protected task IDs and attachment refs remain linked on conflict",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-06",
+      "title": "Generated keys cannot add a second task ID or resurrect a durable lock",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-07",
+      "title": "Attachment ID metadata conflicts cannot replace current file refs",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-08",
+      "title": "Malformed JSON, missing collections, invalid schema, dates, IDs and history are refused",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-09",
+      "title": "Dangling project, task and attachment refs and inline file bytes are refused before writing",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-10",
+      "title": "Restore warns about removals but retains omitted completed tasks and unknown root fields",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-11",
+      "title": "Cancel and stale review do not call snapshot, publish or persistence",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-12",
+      "title": "Snapshot must be durable first; committed state equals reviewed result",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-13",
+      "title": "Snapshot failure and changes during snapshot preparation abort before any data write",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-14",
+      "title": "Write failure preserves memory and exposes recovery-required status without success",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-15",
+      "title": "Restore needs separate confirmation and forged reviews are rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-01",
+      "title": "Actual import file picker previews differences and cancel changes nothing",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-02",
+      "title": "Confirmed local import stores recovery first and failures display recovery-required",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-03",
+      "title": "Successful merge matches preview and stale UI cannot apply an obsolete review",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-04",
+      "title": "Recovery preparation cannot write a previous account snapshot into another account cache",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-01",
+      "title": "MOCK cloud preview is read-only; approval saves exact result and preserves history",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-02",
+      "title": "MOCK queued remote edits and account changes invalidate the reviewed baseline",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-03",
+      "title": "MOCK codec field loss is surfaced as validation errors before any snapshot or write",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-04",
+      "title": "MOCK partial cloud commit has no offline fallback, no publish and blocks further saves",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-05",
+      "title": "MOCK import transactions compare remote create, update, delete and key-lock baselines before writes",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-06",
+      "title": "MOCK durable generated-key locks and fresh plan verification prevent recurring-task resurrection",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-07",
+      "title": "MOCK checklist-only import checks the parent task for a new remote completion",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-08",
+      "title": "MOCK late unrelated remote changes are kept and reported as recovery-required",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-01",
+      "title": "JSON preserves all IDs, Tasks legacy fields, history and locks without claiming originals",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-02",
+      "title": "Manifest hashes match exact included bytes with Korean distinct paths",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-03",
+      "title": "Missing original reports reason and cannot claim complete backup",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-04",
+      "title": "Repeated file ID fetches once while preserving all references",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-05",
+      "title": "ZIP rejects traversal, duplicate normalized paths and entry limits before reading",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-06",
+      "title": "ZIP enforces single and aggregate size before buffer allocation",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-07",
+      "title": "Cancellation and account change stop download preparation",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-08",
+      "title": "Bounded media reader rejects unknown-length stream before unlimited buffering",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-09",
+      "title": "Actual ZIP writer stores original bytes and UTF8 paths with correct CRC",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-10",
+      "title": "Project, library, linked steps and task references participate in ZIP inventory",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-11",
+      "title": "Chromium handover reports partial originals and JSON retains legacy references",
+      "status": "PASS"
+    }
+  ]
+}
