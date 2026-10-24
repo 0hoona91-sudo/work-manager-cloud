@@ -1,0 +1,54 @@
+name: Phase 6-D emulator verification
+on:
+  push:
+    branches: [refactor/phase6d-emulator-verification]
+permissions:
+  contents: read
+concurrency:
+  group: phase6d-emulator-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      GCLOUD_PROJECT: demo-work-manager
+      FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true'
+      PHASE6D_SCOPE: focused
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Locked dependencies and existing Chromium
+        run: |
+          npm ci
+          chrome=$(command -v chromium || command -v google-chrome)
+          test -n "$chrome"
+          echo "CHROMIUM_PATH=$chrome" >> "$GITHUB_ENV"
+      - name: Demo-only Firestore verification
+        run: |
+          set -o pipefail
+          ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-work-manager --config tests/emulator/firebase.json "node tests/phase6d-ci.cjs" 2>&1 | tee phase6d-emulator.log
+      - name: Publish test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase6d-evidence-${{ github.sha }}
+          if-no-files-found: warn
+          path: |
+            test-results/
+            phase6d-emulator.log
+            *debug.log
+            tests/emulator/*debug.log
+      - name: Run summary
+        if: always()
+        run: node tests/phase6d-summary.cjs
