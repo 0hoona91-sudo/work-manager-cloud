@@ -32,4 +32,8 @@ module.exports=({test,EnvironmentUnavailable})=>{
   await page.setViewportSize({width:1440,height:900});await page.waitForTimeout(50);
   values=await labels();assert.ok(values.every(v=>v==='진행(예정) 업무'));
  }));
+ test('FEATURE-UI-05','Project list render does not invent a missing projects field',()=>withPage({width:1440,height:900},EnvironmentUnavailable,async page=>{
+  const result=await page.evaluate(()=>{const old=state.projects;delete state.projects;try{WMProjectUI.renderProjectPage();return Object.hasOwn(state,'projects');}finally{state.projects=old;}});
+  assert.equal(result,false);
+ }));
 };

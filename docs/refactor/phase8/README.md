@@ -15,3 +15,5 @@
 재개 8a: 홈 위젯의 resize/orientationchange 리스너를 key별 mount/dispose가 가능한 작은 `WMFeatureViewport` 경계에 연결했다. 같은 프레임의 두 이벤트는 한 번만 처리한다. 기존 홈·검색 Chromium 2건과 mount/dispose 계약 1건 모두 PASS. 다른 홈 wrapper들은 종전 기능을 보존하기 위해 일괄 제거하지 않았다.
 
 재개 8b: 기존 save-command/journal/충돌 UI의 초안 보호·중복 제출·실패 표시·완료 읽기 전용 검사를 재사용해 CMD-UI-01/02, CONFLICT-UI-01/03, HIST-UI-02 = 5 PASS를 확인했다. 관련 저장 계층은 재작성하지 않았다. 업무 메뉴의 중복 resize/orientationchange 핸들러 두 쌍을 최종 메뉴 표시가 소유하는 viewport mount 한 곳으로 연결했다. PC↔모바일 회전 시 표시와 검색 필터 유지 집중 Chromium 검사가 PASS. 모달 전반의 이벤트 생명주기와 원격 snapshot 경쟁은 최종 통합 회귀 및 후속 UI 검증 범위로 남는다.
+
+재개 8c: 프로젝트 목록 조회 헬퍼가 렌더 중 `state.projects=[]`를 생성하지 않도록 읽기 전용 fallback으로 바꿨다. FEATURE-UI-05와 기존 UI-02, SCHED-UI-01~03, HIST-UI-01 총 6건 PASS. 프로젝트 편집기는 기존 editor clone/취소 시 pendingFiles 정리와 현재 단계 날짜 엔진을 유지한다. `project-ui.js`의 넓은 MutationObserver는 동적으로 재생성되는 라이브러리 편집 DOM의 버튼·입력을 보정하는 실제 역할이 있어 무리하게 제거하지 않았다. 이 경로의 전체 수명/비동기 경쟁은 최종 회귀 외 실계정에서 추가 확인이 필요하다.

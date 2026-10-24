@@ -21,7 +21,7 @@ function selectable(items,selected,{placeholder='선택',blank=true}={}) {
   const list=Array.isArray(items)?items:[];
   return `${blank?`<option value="">${escp(placeholder)}</option>`:''}${list.map(v=>`<option value="${escp(v)}" ${String(v)===String(selected)?'selected':''}>${escp(v)}</option>`).join('')}`;
 }
-function projectList(){state.projects||=[];return state.projects;}
+function projectList(){return Array.isArray(state.projects)?state.projects:[];}
 function projectById(id){return projectList().find(p=>p.id===id);}
 function projectStageTask(projectId,stageId){return (state.tasks||[]).find(t=>t.projectId===projectId&&t.projectStageId===stageId);}
 function doneCount(project){return project.stages.filter(s=>effectiveStatus(projectStageTask(project.id,s.id)||{})==='done').length;}
