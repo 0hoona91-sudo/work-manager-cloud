@@ -79,7 +79,7 @@ function cloud(shared = state()) {
     getBuildingUser: () => shared.next, getBuildingDriveAccessToken: () => shared.canonicalToken || '',
     signOut: async () => {}, });
   vm.runInContext(`let currentUser=null,buildingUser=${JSON.stringify(shared.next)},workspaceProfile=null;
-    let driveAccessToken='',driveAccessTokenExpiresAt=0,driveAccessTokenUid='',driveFolderId='';
+    const driveObjectUrls=new Map();let driveAccessToken='',driveAccessTokenExpiresAt=0,driveAccessTokenUid='',driveFolderId='';
     let legacyDriveAccessToken='',legacyDriveAccessTokenExpiresAt=0,legacyDriveAccessTokenUid='',legacyDriveAccessTokenEmail='',legacyDriveAuth=null;
     const DRIVE_TOKEN_SESSION_KEY='${keys.duplicate}',LEGACY_DRIVE_TOKEN_SESSION_KEY='${keys.legacy}';
     const DRIVE_TOKEN_LIFETIME_MS=2700000,LEGACY_DRIVE_TOKEN_LIFETIME_MS=3000000;\n${defs}`,ctx);

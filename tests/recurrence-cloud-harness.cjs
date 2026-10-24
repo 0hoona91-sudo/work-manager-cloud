@@ -14,7 +14,7 @@ function harness(transport,state){
     DATA_COLLECTIONS:Object.keys(initial).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(initial),
     makeRecordMaps:()=>Object.fromEntries(Object.keys(initial).map(k=>[k,new Map()])),clone:copy,plain:copy,
     serializeState:s=>{C.setShadow(ctx.shadowMaps);return C.serializeState(s);},deserializeState:C.deserializeState,
-    commandSaveGuard:null,active:true,localOnly:false,saving:false,queuedState:null,queuedWorkspace:null,queuedVersion:0,queuedResolvers:[],lastSyncAt:null,
+    attachmentStore:null,commandSaveGuard:null,active:true,localOnly:false,saving:false,queuedState:null,queuedWorkspace:null,queuedVersion:0,queuedResolvers:[],lastSyncAt:null,
     backupImporting:false,backupRecoveryRequired:false,recurrenceRecoveryRequired:false,recurrenceLocalEditsPending:false,
     ensureImageUploads:async()=>{},setSyncStatus:(...args)=>events.push(args),friendlyError:e=>e.message,
     makeLog:()=>({synthetic:true}),...transport.sdk});

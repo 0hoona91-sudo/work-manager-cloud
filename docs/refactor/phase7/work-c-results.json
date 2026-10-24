@@ -1,0 +1,194 @@
+{
+  "generatedAt": "2026-10-24T15:07:22.062Z",
+  "sourceBaseline": "091dbecd701153e7e1880bd6bb84a277b789c58f",
+  "refactorBase": "b1f448ec0620b0ccba4f3614d6335e04726e07a0",
+  "rulesSourceSha256": {
+    "js/firestore-rules-policy.js": "08b28881a7542d03020490571bb954854b249f269f9d4f007d9b35bc69d60904",
+    "js/workspace-rules-ui.js": "51630fef08776d948bbc7efb21d80da066c24255ec5be61fad5ad7c9a992e502",
+    "js/workspace-preflight.js": "714324c6338bc27e5240b0ee5f83b0c735c467e83d1839860f40cfab7de98a7a",
+    "tests/emulator/firestore.rules": "32b12095f6cce803cb41c65c8b23bbd507a19eff051889407e36cfb34ca9c7f6"
+  },
+  "commandSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/cloud-sync.js": "f1a5138eb8d899dbfbc6b34d43db872af7afd302857e0d3f7ca59638d76d2fbd",
+    "js/save-command.js": "d1ad5165e1849a825cc2cda05fd43090375b8b4b527d628d989b1c58fc8f1749",
+    "js/save-command-adapter.js": "485b605a07e8023540208beed430e72e20e6f58b36341e7741329a789f3fe66a",
+    "js/task-save-conflict.js": "830864b4af78e0314e8466de47ac5fc9553e1c93c554c31aba0300c51a71aed6",
+    "js/operation-journal.js": "358a405f5c1625cf9de07b46e3f195c105d2831c13c35c979554a390f39dd6f0",
+    "js/recovery-ui.js": "004c64e58d15c1a3b085698585f2fbbdaceaea1193db3c592becd6249b59ad2e"
+  },
+  "recurrenceSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/recurrence-rules.js": "760c9f25e5d0fdf7b652b2fdebd03d4c4b72e75e964a54ab56fd10b14da5afdc",
+    "js/recurrence-identity.js": "517997699409c63df23580460fcca876d01a6d1e6a420b37d26fd7ebd3c8a490",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66",
+    "js/cloud-sync.js": "f1a5138eb8d899dbfbc6b34d43db872af7afd302857e0d3f7ca59638d76d2fbd"
+  },
+  "scheduleSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "dateSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/date-only.js": "eafb1e28c8e84a60f025466b4b6855a7363d03678056de183037d62de1b5b725",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95"
+  },
+  "backupSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/backup-safety.js": "0446cbecc5866844efbb3079ca77f2560ddb4cd8496d30d6550eb70b6dea9dac",
+    "js/backup-ui.js": "ed85310512eea3ca9f1ff05c651498a3f62519833b6763cdd05b12febf6aeb91",
+    "js/cloud-sync.js": "f1a5138eb8d899dbfbc6b34d43db872af7afd302857e0d3f7ca59638d76d2fbd"
+  },
+  "completionSourceSha256": {
+    "index.html": "b534d6952f426fcbb146bb87d7b4b2b21e01ef19dcd4761d135722b474e825ae",
+    "js/project-model.js": "d4c96526ed35d874b41eec91c21f84d20e70e5db1015767d483365116ded0b95",
+    "js/project-ui.js": "a093a361598c7f5d8493092ad2347b763c4f087a159c5171ffb08c95e92b9f66"
+  },
+  "credentialSourceSha256": "befcdce476234929def09c13f84723c1b54e822fbb723af7c831a3b1f9a4835c",
+  "attachmentSourceSha256": "f1a5138eb8d899dbfbc6b34d43db872af7afd302857e0d3f7ca59638d76d2fbd",
+  "checkoutHead": "2e2f30d33a6bfb1bd12bd48bd1501e338adac522",
+  "node": "v24.19.0",
+  "timezone": "UTC",
+  "strict": false,
+  "total": 26,
+  "counts": {
+    "PASS": 26,
+    "FAIL": 0,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "SEC-01",
+      "title": "HTML cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "title": "SVG script cannot read app localStorage",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "title": "XHTML downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "title": "XML downloads despite text MIME",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "title": "PDF extension cannot disguise HTML response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "title": "Image extension cannot disguise SVG response",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Forged image MIME with HTML bytes downloads",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "title": "Recognized MIME must match extension",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "title": "Normal PNG still renders",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "title": "Normal PDF still opens",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "title": "Ordinary binary downloads unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "title": "Explicit active-file download preserves bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "title": "Blocked popup falls back to download",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "title": "Legacy missing declared MIME still previews a verified image",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "title": "Hydrated HTML cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "title": "Newly uploaded SVG cache cannot supply an active document",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-01",
+      "title": "Upload and confirmed task reference have separate durable states",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-02",
+      "title": "Task save failure retains original file and retry ID after restart",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-03",
+      "title": "Response loss verifies existing ID without second upload",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-04",
+      "title": "Concurrent identical file requests share one operation",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-05",
+      "title": "Journal quota blocks network transmission",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-06",
+      "title": "User cancellation is distinguished and retry preserves operation",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-07",
+      "title": "Workspace change blocks post-upload linkage and isolates diagnostics",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-08",
+      "title": "Orphan diagnostics never delete referenced or unreferenced originals",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-09",
+      "title": "Uncertain read failure never allocates a replacement or retries upload",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-10",
+      "title": "Empty and oversize uploads rejected before allocation",
+      "status": "PASS"
+    }
+  ]
+}

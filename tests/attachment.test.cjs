@@ -68,6 +68,8 @@ async function exercise(fixture, EnvironmentUnavailable) {
       window.legacyWorkspaceEligible = () => false;
       window.ensureDriveFolder = async () => 'synthetic-folder';
       window.appConfig = {};
+      window.recurrenceWorkspace=()=> 'synthetic';window.assertRecurrenceWorkspace=()=>{};
+      window.getAttachmentStore=()=>({send:async file=>({fileId:'synthetic-file',size:file.size,mimeType:file.type})});
       window.driveFetch = async () => ({ json: async () => ({ id: 'synthetic-file' }) });
       window.uploadDriveMediaWithRetry = async () => {};
       window.verifyDriveUpload = async () => ({ size: __blob.size, mimeType: type });

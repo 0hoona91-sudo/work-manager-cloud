@@ -1,3 +1,4 @@
+import "./attachment-store.js?v=phase7";
 import "./workspace-rules-ui.js?v=phase6f-rules-v1";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
@@ -149,6 +150,8 @@ function rememberDriveAccessToken(token, user = getBuildingUser()) {
 }
 
 function clearDriveAccessToken() {
+  for(const url of driveObjectUrls.values())URL.revokeObjectURL(url);
+  driveObjectUrls.clear();
   driveAccessToken = "";
   driveAccessTokenExpiresAt = 0;
   driveAccessTokenUid = "";
@@ -881,6 +884,15 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
 }
 
 function controller() {
+  if(!document.getElementById('attachmentRecoveryButton') && document.getElementById('cloudUser')){
+    const button=document.createElement('button');button.id='attachmentRecoveryButton';button.textContent='첨부 저장 확인';
+    button.onclick=async()=>{try{const rows=await getAttachmentStore().diagnose(stateRef);const report=rows.map(r=>({fileId:r.fileId,name:r.name,phase:r.phase,referenced:r.referenced,needsReview:r.needsReview}));
+      const dialog=document.createElement('dialog'),text=document.createElement('pre'),close=document.createElement('button');
+      text.textContent='업로드와 업무 저장은 별개입니다. 미확정 파일은 자동 삭제하지 않습니다. 같은 계정에서 원본 파일을 다시 선택하면 기존 ID로 확인·재시도합니다. 참조 있음은 현재 화면 기준이며 서버 확정을 뜻하지 않습니다.\n'+JSON.stringify(report,null,2);
+      close.textContent='닫기';close.onclick=()=>{dialog.close();dialog.remove();};dialog.append(text,close);document.body.append(dialog);dialog.showModal();
+    }catch(e){alert('첨부 기록 확인 실패: '+e.message);}};
+    document.getElementById('cloudUser').after(button);
+  }
   return {
     get user() { return buildingUser || currentUser; },
     get workspaceUser() { return currentUser; },
@@ -892,6 +904,7 @@ function controller() {
         ready: recurrenceReady && active && Boolean(currentUser) && !needsInitialUpload,
         locks: [...recordMaps.generatedKeys.values()].map(clone) };
     },
+    attachmentDiagnostics:()=>getAttachmentStore().diagnose(stateRef),
     stableTaskId: stableKeyId,
     activate,
     save,
@@ -1280,6 +1293,7 @@ async function saveTaskCommand(request, reviewMode, journalUncertain = false) {
       for(const [id,value] of maps.checklistItems)if(value.parentType==="task"&&value.parentId===change.id)maps.checklistItems.delete(id);
       for(const [id,value] of result.maps.checklistItems)maps.checklistItems.set(id,value);
     }
+    if(typeof attachmentStore!=="undefined" && attachmentStore)await attachmentStore.confirm({tasks:[result.serverTask]});
     commandSaveGuard.confirmed=true;
     setSyncStatus("online","해당 업무 서버 저장 확인");
     return {operationId:request.operationId,persistence:"server-confirmed",commandReconciled:true,serverTask:result.serverTask,revision:result.revision,alreadyApplied:result.alreadyApplied};
@@ -1328,6 +1342,7 @@ async function flushQueue(metadata = {}) {
         }
       } else await commitOfflineChunks(changes, nextMaps, metadata);
       assertRecurrenceWorkspace(workspace);
+      if(serverConfirmed && !reconciled && attachmentStore)await attachmentStore.confirm(snapshot);
       shadowMaps = mapClone(nextMaps);
       for (const name of DATA_COLLECTIONS) recordMaps[name] = new Map(nextMaps[name]);
       if (guarded || reconciled || recurrenceLocalEditsPending) recurrenceLocalEditsPending = diffMaps(nextMaps, serializeState(stateRef)).length > 0;
@@ -1940,66 +1955,36 @@ async function verifyDriveUpload(fileId, expectedSize) {
   return meta;
 }
 
-async function cleanupFailedDriveFile(fileId) {
-  if (!fileId) return;
-  try {
-    const token = await currentDriveToken();
-    const response = await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok && response.status !== 404) throw new Error(`Google Drive 임시 파일 정리 실패 (${response.status})`);
-  } catch (error) {
-    console.warn("실패한 Drive 임시 파일 정리 실패");
-  }
-}
-
-async function createDriveBlock(file, { id, type, kind }) {
-  if (!file?.name) throw new Error("첨부할 파일을 확인하지 못했습니다.");
-  if (Number(file.size || 0) <= 0) throw new Error("빈 파일은 첨부할 수 없습니다.");
-  if (Number(file.size || 0) > MAX_DRIVE_FILE_BYTES) throw new Error("첨부파일은 한 개당 50MB 이하만 업로드할 수 있습니다.");
-  const folderId = await ensureDriveFolder();
-  const token = await currentDriveToken();
-  const mimeType = file.type || "application/octet-stream";
-  const uniqueSuffix = Math.random().toString(36).slice(2, 8);
-  const driveName = `${new Date().toISOString().replaceAll(":", "-")}_${uniqueSuffix}_${file.name}`;
-  const metadataResponse = await driveFetch("https://www.googleapis.com/drive/v3/files?fields=id,name,mimeType,size", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: driveName,
-      mimeType,
-      parents: [folderId],
-      appProperties: { workManagerApp: appConfig.driveAppMarker || "work-manager-v10", kind },
-    }),
-  });
-  const metadata = await metadataResponse.json();
-  if (!metadata?.id) throw new Error("Google Drive 임시 파일 ID를 받지 못했습니다.");
-  try {
-    await uploadDriveMediaWithRetry(metadata.id, file, mimeType, { attempts: 3 });
-    const verified = await verifyDriveUpload(metadata.id, Number(file.size || 0));
-    const objectUrl = URL.createObjectURL(await safeDriveDisplayBlob(file));
-    const previous = driveObjectUrls.get(metadata.id);
-    if (previous) try { URL.revokeObjectURL(previous); } catch {}
-    driveObjectUrls.set(metadata.id, objectUrl);
-    return {
-      id,
-      type,
-      driveFileId: metadata.id,
-      name: file.name,
-      mimeType: verified?.mimeType || mimeType,
-      size: Number(verified?.size || file.size || 0),
-      caption: "",
-      ...(type === "image" ? { data: objectUrl } : {}),
-    };
-  } catch (error) {
-    await cleanupFailedDriveFile(metadata.id);
-    const message = String(error?.message || error || "");
-    if (isNetworkFetchError(error)) {
-      throw new Error("Google Drive 전송 중 네트워크 연결이 끊겼습니다. 사진은 저장되지 않았습니다. 잠시 후 다시 첨부해 주세요.");
+let attachmentStore = null;
+function getAttachmentStore() {
+  return attachmentStore ||= window.WMAttachmentStore.create({
+    store:window.WMAttachmentStore.indexed(window.openDb),
+    scope:()=>currentUser && buildingUser ? `${recurrenceWorkspace()}/${buildingUser.uid}` : '',
+    allocate:async()=>{const token=await currentDriveToken();const r=await driveFetch('https://www.googleapis.com/drive/v3/files/generateIds?count=1&space=drive',{headers:{Authorization:`Bearer ${token}`}});const data=await r.json();if(!data.ids?.[0])throw Error('Drive ID 할당 실패');return data.ids[0];},
+    upload:async(fileId,file,row)=>{
+      const workspace=recurrenceWorkspace(),folderId=await ensureDriveFolder(),token=await currentDriveToken();assertRecurrenceWorkspace(workspace);
+      const response=await driveFetchResponse('https://www.googleapis.com/drive/v3/files?fields=id',{
+        method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({id:fileId,name:row.name,mimeType:row.mimeType,parents:[folderId],appProperties:{workManagerApp:appConfig.driveAppMarker||'work-manager-v10'}})});
+      if(!response.ok&&response.status!==409)throw Error(`Drive 파일 생성 실패 (${response.status})`);
+      assertRecurrenceWorkspace(workspace);await uploadDriveMediaWithRetry(fileId,file,row.mimeType,{attempts:1});
+    },
+    verify:async(fileId,row)=>{
+      const token=await currentDriveToken();const r=await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,size,trashed`,{headers:{Authorization:`Bearer ${token}`}});
+      if(r.status===404)return false;if(!r.ok)throw Error(`Drive 확인 실패 (${r.status})`);const data=await r.json();if(data.trashed)throw Error('파일이 휴지통에 있습니다. 자동 복원하지 않습니다.');return data.id===fileId&&Number(data.size)===row.size;
     }
-    throw new Error(message || "Google Drive에 파일을 저장하지 못했습니다.");
+  });
+}
+async function createDriveBlock(file, { id, type, kind, signal }) {
+  if (!file?.name) throw new Error('첨부할 파일을 확인하지 못했습니다.');
+  const scope=recurrenceWorkspace();
+  const row=await getAttachmentStore().send(file,{signal});assertRecurrenceWorkspace(scope);
+  const block={id,type,driveFileId:row.fileId,name:file.name,mimeType:row.mimeType,size:row.size,caption:''};
+  if(type==='image'){
+    const display=await safeDriveDisplayBlob(file);assertRecurrenceWorkspace(scope);const objectUrl=URL.createObjectURL(display);
+    const old=driveObjectUrls.get(row.fileId);if(old)URL.revokeObjectURL(old);driveObjectUrls.set(row.fileId,objectUrl);block.data=objectUrl;
   }
+  return block;
 }
 
 async function createImageBlock(file, id = `mb-${Date.now().toString(36)}`) {
@@ -2101,8 +2086,11 @@ async function safeDriveDisplayBlob(blob) {
 
 async function getDriveObjectUrl(fileId, { allowLegacyPrompt = false } = {}) {
   if (driveObjectUrls.has(fileId)) return driveObjectUrls.get(fileId);
+  const scope=recurrenceWorkspace();
   const result = await readDriveFileBlob(fileId, { allowLegacyPrompt });
-  const objectUrl = URL.createObjectURL(await safeDriveDisplayBlob(result.blob));
+  const display=await safeDriveDisplayBlob(result.blob);assertRecurrenceWorkspace(scope);
+  if(driveObjectUrls.has(fileId))return driveObjectUrls.get(fileId);
+  const objectUrl = URL.createObjectURL(display);
   driveObjectUrls.set(fileId, objectUrl);
   return objectUrl;
 }

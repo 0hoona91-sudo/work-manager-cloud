@@ -26,3 +26,11 @@ A: Google Tasks 전용 모듈, UI/CSS, 앱 브리지, saveState 이벤트 래퍼
 모두 로컬 모의 Auth/Google API 및 함수 검사다. 독립 Actions, 실제 Google OAuth/Drive 파일 요청, Emulator를 이번 B에서 실행하지 않았다. 따라서 이 31건을 실계정 성공으로 해석하지 않는다. 전체 회귀는 C/D 통합 후 실행한다. 업로드 성공 후 저장 실패/고아 파일/취소 복구는 C 범위이며 이번에는 구현하지 않았다.
 
 B 완료. 다음 진행 지점은 **작업 C 첨부파일 안정화**다. 전체 7단계 완료 판정은 보류한다. 운영 main/Firestore/Drive/Rules/배포, schema11 및 사용자 자료는 변경하지 않았다.
+
+## 작업 C — 첨부 업로드와 참조 저장 분리
+
+`attachment-store.js`를 실제 cloud createDriveBlock에 연결했다. 기존 IndexedDB data store에 계정/개인 Firebase 업무공간/파일 SHA-256별 기록을 먼저 확정하고, Drive generateIds로 받은 파일 ID를 전송 전에 보관한다. 불명확한 응답의 재시도는 같은 ID를 조회하며 신규 ID를 만들지 않는다. 업로드 실패 자동 DELETE를 제거했다. 업로드 완료(uploaded)와 Firestore 서버 확정 뒤 참조 연결(linked)을 분리한다. 실패/취소/계정 변경 기록과 원본은 남긴다. 일반 로컬 초기화도 이 기록을 보존한다.
+
+상단 **첨부 저장 확인**에서 현재 계정의 파일 ID·상태·현재 참조를 확인할 수 있다. 같은 원본 파일을 다시 선택하면 동일 ID로 확인·재시도한다. 자동 고아 파일 삭제, 다른 계정 기록 노출, 원격 삭제는 없다. 이미지 캐시는 계정 정리 시 해제하고 늦은 응답의 이전 업무공간 URL 설치를 차단했다. 기존 HTML/SVG 다운로드 정책은 유지했다.
+
+집중 결과: 26 PASS(기존 SEC-01~16 실제 Chromium + 신규 ATTACH-01~10 모의 저장/Drive 계약). 변경된 캐시 정리 경로의 AUTH/DRIVE-AUTH 31 PASS도 확인했다. 실제 Drive generateIds/권한/업로드는 미검증이다. 동일 브라우저 동시 요청과 재실행 기록을 보호하나 여러 탭/기기의 업로드 원자성을 보장하지 않는다. Drive와 Firestore 전역 트랜잭션은 없다. 서버 크기 확인은 내용 전체 해시 검증이 아니며, journal이 삭제된 브라우저는 이 복구를 사용할 수 없다. 초기 참조 없는 파일도 자동 삭제하지 않는다. 작업 D와 최종 통합 검증은 다음 순서로 진행한다.
