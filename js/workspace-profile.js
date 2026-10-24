@@ -260,7 +260,7 @@ function migrateWorkspaceProfileCache() {
 async function clearAccountCredentials() {
   clearWorkspaceProfileCache();
   clearDriveToken();
-  invalidateBuildingTasksToken();
+  purgeRetiredTasksCredential();
   buildingAuthorization = null;
   try { localStorage.removeItem(BUILDING_EMAIL_HINT_KEY); } catch {}
   // Notify the cloud adapter to drop its memory tokens and stop old subscriptions.
@@ -337,14 +337,14 @@ export async function signInBuildingGoogle({ selectAccount = true } = {}) {
     await signOut(buildingAuth);
     buildingUser = null;
     buildingAuthorization = null;
-    invalidateBuildingTasksToken();
+    purgeRetiredTasksCredential();
     throw error;
   }
   if (!permission?.allowed) {
     await signOut(buildingAuth);
     buildingUser = null;
     buildingAuthorization = null;
-    invalidateBuildingTasksToken();
+    purgeRetiredTasksCredential();
     const error = new Error("이 업무관리시스템은 소유자 계정으로만 사용할 수 있습니다.");
     error.code = "app/access-denied";
     throw error;
@@ -707,50 +707,11 @@ export function getBuildingDriveAccessToken() {
 }
 
 
-// v1.5 — Google Tasks 추가 동의: 기존 Drive 권한이나 공용 로그인 설정과 분리합니다.
-const TASKS_SCOPE_V15 = "https://www.googleapis.com/auth/tasks";
-const TASKS_TOKEN_KEY_V15 = "workManagerTasksTokenV15";
-let tasksTokenV15 = "";
-let tasksExpiryV15 = 0;
-let tasksUidV15 = "";
-export function invalidateBuildingTasksToken() {
-  tasksTokenV15 = ""; tasksExpiryV15 = 0; tasksUidV15 = "";
-  try { sessionStorage.removeItem(TASKS_TOKEN_KEY_V15); } catch {}
+// Retired integration: purge obsolete credentials only; preserve all task metadata.
+function purgeRetiredTasksCredential() {
+  try { sessionStorage.removeItem("workManagerTasksTokenV15"); } catch {}
 }
-export function getBuildingTasksToken() {
-  if (!isPersonalOwner(buildingAuth?.currentUser)) { invalidateBuildingTasksToken(); return ""; }
-  const uid = buildingAuth?.currentUser?.uid || buildingUser?.uid || "";
-  if (tasksTokenV15 && Date.now() < tasksExpiryV15 && uid && tasksUidV15 === uid) return tasksTokenV15;
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(TASKS_TOKEN_KEY_V15) || "null");
-    if (uid && saved?.uid === uid && Number.isFinite(saved.expiresAt) && saved.expiresAt > Date.now()
-      && saved.expiresAt <= Date.now() + DRIVE_TOKEN_LIFETIME_MS && typeof saved.token === "string" && saved.token) {
-      tasksTokenV15 = saved.token; tasksExpiryV15 = saved.expiresAt; tasksUidV15 = uid;
-      return tasksTokenV15;
-    }
-  } catch {}
-  invalidateBuildingTasksToken();
-  return "";
-}
-export async function authorizeBuildingTasks() {
-  await initBuildingIdentity();
-  const user = buildingAuth.currentUser;
-  if (!user) throw new Error("업무관리시스템 Google 로그인부터 진행해 주세요.");
-  const permission = await checkBuildingAuthorization(user);
-  if (!permission.allowed) throw new Error("업무관리시스템에 허용된 Google 계정이 아닙니다.");
-  const provider = googleProvider(false, false);
-  provider.addScope(TASKS_SCOPE_V15);
-  // 팝업은 사용자 클릭에서만 호출합니다. 갱신 실패로 다른 API 권한은 폐기하지 않습니다.
-  const result = await reauthenticateWithPopup(user, provider);
-  if (result.user?.uid !== user.uid || buildingAuth.currentUser?.uid !== user.uid) throw new Error("다른 Google 계정을 선택했습니다. 기존 계정으로 다시 승인하세요.");
-  const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken;
-  if (!token) throw new Error("Google Tasks 권한 토큰을 받지 못했습니다.");
-  tasksTokenV15 = token;
-  tasksUidV15 = user.uid;
-  tasksExpiryV15 = Date.now() + 45 * 60 * 1000;
-  try { sessionStorage.setItem(TASKS_TOKEN_KEY_V15, JSON.stringify({token,uid:user.uid,expiresAt:tasksExpiryV15})); } catch {}
-  return token;
-}
+purgeRetiredTasksCredential();
 
 // Remove legacy plaintext passwords immediately, even before a login is restored.
 migrateWorkspaceProfileCache();

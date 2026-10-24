@@ -76,9 +76,9 @@ module.exports = ({ test }) => {
     }
     h.get('rememberDriveToken')('SYNTHETIC_TOKEN',user('google-a')); assert.equal(h.get('restoreDriveToken')(null), '');
   });
-  test('AUTH-12', 'Drive/Tasks tokens stay separate from password-free persistent profile', async () => {
-    const h = workspace(); await h.login(); await h.loadConnect(); await h.get('authorizeBuildingTasks')();
-    assert.ok(h.shared.session.getItem(keys.drive)); assert.ok(h.shared.session.getItem(keys.tasks));
+  test('AUTH-12', 'Drive token remains isolated and retired Tasks credential is cleared', async () => {
+    const h = workspace(); await h.login(); await h.loadConnect(); h.shared.session.setItem(keys.tasks,'obsolete'); h.get('purgeRetiredTasksCredential')();
+    assert.ok(h.shared.session.getItem(keys.drive)); assert.equal(h.shared.session.getItem(keys.tasks),null);
     assert.equal(/SYNTHETIC_PASSWORD|SYNTHETIC_DRIVE_TOKEN/.test(JSON.stringify(h.shared.local.dump())), false);
     assert.equal(JSON.stringify(h.shared.session.dump()).includes('SYNTHETIC_PASSWORD'), false);
   });

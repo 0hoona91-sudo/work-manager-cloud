@@ -12148,42 +12148,6 @@ requestAnimationFrame(()=>{
 <script src="./js/recurrence-identity.js?v=20261023-phase5b2"></script>
 <script src="./js/project-ui.js?v=20261023-phase5b2"></script>
 
-<style id="google-tasks-v15-css">
-#taskListPage .pagehead{gap:12px;flex-wrap:wrap}
-#googleTasksToggleLabelV15{display:inline-flex;align-items:center;gap:8px;cursor:pointer;min-height:38px;padding:6px 10px;border:1px solid var(--line,rgba(80,110,150,.18));border-radius:10px;background:var(--card,#fff);font-weight:650;font-size:13px;margin-left:auto}
-#googleTasksToggleV15{width:18px;height:18px;accent-color:var(--accent,#3778bf);cursor:pointer}
-#googleTasksStatusV15{font-size:12px;color:var(--muted,#627286);padding:5px 13px;line-height:1.5;overflow-wrap:anywhere}
-#googleTasksReconnectV15{margin-top:3px;margin-bottom:4px}
-.gt-overlay-v15{position:fixed;inset:0;z-index:999999;background:rgba(12,20,32,.56);display:grid;place-items:center;padding:16px}
-.gt-dialog-v15{width:min(540px,100%);max-height:90vh;overflow-y:auto;background:var(--card,#fff);color:var(--ink,#18253b);border-radius:18px;padding:22px;box-shadow:0 14px 70px rgba(0,0,0,.25)}
-.gt-dialog-v15 h3{margin:0 0 12px;font-size:20px;color:inherit}
-.gt-dialog-v15 p{line-height:1.5;font-size:13px;color:var(--muted,#667388)}
-.gt-label-v15{font-size:13px;font-weight:700;display:grid;gap:7px;margin:14px 0}
-.gt-label-v15 select{width:100%;min-height:42px;border-radius:10px;background:var(--card,#fff);color:inherit;border:1px solid #b9c6d9;padding:9px}
-.gt-checkline-v15{font-size:13px;display:flex;align-items:flex-start;gap:8px}
-.gt-caution-v15{padding:10px;background:rgba(65,118,185,.075);border-radius:10px}
-.gt-actions-v15{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
-.gt-actions-v15 button{cursor:pointer;border-radius:10px;border:1px solid #a6b7cc;padding:10px 20px;color:inherit;background:transparent}
-.gt-actions-v15 #gt-ok-v15{background:#3576c1;color:#fff;border:0}
-@media(max-width:760px){#googleTasksToggleLabelV15{margin-left:0;order:1;font-size:12px}#taskListPage .pagehead #newTaskBtn{order:2}#googleTasksStatusV15{font-size:11px}}
-</style>
-<script id="google-tasks-v15-app-bridge">
-// 새 모듈은 기존 업무 데이터 모델을 변경하지 않고 공개된 브리지만 사용합니다.
-window.workManagerTasksBridgeV15={
-  state,
-  save:meta=>saveState(meta),
-  refresh:()=>{renderTaskTable();renderHome();},
-  effectiveStatus:t=>effectiveStatus(t),
-};
-const saveStateGoogleTasksV15Base=saveState;
-saveState=async function(meta={}){
-  const result=await saveStateGoogleTasksV15Base(meta);
-  window.dispatchEvent(new Event('wm:tasks-v15-saved'));
-  return result;
-};
-</script>
-<script type="module" src="./js/google-tasks-sync.js?v=phase6f-rules-v1"></script>
-
 <script id="linked-schedule-v1-5-2">
 'use strict';
 // Keep the 1st stage N-day range when only its start date is changed in the editor.

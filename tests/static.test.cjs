@@ -36,17 +36,18 @@ module.exports = ({ test, known }) => {
     assert.ok(items.length >= 49);
     for (const item of items) assert.doesNotThrow(() => parse(item.source, item.type), item.label);
   });
-  test('STATIC-02', 'Local imports and script/stylesheet references resolve except the tracked Tasks model', () => {
+  test('STATIC-02', 'Local imports and script/stylesheet references resolve without retired Tasks modules', () => {
     const refs = localImports();
     assert.ok(refs.length > 7);
-    assert.deepEqual(refs.filter(r => r.target !== 'js/google-tasks-model.js' && !fs.existsSync(path.join(root, r.target))), []);
+    assert.deepEqual(refs.filter(r => !fs.existsSync(path.join(root, r.target))), []);
   });
-  known('BUG-01', 'Google Tasks model import must resolve', () => {
-    const refs = localImports().filter(r => r.target === 'js/google-tasks-model.js');
-    assert.equal(refs.length, 1, 'Known import changed; review test scope');
-    assert.equal(refs[0].from, 'js/google-tasks-sync.js');
-    return fs.existsSync(path.join(root, refs[0].target));
-  }, true, false, 'js/google-tasks-sync.js:2 / phase1 02-technical-debt.md');
+  test('BUG-01', 'Retired Google Tasks has no module, UI, scope or active synchronization entry', () => {
+    assert.equal(fs.existsSync(path.join(root,'js/google-tasks-sync.js')),false);
+    assert.equal(fs.existsSync(path.join(root,'js/google-tasks-model.js')),false);
+    assert.deepEqual(localImports().filter(r=>/google-tasks/.test(r.target)),[]);
+    assert.doesNotMatch(read('index.html'),/googleTasksToggle|workManagerTasksBridge|wm:tasks-v15-saved/);
+    assert.doesNotMatch(read('js/workspace-profile.js'),/googleapis\.com\/auth\/tasks|authorizeBuildingTasks|getBuildingTasksToken/);
+  });
   test('STATIC-03', 'All other inline and external CSS parses', () => {
     const items = ['index.html', 'privacy.html'].flatMap(f => blocks('style', f))
       .concat(fs.readdirSync(path.join(root, 'css')).filter(f => f.endsWith('.css')).map(f => ({ source: read(`css/${f}`), label: f })));
