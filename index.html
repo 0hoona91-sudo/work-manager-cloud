@@ -8499,8 +8499,7 @@ if(typeof renderHomeOverviewV21==='function'){
   };
 }
 
-window.addEventListener('resize',()=>requestAnimationFrame(syncHelloKittyMobileVisualsLocalV196));
-window.addEventListener('orientationchange',()=>requestAnimationFrame(syncHelloKittyMobileVisualsLocalV196));
+window.WMFeatureViewport.mount('theme-hello-kitty',syncHelloKittyMobileVisualsLocalV196);
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
   if(badge)badge.textContent='LOCAL DEV v1.9.6';
@@ -9909,8 +9908,7 @@ if(typeof syncMobileNavigationV17==='function'){
   const syncMobileNavigationLocalV121Base=syncMobileNavigationV17;
   syncMobileNavigationV17=function(){const result=syncMobileNavigationLocalV121Base();requestAnimationFrame(syncShinchanThemeLocalV121);return result};
 }
-window.addEventListener('resize',()=>requestAnimationFrame(syncShinchanThemeLocalV121));
-window.addEventListener('orientationchange',()=>requestAnimationFrame(syncShinchanThemeLocalV121));
+window.WMFeatureViewport.mount('theme-shinchan',syncShinchanThemeLocalV121);
 requestAnimationFrame(()=>{
   const badge=document.querySelector('.local-beta-badge');
   if(badge)badge.textContent='v1.2.2';
