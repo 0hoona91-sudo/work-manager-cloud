@@ -17,4 +17,11 @@ module.exports=({test,EnvironmentUnavailable})=>{
   await page.locator('#taskSearch').evaluate(input=>{input.value='한';input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));input.value='한글';input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));});
   await page.waitForTimeout(50);assert.equal(await page.locator('#taskSearch').inputValue(),'한글');
  }));
+ test('FEATURE-UI-03','Home viewport feature mount is replaceable and disposes listeners',()=>{
+  const {create}=require('../js/feature-ui-viewport.js');const listeners=new Map();let scheduled=null,calls=0,removed=0;
+  const host={addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name)=>{listeners.delete(name);removed++;},requestAnimationFrame:fn=>{scheduled=fn;return 1;},cancelAnimationFrame:()=>{scheduled=null;}};
+  const api=create(host),old=api.mount('home',()=>calls+=10),current=api.mount('home',()=>calls++);
+  old();assert.equal(listeners.size,2);listeners.get('resize')();listeners.get('orientationchange')();scheduled();assert.equal(calls,1);
+  current();assert.equal(listeners.size,0);assert.equal(removed,2);
+ });
 };

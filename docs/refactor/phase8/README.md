@@ -11,3 +11,5 @@
 8c 일부: BUG-09에서 일반 업무 `projectResources`의 data/objectUrl/blobUrl/previewUrl를 Firestore 직렬화 직전에 제거한다. 기존 첨부 ID와 메타데이터는 유지하고, 원래 해당 필드가 없는 업무에는 빈 필드를 추가하지 않는다. 후자가 첫 집중 검사에서 DATA-01 회귀로 확인되어 즉시 수정했고, 재검사 46 PASS / FAIL·XFAIL 0이다. 프로젝트 UI 모달·렌더러 수명 정리는 미완료다.
 
 8d 설정·이력·테마는 미착수. 최종 406개 기준 검사와 Actions는 아직 수행하지 않았다. 8단계 완료 판정은 보류한다.
+
+재개 8a: 홈 위젯의 resize/orientationchange 리스너를 key별 mount/dispose가 가능한 작은 `WMFeatureViewport` 경계에 연결했다. 같은 프레임의 두 이벤트는 한 번만 처리한다. 기존 홈·검색 Chromium 2건과 mount/dispose 계약 1건 모두 PASS. 다른 홈 wrapper들은 종전 기능을 보존하기 위해 일괄 제거하지 않았다.

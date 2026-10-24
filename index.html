@@ -1558,6 +1558,7 @@ body.local-nav-booting-v121 .side .navbtn[data-page="dbPage"],
 body.local-nav-booting-v121 .side .navbtn[data-page="holidayPage"],
 body.local-nav-booting-v121 .side .navbtn[data-page="historyPage"]{display:none!important}
 </style>
+<script src="./js/feature-ui-viewport.js?v=phase8"></script>
 </head>
 <body class="local-nav-booting-v121">
 <div class="app">
@@ -10390,8 +10391,7 @@ renderHome=function(){
   requestAnimationFrame(()=>{ensureHomeWidgetEditorDomV113();applyHomeWidgetLayoutV113()});
   return result;
 };
-window.addEventListener('resize',()=>requestAnimationFrame(syncHomeLayoutForViewportV113));
-window.addEventListener('orientationchange',()=>requestAnimationFrame(syncHomeLayoutForViewportV113));
+window.WMFeatureViewport.mount('home-layout',syncHomeLayoutForViewportV113);
 requestAnimationFrame(()=>{
   ensureHomeWidgetLayoutStateV113();ensureHomeWidgetEditorDomV113();applyHomeWidgetLayoutV113();
   const badge=document.querySelector('.local-beta-badge');if(badge)badge.textContent='v1.2.2';
