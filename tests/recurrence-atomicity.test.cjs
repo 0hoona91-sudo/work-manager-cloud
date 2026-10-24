@@ -52,7 +52,7 @@ function contractTests(register,withTransport){
   }));
   register('10','Chunk boundaries keep every task and lock together',()=>withTransport(async t=>{
     const h=client(t,Array.from({length:108},(_,i)=>task(`root-${i}`)));const maps=h.ctx.serializeState(h.ctx.stateRef),changes=h.api.diffMaps(h.ctx.shadowMaps,maps),chunks=h.api.chunkChanges(changes,maps);
-    assert.equal(chunks.length,11);for(const chunk of chunks)for(const c of chunk.filter(c=>c.collection==='tasks'))assert.ok(chunk.some(k=>k.collection==='generatedKeys'&&k.after.taskId===c.id));
+    assert.equal(chunks.length,22);for(const chunk of chunks)for(const c of chunk.filter(c=>c.collection==='tasks'))assert.ok(chunk.some(k=>k.collection==='generatedKeys'&&k.after.taskId===c.id));
     await save(h);assert.equal((await t.list('tasks')).length,108);assert.equal((await t.list('generatedKeys')).length,108);
   }));
   register('11','Deleting a task preserves its key tombstone and rejects resurrection',()=>withTransport(async t=>{

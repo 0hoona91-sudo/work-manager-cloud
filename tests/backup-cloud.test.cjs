@@ -30,7 +30,7 @@ function harness(current=fixture()){
       }
     },
   });
-  const names=new Set(['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','stableKeyId','mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','commitTransaction','belongsToSkippedTask','patchFor']);
+  const names=new Set(['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','stableKeyId','mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','withChecklistParents','changeBundleKey','chunkChanges','needsRecurrenceClaim','commitTransaction','belongsToSkippedTask','patchFor']);
   const source=read('js/cloud-sync.js'),nodes=parse(source,'module').body.filter(n=>n.type==='FunctionDeclaration'&&names.has(n.id.name));
   assert.equal(nodes.length,names.size,'Import extraction contract changed');vm.runInContext(nodes.map(n=>source.slice(n.start,n.end)).join('\n'),ctx);
   const api=vm.runInContext('({previewImport,importState,commitTransaction,saveBlocked:()=>backupRecoveryRequired})',ctx);

@@ -1436,25 +1436,46 @@ function changeBundleKey(change, maps) {
   return `${change.collection}:${change.id}`;
 }
 
+// Add revision-only parent writes before bundling; never split child/parent contracts.
+function withChecklistParents(changes, maps) {
+  const result = changes.map(change => ({ ...change }));
+  for (const change of changes.filter(c => c.collection === "checklistItems")) {
+    const value = change.after || change.before;
+    if (change.before && change.after && (change.before.parentType !== value.parentType || change.before.parentId !== value.parentId))
+      throw recurrenceError("check-parent-change", "체크 항목의 부모를 직접 변경할 수 없습니다.");
+    const collection = {task:"tasks", template:"templates", linkedRule:"linkedRules"}[value?.parentType];
+    if (!collection || !value.parentId) throw recurrenceError("invalid-check-parent", "체크 항목의 부모를 확인할 수 없습니다.");
+    let parent = result.find(c => c.collection === collection && c.id === value.parentId);
+    if (!parent) {
+      const before = shadowMaps[collection].get(value.parentId), after = maps?.[collection]?.get(value.parentId) || before;
+      if (!before || !after) throw recurrenceError("missing-check-parent", "체크 항목과 부모를 함께 저장해야 합니다.");
+      parent = {collection, id:value.parentId, type:"update", before, after, fields:[]};result.push(parent);
+    }
+    parent.revisionFence = true;
+  }
+  return result;
+}
+
 function chunkChanges(changes, maps, maxWrites = 320) {
   const bundles = new Map();
-  for (const change of changes) {
+  for (const change of withChecklistParents(changes, maps)) {
     const key = changeBundleKey(change, maps);
     if (!bundles.has(key)) bundles.set(key, []);
     bundles.get(key).push(change);
   }
   const chunks = [];
-  let current = [], claims = 0;
+  let current = [], accessCost = 0;
   for (const bundle of bundles.values()) {
-    const claim = needsRecurrenceClaim(bundle);
-    if (current.length && (current.length + bundle.length > maxWrites || claim && claims >= 10)) {
-      chunks.push(current);
-      current = []; claims = 0;
+    // Budget both before/after documents. Repeated accesses to a parent are cached by Rules.
+    const parents = new Set(bundle.filter(c => c.revisionFence).map(c => `${c.collection}/${c.id}`));
+    const keys = new Set(bundle.filter(c => c.collection === "generatedKeys" && c.type === "create").map(c => c.id));
+    for (const c of bundle) if(c.collection === "tasks" && c.type === "create" && c.after?.generatedKey){parents.add(`tasks/${c.id}`);keys.add(stableKeyId(c.after.generatedKey));}
+    const cost = 2 * (parents.size + keys.size);
+    if (bundle.length > maxWrites || cost > 20) throw recurrenceError("bundle-too-large", "부모·체크·잠금 묶음이 저장 한도를 초과합니다. 저장하지 않았습니다.");
+    if (current.length && (current.length + bundle.length > maxWrites || accessCost + cost > 20)) {
+      chunks.push(current);current = [];accessCost = 0;
     }
-    if (bundle.length > maxWrites && needsRecurrenceClaim(bundle)) throw recurrenceError("bundle-too-large", "반복 회차의 업무·잠금 묶음이 트랜잭션 한도를 초과합니다. 저장하지 않았습니다.");
-    if (bundle.length > maxWrites) {
-      for (let index = 0; index < bundle.length; index += maxWrites) chunks.push(bundle.slice(index, index + maxWrites));
-    } else { current.push(...bundle); if(claim)claims++; }
+    current.push(...bundle);accessCost += cost;
   }
   if (current.length) chunks.push(current);
   return chunks;
@@ -1488,6 +1509,7 @@ async function commitOfflineChunks(changes, maps, metadata) {
 }
 
 async function commitTransaction(changes, nextMaps, metadata) {
+  changes = withChecklistParents(changes, nextMaps);
   if (changes.length > 320) throw recurrenceError("transaction-too-large", "트랜잭션 쓰기 한도를 초과했습니다.");
   const writeChanges = changes.filter((change) => change.collection !== "generatedKeys");
   const generatedCreates = changes.filter((change) => change.collection === "generatedKeys" && change.type === "create");
@@ -1567,7 +1589,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
           const fields = change.fields.filter((field) => Object.hasOwn(change.after || {}, field)
             ? JSON.stringify(remote[field]) !== JSON.stringify(change.after[field])
             : Object.hasOwn(remote, field));
-          if (!fields.length) continue;
+          if (!fields.length && !change.revisionFence) continue;
           appliedWriteChanges.push({ ...change, fields });
           continue;
         }
@@ -1606,6 +1628,7 @@ function belongsToSkippedTask(change, taskIds) {
 }
 
 async function commitOfflineBatch(changes, nextMaps, metadata) {
+  changes = withChecklistParents(changes, nextMaps);
   if (needsRecurrenceClaim(changes)) throw recurrenceError("online-required", "신규 반복 회차의 오프라인 잠금 선점은 허용하지 않습니다.");
   const batch = writeBatch(db);
   const writeChanges = changes.filter((change) => change.collection !== "generatedKeys");
@@ -1614,6 +1637,7 @@ async function commitOfflineBatch(changes, nextMaps, metadata) {
     const ref = doc(db, change.collection, change.id);
     if (change.type === "delete") batch.delete(ref);
     else if (change.type === "create") batch.set(ref, { ...plain(change.after), revision: 1, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+    else if(change.revisionFence) batch.update(ref, { ...patchFor(change), revision: increment(1), updatedAt: serverTimestamp() });
     else batch.set(ref, { ...patchFor(change), revision: increment(1), updatedAt: serverTimestamp() }, { merge: true });
   }
   if (writeChanges.length) batch.set(doc(collection(db, "changeLogs")), makeLog(writeChanges, metadata));

@@ -1,18 +1,69 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TEST ONLY. Replace with the verified private-workspace owner policy before any deployment review.
+    // TEST ONLY: reviewed UID and project scope must replace these in an approved deployment.
     function owner() { return request.auth != null && request.auth.uid == 'synthetic-owner'; }
+    function lockId(key) {
+      return 'auto-' + key.toUtf8().toBase64().replace('[+]', '-').replace('/', '_').replace('=', '');
+    }
+    function keyed(data) { return data.get('generatedKey', '') != ''; }
+    function validKey(key) { return key is string && key.matches('wm-recurrence:v1:demo-work-manager:.*'); }
+    function pairedNewLock(data, taskId) {
+      let key = data.generatedKey;
+      let path = /databases/$(database)/documents/generatedKeys/$(lockId(key));
+      return validKey(key) && !exists(path)
+        && getAfter(path).data.generatedKey == key && getAfter(path).data.taskId == taskId;
+    }
+    function revisionCreate() { return request.resource.data.revision == 1; }
+    function revisionUpdate() {
+      return request.resource.data.revision is int
+        && request.resource.data.revision == resource.data.get('revision', 0) + 1;
+    }
+    function parentPath(data) {
+      let collection = data.parentType == 'task' ? 'tasks' : data.parentType == 'template' ? 'templates' : 'linkedRules';
+      return /databases/$(database)/documents/$(collection)/$(data.parentId);
+    }
+    function parentAdvanced(data, deleting) {
+      let path = parentPath(data);
+      return data.parentType in ['task', 'template', 'linkedRule'] && data.parentId is string
+        && ((!exists(path) && !deleting && getAfter(path).data.revision == 1)
+          || (exists(path) && ((deleting && !existsAfter(path))
+            || getAfter(path).data.revision == get(path).data.get('revision', 0) + 1)));
+    }
+    match /tasks/{taskId} {
+      allow read: if owner();
+      allow create: if owner() && revisionCreate()
+        && (keyed(request.resource.data) ? pairedNewLock(request.resource.data, taskId)
+          : request.resource.data.get('repeatGeneratedV181', false) != true);
+      allow update: if owner() && revisionUpdate()
+        && (keyed(resource.data) ? request.resource.data.get('generatedKey', '') == resource.data.generatedKey
+          : ((!keyed(request.resource.data) && (request.resource.data.get('repeatGeneratedV181', false) != true || resource.data.get('repeatGeneratedV181', false) == true))
+            || pairedNewLock(request.resource.data, taskId)));
+      allow delete: if owner(); // Existing key is deliberately retained as a tombstone.
+    }
     match /generatedKeys/{keyId} {
       allow read: if owner();
-      allow create: if owner()
-        && request.resource.data.generatedKey.matches('wm-recurrence:v1:demo-work-manager:.*')
+      allow create: if owner() && validKey(request.resource.data.generatedKey)
+        && keyId == lockId(request.resource.data.generatedKey)
         && request.resource.data.taskId is string
-        && getAfter(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.generatedKey == request.resource.data.generatedKey;
+        && getAfter(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.generatedKey == request.resource.data.generatedKey
+        && (!exists(/databases/$(database)/documents/tasks/$(request.resource.data.taskId))
+          || !keyed(get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data));
       allow update, delete: if false;
     }
+    match /checklistItems/{id} {
+      allow read: if owner();
+      allow create: if owner() && parentAdvanced(request.resource.data, false);
+      allow update: if owner() && request.resource.data.parentType == resource.data.parentType
+        && request.resource.data.parentId == resource.data.parentId && parentAdvanced(resource.data, false);
+      allow delete: if owner() && parentAdvanced(resource.data, true);
+    }
     match /{collection}/{id} {
-      allow read, write: if collection != 'generatedKeys' && owner();
+      allow read: if owner() && collection in ['templates', 'linkedRules', 'projects', 'taskLinks', 'manualBlocks', 'owners', 'categories', 'holidays', 'settings', 'meta', 'changeLogs'];
+      allow create: if owner() && collection in ['templates', 'linkedRules'] && revisionCreate();
+      allow update: if owner() && collection in ['templates', 'linkedRules'] && revisionUpdate();
+      allow delete: if owner() && collection in ['templates', 'linkedRules'];
+      allow write: if owner() && collection in ['projects', 'taskLinks', 'manualBlocks', 'owners', 'categories', 'holidays', 'settings', 'meta', 'changeLogs'];
     }
   }
 }

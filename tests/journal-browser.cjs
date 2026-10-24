@@ -7,7 +7,8 @@ module.exports=({test,EnvironmentUnavailable,fixture,context,withTransport,idPre
   async function runWithTransport(run,transport){
     const executablePath=process.env.CHROMIUM_PATH||['/usr/bin/chromium','/usr/bin/chromium-browser'].find(fs.existsSync);if(!executablePath)throw new EnvironmentUnavailable('Installed Chromium required; no download attempted');
     const profile=fs.mkdtempSync(path.join(os.tmpdir(),'wm-journal-'));let client=harness(transport,fixture()),browser,calls=[],pageErrors=[],ackGate=null,releaseAck;
-    for(const [collection,map] of Object.entries(client.codec.serializeState(fixture())))for(const [id,value] of map)await transport.seed(`${collection}/${id}`,{...value,revision:1});
+    const seeds=[];for(const [collection,map] of Object.entries(client.codec.serializeState(fixture())))for(const [id,value] of map)seeds.push([`${collection}/${id}`,{...value,revision:1}]);
+    if(transport.seedAll)await transport.seedAll(seeds);else for(const [path,value] of seeds)await transport.seed(path,value);
     const server=http.createServer((req,res)=>{const file=decodeURIComponent(new URL(req.url,'http://localhost').pathname).slice(1)||'index.html';if(!/^(index.html|(?:js|css|assets)\/[a-zA-Z0-9_.\/-]+|icon[^/]*\.(svg|png)|manifest.webmanifest)$/.test(file)||file.includes('..'))return res.writeHead(403).end();const full=path.join(root,file);if(!fs.existsSync(full))return res.writeHead(404).end();res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});res.end(fs.readFileSync(full));});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
     async function launch({offline=false,uid='synthetic-owner',googleUid='synthetic-google'}={}){
       client=harness(transport,fixture());client.ctx.currentUser={uid};client.ctx.navigator.onLine=!offline;

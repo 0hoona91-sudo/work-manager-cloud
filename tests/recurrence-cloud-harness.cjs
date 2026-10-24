@@ -3,7 +3,7 @@ const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const {read,parse,loadCloud,plain}=require('./helpers.cjs');
 const names=['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','needsRecurrenceClaim','reconcileRecurrenceCollisions',
-  'mapClone','withoutSyncFields','stableKeyId','diffMaps','changedFields','patchFor','changeBundleKey','chunkChanges','commitOnlineChunks','commitOfflineChunks','commitTransaction','belongsToSkippedTask','commitOfflineBatch','save','flushQueue','saveTaskCommand'];
+  'mapClone','withoutSyncFields','stableKeyId','diffMaps','changedFields','patchFor','changeBundleKey','chunkChanges','commitOnlineChunks','commitOfflineChunks','withChecklistParents','commitTransaction','belongsToSkippedTask','commitOfflineBatch','save','flushQueue','saveTaskCommand'];
 function harness(transport,state){
   if(transport.fork)transport={...transport,...transport.fork()};
   const C=loadCloud(),initial=C.serializeState(state);let ctx;
