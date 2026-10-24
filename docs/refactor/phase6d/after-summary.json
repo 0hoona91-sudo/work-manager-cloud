@@ -1,0 +1,22 @@
+{
+  "run": "https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40093759252",
+  "job": "https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40093759252/job/120871627673",
+  "testedCommit": "f132432ce87d3113c3edc1c6d9656542317ddf33",
+  "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+  "total": 327,
+  "counts": {
+    "PASS": 323,
+    "FAIL": 0,
+    "XFAIL": 4,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "baselinePreservation": {
+    "count": 308,
+    "idsTitlesExpectations": "Verified by successful mandatory phase6d-ci.cjs assertions",
+    "xfailSignatures": "4 unchanged"
+  },
+  "evidenceLimits": "Public annotation truncated at 4096 characters. Counts are complete. Full test JSON and logs are retained in the Actions artifact; not downloaded from the restricted Codex network. Focused-success.json contains all 54 focused test statuses.",
+  "productionDiff": "",
+  "mainHead": "091dbecd701153e7e1880bd6bb84a277b789c58f"
+}
