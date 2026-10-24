@@ -34,10 +34,21 @@ jobs:
           chrome=$(command -v chromium || command -v google-chrome)
           test -n "$chrome"
           echo "CHROMIUM_PATH=$chrome" >> "$GITHUB_ENV"
+      - uses: actions/cache/restore@v4
+        id: emulator-cache
+        with:
+          path: ~/.cache/firebase/emulators
+          key: phase6d-firestore-15.34.1-linux
       - name: Demo-only Firestore verification
         run: |
           set -o pipefail
           ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-work-manager --config tests/emulator/firebase.json "node tests/phase6d-ci.cjs" 2>&1 | tee phase6d-emulator.log
+      - uses: actions/cache/save@v4
+        if: always() && steps.emulator-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        with:
+          path: ~/.cache/firebase/emulators
+          key: phase6d-firestore-15.34.1-linux
       - name: Publish test evidence
         if: always()
         uses: actions/upload-artifact@v4
