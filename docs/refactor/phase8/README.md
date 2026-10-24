@@ -19,3 +19,11 @@
 재개 8c: 프로젝트 목록 조회 헬퍼가 렌더 중 `state.projects=[]`를 생성하지 않도록 읽기 전용 fallback으로 바꿨다. FEATURE-UI-05와 기존 UI-02, SCHED-UI-01~03, HIST-UI-01 총 6건 PASS. 프로젝트 편집기는 기존 editor clone/취소 시 pendingFiles 정리와 현재 단계 날짜 엔진을 유지한다. `project-ui.js`의 넓은 MutationObserver는 동적으로 재생성되는 라이브러리 편집 DOM의 버튼·입력을 보정하는 실제 역할이 있어 무리하게 제거하지 않았다. 이 경로의 전체 수명/비동기 경쟁은 최종 회귀 외 실계정에서 추가 확인이 필요하다.
 
 재개 8d: Hello Kitty·짱구 테마의 각 resize/orientationchange 리스너 두 쌍을 viewport mount에 연결했다. 설정된 테마 자체/저장값은 변경하지 않았고 UI-02 및 HIST-UI-03 실제 Chromium 2건 PASS. 이력 렌더는 기존 동기 조회이며 저장 호출을 추가하지 않았다. 휴지통·복원 승인 흐름은 기존 백업/이력 경로를 유지했다. BUG-02 CSS 구문은 범위 밖으로 남긴다.
+
+## 최종 판정
+
+8a 홈 렌더 저장 부작용 제거, 검색/IME·뷰포트 검사 및 홈 mount 경계, 8b BUG-08·업무 메뉴 이벤트 소유권과 기존 저장 명령 초안/충돌 보호 확인, 8c BUG-09·프로젝트 목록 읽기 전용 렌더와 기존 프로젝트 날짜/완료 UI 확인, 8d 테마 이벤트 소유권과 이력 UI 확인을 마쳤다. 화면 디자인·데이터 형식·기존 저장/프로젝트/반복 엔진은 변경하지 않았다. 변경된 주요 파일은 index.html, js/cloud-sync.js, js/project-ui.js, 신규 js/feature-ui-viewport.js, 관련 테스트 및 phase8 Actions다.
+
+코드 검증 SHA `a8790fa1c49da7e30f6bf30d2d05546310195d4d`의 [최종 Actions 40138555043](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40138555043)이 성공했다. 총 411건, PASS 410 / BUG-02 XFAIL 1 / FAIL·XPASS·NOT_RUN 0. 실제 SDK/Emulator 60 PASS, 실제 Chromium 60 PASS(8건 중복). 기존 406개 ID와 schema11·업무/프로젝트/첨부 ID·완료 이력·복구 journal 계약을 유지했다.
+
+이번 기능별 범위는 **8단계 개발 완료**로 판정하며 9단계 개발 착수가 가능하다. 다층 legacy renderer wrapper 전체 제거는 수행하지 않았다. 상당수는 서로 다른 표시 기능을 수행하거나 동적으로 재생성되는 DOM을 보정하므로 테스트 없이 합치면 동작이 달라진다. 남은 UI 호출 순서·성능 문제와 BUG-02 CSS는 후속 계획에서 다뤄야 한다. 실제 운영 OAuth/Drive/Firestore 및 구형 캐시와 다중 기기 UI 경쟁은 별도 승인·운영 전 검증이 필요하다. main·운영 데이터·배포는 변경하지 않았다.
