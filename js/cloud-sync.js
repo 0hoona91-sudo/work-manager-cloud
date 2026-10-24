@@ -419,7 +419,7 @@ function serializeState(state) {
   const maps = makeRecordMaps();
   for (const task of state.tasks || []) {
     const { checklist = [], link = null, ...taskFields } = task;
-    maps.tasks.set(task.id, plain({ ...taskFields, id: task.id }));
+    maps.tasks.set(task.id, plain({ ...taskFields, ...(Array.isArray(taskFields.projectResources) ? { projectResources: taskFields.projectResources.map(cleanAttachmentMetadata) } : {}), id: task.id }));
     checklist.forEach((item, order) => {
       const itemId = item.id || docId("check", task.id, order, item.text || "");
       maps.checklistItems.set(docId("task", task.id, itemId),
