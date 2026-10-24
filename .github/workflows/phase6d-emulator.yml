@@ -15,7 +15,7 @@ jobs:
       CI: 'true'
       GCLOUD_PROJECT: demo-work-manager
       FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true'
-      PHASE6D_SCOPE: focused
+      PHASE6D_SCOPE: full
     steps:
       - uses: actions/checkout@v4
         with:
