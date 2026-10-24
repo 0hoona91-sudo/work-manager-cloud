@@ -1,3 +1,4 @@
+import "./firestore-rules-policy.js?v=phase6f-rules-v1";
 import { initializeApp, deleteApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   GoogleAuthProvider,
@@ -546,6 +547,7 @@ export function parseFirebaseConfigText(text) {
 }
 
 export async function provisionPrivateWorkspace(firebaseConfig) {
+  globalThis.WMFirestoreRulesPolicy.project(firebaseConfig?.projectId);
   await initBuildingIdentity();
   assertPersonalOwner(buildingUser);
 
@@ -570,6 +572,7 @@ export async function provisionPrivateWorkspace(firebaseConfig) {
         uid: createdUser.uid,
       },
       firebaseConfig: clone(firebaseConfig),
+      rulesGuidance: workspaceRulesGuidance({user:createdUser,firebaseConfig}),
     };
   } catch (error) {
     try { await deleteApp(privateApp); } catch {}
@@ -583,10 +586,17 @@ export async function provisionPrivateWorkspace(firebaseConfig) {
   }
 }
 
-export function firestoreRulesForWorkspaceUid(uid, extraUids = []) {
-  const allowed = [uid, ...extraUids].filter(Boolean);
-  const condition = allowed.map((value) => `request.auth.uid == "${String(value).replaceAll('"', '')}"`).join(" || ");
-  return `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null && (${condition});\n    }\n  }\n}`;
+// UID/extraUids interface retained; projectId is now mandatory instead of an unsafe fallback.
+export function firestoreRulesForWorkspaceUid(uid, extraUids = [], projectId) {
+  return globalThis.WMFirestoreRulesPolicy.generate({uid,extraUids,projectId});
+}
+
+export function workspaceRulesGuidance(source, extraUids = []) {
+  const config = source?.firebaseConfig || source?.workspace?.firebaseConfig;
+  const uid = source?.user?.uid || source?.credentials?.uid || source?.workspace?.auth?.uid;
+  if (source?.user?.uid && source?.credentials?.uid && source.user.uid !== source.credentials.uid)
+    throw new Error("인증 UID와 업무공간 UID가 다릅니다.");
+  return globalThis.WMFirestoreRulesPolicy.guidance({uid,extraUids,projectId:config?.projectId});
 }
 
 export async function testPrivateFirestore(provisioned) {

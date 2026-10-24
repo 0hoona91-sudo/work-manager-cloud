@@ -54,7 +54,7 @@ function workspace(shared = state()) {
   };
   class Provider { addScope() {} setCustomParameters() {} static credentialFromResult(r) { return r.credential; } }
   class Clock extends Date { constructor(...args) { super(...(args.length ? args : [shared.now])); } static now() { return shared.now; } }
-  const ctx = vm.createContext({ ...sdk, GoogleAuthProvider: Provider, Date: Clock, URLSearchParams,
+  const ctx = vm.createContext({ WMFirestoreRulesPolicy: require('../js/firestore-rules-policy.js'), ...sdk, GoogleAuthProvider: Provider, Date: Clock, URLSearchParams,
     localStorage: shared.local, sessionStorage: shared.session,
     console: { warn: (...v) => shared.logs.push(v.map(String).join(' ')), error: (...v) => shared.logs.push(v.map(String).join(' ')) },
     window: { dispatchEvent: event => events.push(event.type), addEventListener() {} }, Event: class { constructor(type) { this.type = type; } },

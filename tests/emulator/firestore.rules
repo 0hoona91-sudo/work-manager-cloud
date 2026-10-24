@@ -1,8 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TEST ONLY: reviewed UID and project scope must replace these in an approved deployment.
-    function owner() { return request.auth != null && request.auth.uid == 'synthetic-owner'; }
+    // Generated from WMFirestoreRulesPolicy. Display/review only; never auto-deploy.
+    function owner() { return request.auth != null && request.auth.uid in ["synthetic-collaborator","synthetic-owner"]; }
     function lockId(key) {
       return 'auto-' + key.toUtf8().toBase64().replace('[+]', '-').replace('/', '_').replace('=', '');
     }

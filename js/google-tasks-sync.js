@@ -1,4 +1,4 @@
-import {authorizeBuildingTasks, getBuildingTasksToken, invalidateBuildingTasksToken, getBuildingUser} from './workspace-profile.js?v=20261021-privacy-clean-v1';
+import {authorizeBuildingTasks, getBuildingTasksToken, invalidateBuildingTasksToken, getBuildingUser} from './workspace-profile.js?v=phase6f-rules-v1';
 import {GT_FIELD, GT_INTERVAL_MS, cleanDate, googleDue, fromGoogle, fromLocal, fingerprint, isSupportedLocalTask, updateFromRemote, newImportedTask, nextMergeAction, detachTasks} from './google-tasks-model.js?v=20261017-tasks-v15';
 
 // Google Tasks 통신은 선택된 목록에서만 진행합니다. 원격 삭제 API는 의도적으로 사용하지 않습니다.

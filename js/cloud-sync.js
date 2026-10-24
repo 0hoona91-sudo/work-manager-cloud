@@ -1,3 +1,4 @@
+import "./workspace-rules-ui.js?v=phase6f-rules-v1";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   GoogleAuthProvider,
@@ -48,7 +49,7 @@ import {
   getBuildingUser,
   hasBuildingDriveToken,
   checkBuildingAuthorization,
-} from "./workspace-profile.js?v=20261021-privacy-clean-v1";
+} from "./workspace-profile.js?v=phase6f-rules-v1";
 
 const SCHEMA_VERSION = 11;
 const DATA_COLLECTIONS = [
@@ -604,10 +605,18 @@ function ensureShell() {
     `<div class="cloud-account" id="cloudAccount">
       <div><span class="sync-dot" id="syncDot"></span><span id="syncText">연결 중</span></div>
       <div class="cloud-user" id="cloudUser"></div>
+      <button class="cloud-signout" id="workspaceRulesGuide" type="button" disabled>보안 규칙 안내</button>
       <button class="cloud-signout" id="cloudSignOut" type="button">로그아웃</button>
       <a href="./privacy.html" target="_blank" rel="noopener" style="display:block;margin-top:7px;font-size:11px;color:#718078;text-decoration:none">개인정보처리방침</a>
     </div>`,
   );
+}
+
+function installWorkspaceRulesGuide() {
+  const rulesButton = document.getElementById("workspaceRulesGuide");
+  rulesButton.disabled = false;
+  rulesButton.onclick = () => window.WMWorkspaceRulesUI.open({uid:currentUser?.uid,projectId:workspaceProfile?.workspace?.firebaseConfig?.projectId});
+  return rulesButton;
 }
 
 function gate(text, actions = "", error = "") {
@@ -811,7 +820,10 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
   if (!recovery) throw new Error("복구 기록 모듈을 불러오지 못했습니다. 새로고침 후 확인하세요.");
   await recovery.initialize(`cloud:${workspaceProfile?.workspace?.firebaseConfig?.projectId}:${currentUser?.uid}:${buildingUser?.uid||currentUser?.uid}`);
   document.getElementById("cloudUser").textContent = buildingUser?.email || buildingUser?.displayName || "Google 계정";
+  const rulesButton = installWorkspaceRulesGuide();
   document.getElementById("cloudSignOut").onclick = async () => {
+    document.getElementById("workspace-rules-guide")?.remove();
+    rulesButton.disabled = true;
     const signOutButton = document.getElementById("cloudSignOut");
     if (signOutButton) signOutButton.disabled = true;
     window.WMRecovery?.suspend();
