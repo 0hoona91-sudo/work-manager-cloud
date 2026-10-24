@@ -30,7 +30,7 @@ function harness(current=fixture()){
       }
     },
   });
-  const names=new Set(['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','stableKeyId','mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','withChecklistParents','changeBundleKey','chunkChanges','needsRecurrenceClaim','commitTransaction','belongsToSkippedTask','patchFor']);
+  const names=new Set(['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','stableKeyId','mapClone','recordMapsEqual','replaceState','withoutSyncFields','backupContextVersion','assertBackupReady','previewImport','importState','checkedImportMaps','diffMaps','changedFields','commitOnlineChunks','runRulesAwareTransaction','withChecklistParents','changeBundleKey','chunkChanges','needsRecurrenceClaim','commitTransaction','belongsToSkippedTask','patchFor']);
   const source=read('js/cloud-sync.js'),nodes=parse(source,'module').body.filter(n=>n.type==='FunctionDeclaration'&&names.has(n.id.name));
   assert.equal(nodes.length,names.size,'Import extraction contract changed');vm.runInContext(nodes.map(n=>source.slice(n.start,n.end)).join('\n'),ctx);
   const api=vm.runInContext('({previewImport,importState,commitTransaction,saveBlocked:()=>backupRecoveryRequired})',ctx);
@@ -55,7 +55,10 @@ module.exports=({test})=>{
     assert.ok(review.errors.some(e=>/필드 손실/.test(e)));await assert.rejects(()=>h.api.importState(data,{review,confirmed:true,persistRecovery:async()=>assert.fail('No snapshot on invalid input')}),/필드 손실/);assert.equal(h.control.transactions,0);
   });
   test('BACKUP-CLOUD-04','MOCK partial cloud commit has no offline fallback, no publish and blocks further saves',async()=>{
-    const h=harness(),data=incoming(fixture()),review=h.api.previewImport(data),before=plain(h.ctx.stateRef);h.control.failAt=2;let recovery;
+    const h=harness(),data=incoming(fixture());
+    // Keep real parent/key bundles intact; six independent claims force a second chunk.
+    for(let i=1;i<6;i++)data.tasks.push({...plain(data.tasks.at(-1)),id:'new-task-'+i,generatedKey:'new-key-'+i});
+    const review=h.api.previewImport(data),before=plain(h.ctx.stateRef);h.control.failAt=2;let recovery;
     await assert.rejects(()=>h.api.importState(data,{review,confirmed:true,persistRecovery:async r=>{recovery=plain(r)}}),e=>e.recoveryRequired===true&&e.committedChunks===1);
     assert.deepEqual(h.ctx.stateRef,before);assert.deepEqual(recovery.before,before);assert.equal(h.api.saveBlocked(),true);assert.equal(h.control.fallback,0);assert.equal(h.control.cache,null);assert.ok(!h.events.includes('render'));assert.ok(h.events.some(e=>Array.isArray(e)&&e[0]==='write'));
   });

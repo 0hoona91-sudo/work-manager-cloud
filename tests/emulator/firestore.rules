@@ -6,8 +6,9 @@ service cloud.firestore {
     function lockId(key) {
       return 'auto-' + key.toUtf8().toBase64().replace('[+]', '-').replace('/', '_').replace('=', '');
     }
-    function keyed(data) { return data.get('generatedKey', '') != ''; }
-    function validKey(key) { return key is string && key.matches('wm-recurrence:v1:demo-work-manager:.*'); }
+    function keyed(data) { return data.get('generatedKey', '') is string && data.get('generatedKey', '') != ''; }
+    function validKey(key) { return key is string && key.size() > 0
+        && (!key.matches('wm-recurrence:.*') || key.matches('wm-recurrence:v1:demo-work-manager:.*'));  }
     function pairedNewLock(data, taskId) {
       let key = data.generatedKey;
       let path = /databases/$(database)/documents/generatedKeys/$(lockId(key));

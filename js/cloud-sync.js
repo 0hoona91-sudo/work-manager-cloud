@@ -1198,7 +1198,7 @@ async function saveTaskCommand(request, reviewMode, journalUncertain = false) {
       if (checkIds.length > 300) throw Object.assign(new Error("체크 항목 묶음이 안전한 트랜잭션 한도를 초과했습니다."),{code:"validation",definiteFailure:true});
       assertRecurrenceWorkspace(workspace);
       transactionStarted = true;
-      return runTransaction(serverDb, async transaction => {
+      return runRulesAwareTransaction(serverDb, async transaction => {
         assertRecurrenceWorkspace(workspace);
         const taskRef = doc(serverDb,"tasks",change.id), taskSnap = await transaction.get(taskRef);
         const linkSnap = await transaction.get(doc(serverDb,"taskLinks",change.id));
@@ -1469,6 +1469,7 @@ function chunkChanges(changes, maps, maxWrites = 320) {
     // Budget both before/after documents. Repeated accesses to a parent are cached by Rules.
     const parents = new Set(bundle.filter(c => c.revisionFence).map(c => `${c.collection}/${c.id}`));
     const keys = new Set(bundle.filter(c => c.collection === "generatedKeys" && c.type === "create").map(c => c.id));
+    for (const c of bundle) if(c.collection === "generatedKeys" && c.type === "create")parents.add(`tasks/${c.after.taskId}`);
     for (const c of bundle) if(c.collection === "tasks" && c.type === "create" && c.after?.generatedKey){parents.add(`tasks/${c.id}`);keys.add(stableKeyId(c.after.generatedKey));}
     const cost = 2 * (parents.size + keys.size);
     if (bundle.length > maxWrites || cost > 20) throw recurrenceError("bundle-too-large", "부모·체크·잠금 묶음이 저장 한도를 초과합니다. 저장하지 않았습니다.");
@@ -1508,6 +1509,37 @@ async function commitOfflineChunks(changes, maps, metadata) {
   }
 }
 
+// Rules may reject a stale revision/claim before the SDK reports ABORTED.
+// Retry only a definitively rejected atomic transaction whose read documents actually changed.
+async function runRulesAwareTransaction(transactionDb, callback) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let observed = [];
+    try {
+      return await runTransaction(transactionDb, async transaction => {
+        observed = [];
+        return callback({
+          get: async ref => {
+            const snap = await transaction.get(ref);
+            observed.push({ref, value:JSON.stringify(snap.exists() ? snap.data() : null)});
+            return snap;
+          },
+          set: (...args) => transaction.set(...args),
+          update: (...args) => transaction.update(...args),
+          delete: (...args) => transaction.delete(...args),
+        });
+      });
+    } catch (error) {
+      if (error.code !== "permission-denied" || attempt === 2) throw error;
+      let changed = false;
+      for (const {ref, value} of observed) {
+        let snap;try { snap = await getDocFromServer(ref); } catch { throw error; }
+        if (value !== JSON.stringify(snap.exists() ? snap.data() : null)) { changed = true;break; }
+      }
+      if (!changed) throw error;
+    }
+  }
+}
+
 async function commitTransaction(changes, nextMaps, metadata) {
   changes = withChecklistParents(changes, nextMaps);
   if (changes.length > 320) throw recurrenceError("transaction-too-large", "트랜잭션 쓰기 한도를 초과했습니다.");
@@ -1521,7 +1553,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
   }
   const workspace = metadata.recurrenceWorkspace || recurrenceWorkspace(), transactionDb = db;
   assertRecurrenceWorkspace(workspace);
-  return runTransaction(transactionDb, async (transaction) => {
+  return runRulesAwareTransaction(transactionDb, async (transaction) => {
     assertRecurrenceWorkspace(workspace);
     const snapshots = new Map();
     // 일반 저장은 기존 읽기 범위를 유지한다. 백업은 생성·삭제도 기준값을 재검사한다.
