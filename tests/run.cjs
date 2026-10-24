@@ -79,7 +79,7 @@ async function main() {
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, emulatorOnly ? 'emulator-results.json' : journalOnly ? 'journal-results.json' : conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase7-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, emulatorOnly ? 'emulator-results.json' : journalOnly ? 'journal-results.json' : conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase8-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }
