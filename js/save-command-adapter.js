@@ -4,12 +4,33 @@
   const C=window.WMSaveCommand;
   const context=()=>{
     const cloud=window.cloudSync;
-    if(cloud?.mode==='cloud')return cloud.workspaceKey&&cloud.workspaceUser?.uid?`cloud:${cloud.workspaceKey}:${cloud.workspaceUser.uid}`:null;
+    if(cloud?.mode==='cloud')return cloud.workspaceKey&&cloud.workspaceUser?.uid?`cloud:${cloud.workspaceKey}:${cloud.workspaceUser.uid}:${cloud.user?.uid||cloud.workspaceUser.uid}`:null;
     return `local:${window.__workspaceLocalStateKey||'default'}`;
   };
+  const J=window.WMOperationJournal;
+  const journalContext=context;
+  const journalize=request=>request;
+  let recoveryExtraEdits=false;
+  const rawPersist=(request,reviewMode,journalUncertain=false)=>persistStateV6A({reason:'일반 업무 수정',operationId:request.operationId,operationType:request.type,taskCommand:request,reviewMode,journalUncertain});
+  const journal=J.create({store:J.indexedStore(openDb),getContext:journalContext,now:()=>new Date().toISOString(),
+    send:async(request,mode,{uncertain})=>{const receipt=await rawPersist({...request,context:request.context.split(':').slice(0,3).join(':')},mode,uncertain);if(receipt?.serverTask)recoveryExtraEdits=!C.equal(state.tasks.find(t=>t.id===receipt.serverTask.id),receipt.serverTask);return receipt;},
+    onChange:()=>{if(journalContext()===journal.context)window.WMRecoveryUI.render(recoveryView());}});
+  function recoveryView(){return {list:journal.list,error:journal.error,busy:journal.busy,recover:recoverJournal};}
+  async function recoverJournal(id,options){
+    const result=application.getStatus().operationId===id?await application.review(options):await journal.recover(id,options);
+    if(result.phase==='saved'||result.persistence==='server-confirmed'){
+      for(const dialog of document.querySelectorAll('.modal'))if(dialog.commandOperationId===id&&dialog.onCommandConfirmed){dialog.onCommandConfirmed();window.WMSaveCommands.showReview(dialog);}
+    }
+    return result;
+  }
+  const isJournalRequest=request=>request.context?.startsWith('cloud:')&&request.type==='task.update';
   const application=C.create({getState:()=>state,getContext:context,
-    persist:request=>{const {reviewMode,...taskCommand}=request;return persistStateV6A({reason:'일반 업무 수정',operationId:request.operationId,operationType:request.type,taskCommand,reviewMode});},
+    beforeApply:request=>isJournalRequest(request)?journal.prepare(journalize(request)):undefined,
+    persist:request=>{const {reviewMode,...taskCommand}=request;return isJournalRequest(request)?journal.transmit(journalize(taskCommand),reviewMode):rawPersist(taskCommand,reviewMode);},
     onStatus:value=>window.dispatchEvent(new CustomEvent('wm-save-command-status',{detail:value}))});
+  window.WMRecovery={initialize:value=>journal.initialize(value),show:()=>{if(journalContext()===journal.context)window.WMRecoveryUI.render(recoveryView());},suspend(){recoveryExtraEdits=false;journal.suspend();document.querySelector('[data-recovery-journal]')?.remove();},
+    get blocksWrites(){return journal.blocksWrites;},get blocksRemoteApply(){return journal.blocksWrites||recoveryExtraEdits;},
+    list:journal.list,recover:recoverJournal,get error(){return journal.error;}};
   window.WMSaveCommands={execute:application.execute,getStatus:application.getStatus,get blocksRemoteApply(){return application.blocksRemoteApply;},
     showReview(dialog,onSaved){
       if(onSaved)dialog.onCommandConfirmed=onSaved;
@@ -30,4 +51,5 @@
       try{return await session.promise;}finally{button.disabled=false;}
     }
   };
+  window.__resolveWMRecovery?.(window.WMRecovery);
 })();

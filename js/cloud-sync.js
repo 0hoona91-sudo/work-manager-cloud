@@ -807,10 +807,14 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
   // 개인 전용 운영판: ?local-preview 인증 우회 경로를 제거했습니다.
   gate("건물 입구와 개인 업무공간을 연결하는 중입니다.");
   await authenticateBuildingAndWorkspace();
+  const recovery = await window.__wmRecoveryReady;
+  if (!recovery) throw new Error("복구 기록 모듈을 불러오지 못했습니다. 새로고침 후 확인하세요.");
+  await recovery.initialize(`cloud:${workspaceProfile?.workspace?.firebaseConfig?.projectId}:${currentUser?.uid}:${buildingUser?.uid||currentUser?.uid}`);
   document.getElementById("cloudUser").textContent = buildingUser?.email || buildingUser?.displayName || "Google 계정";
   document.getElementById("cloudSignOut").onclick = async () => {
     const signOutButton = document.getElementById("cloudSignOut");
     if (signOutButton) signOutButton.disabled = true;
+    window.WMRecovery?.suspend();
     clearDriveAccessToken();
     stopRealtime();
     try {
@@ -833,6 +837,8 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
   shadowMaps = mapClone(recordMaps);
   if (cloudHasData(recordMaps)) {
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
+  } else if (window.WMRecovery?.blocksWrites) {
+    replaceState(stateRef, emptyState(currentUser));
   } else if (!initialLoad.serverConfirmed) {
     gate("오프라인 캐시에 업무 데이터가 없습니다.", "", "인터넷 연결 후 다시 열어 주세요. 기존 클라우드 데이터는 변경되지 않습니다.");
     throw new Error("Cloud data is unavailable while offline.");
@@ -895,12 +901,13 @@ async function activate({ onRemote } = {}) {
   // bootstrapCloud가 로컬 캐시로 먼저 열린 직후 서버 스냅샷이 도착했지만
   // activate() 전에 도착한 경우를 놓치지 않는다. 캐시와 현재 recordMaps가
   // 달라졌을 때만 한 번 최신 서버 상태를 화면에 반영한다.
-  if (!needsInitialUpload && cloudHasData(recordMaps) && !recordMapsEqual(recordMaps, shadowMaps)) {
+  if (!window.WMRecovery?.blocksWrites && !needsInitialUpload && cloudHasData(recordMaps) && !recordMapsEqual(recordMaps, shadowMaps)) {
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
     renderRemote?.();
   }
 
+  if (window.WMRecovery?.blocksWrites) {setSyncStatus("error","미확정 저장 복구 확인 필요");return;}
   if (needsInitialUpload || queuedState) {
     const snapshot = queuedState || clone(stateRef);
     queuedState = null;
@@ -1134,7 +1141,7 @@ function appModalOpenForRemoteApply() {
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
-    if (commandSaveGuard || recurrenceRecoveryRequired || recurrenceLocalEditsPending || window.WMSaveCommands?.blocksRemoteApply) return;
+    if (window.WMRecovery?.blocksRemoteApply || commandSaveGuard || recurrenceRecoveryRequired || recurrenceLocalEditsPending || window.WMSaveCommands?.blocksRemoteApply) return;
     if (saving || queuedState || backupImporting || backupRecoveryRequired || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
@@ -1143,8 +1150,8 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
-  if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode);
-  if (commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
+  if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode, metadata.journalUncertain);
+  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
   if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (localOnly || !active) {
@@ -1162,7 +1169,7 @@ async function save(snapshot, metadata = {}) {
 
 
 // Only the 6-A ordinary edit adapter uses this port. No snapshot queue, uploads or offline batch.
-async function saveTaskCommand(request, reviewMode) {
+async function saveTaskCommand(request, reviewMode, journalUncertain = false) {
   const C = window.WMSaveCommand, F = window.WMTaskSaveConflict;
   const change = request.changeSet.changes.find(c => c.collection === "tasks" && c.action === "update");
   if (request.type !== "task.update" || !change || request.changeSet.taskIds.length !== 1) throw new Error("일반 업무 수정 명령만 지원합니다.");
@@ -1171,7 +1178,7 @@ async function saveTaskCommand(request, reviewMode) {
   if (!active || backupImporting || backupRecoveryRequired || recurrenceRecoveryRequired || saving || queuedState) throw Object.assign(new Error("다른 저장 또는 복구가 진행 중입니다. 입력을 보존하고 다시 확인하세요."), {code:"conflict"});
   if (commandSaveGuard && (commandSaveGuard.operationId !== request.operationId || commandSaveGuard.signature !== C.canonical(request))) throw Object.assign(new Error("이전 명령의 서버 확인이 필요합니다."), {code:"conflict"});
   if (commandSaveGuard?.running) throw Object.assign(new Error("서버 확인 중입니다."), {code:"conflict"});
-  commandSaveGuard ||= {operationId:request.operationId, signature:C.canonical(request), workspace, uncertain:false};
+  commandSaveGuard ||= {operationId:request.operationId, signature:C.canonical(request), workspace, uncertain:journalUncertain};
   assertRecurrenceWorkspace(commandSaveGuard.workspace);
   if (commandSaveGuard.uncertain && reviewMode !== "verify") throw Object.assign(new Error("응답 불명확: 읽기 전용 서버 확인이 먼저 필요합니다."), {recoveryRequired:true});
   if (!navigator.onLine) {setSyncStatus("offline","입력 보관 · 서버 확인 대기");return {operationId:request.operationId,persistence:"pending-sync",recoveryRequired:commandSaveGuard.uncertain,message:"오프라인 입력 보관 · 서버 검사 미실행"};}
@@ -1202,6 +1209,10 @@ async function saveTaskCommand(request, reviewMode) {
         const remote = deserializeState(maps).tasks[0] || null;
         // Compare normalized checklist fields as stored in schema11, not UI-only defaults.
         const base = deserializeState(baseMaps).tasks[0], desired = deserializeState(desiredMaps).tasks[0];
+        if(request.journalHistoryHash){
+          if(await window.WMOperationJournal.digest(remote?.completionHistory)!==request.journalHistoryHash)throw Object.assign(new Error("완료 이력이 변경되었습니다."),{code:"conflict",definiteFailure:true,conflicts:[{field:"completionHistory",reason:"보관한 완료 이력 해시와 서버 기록이 다릅니다."}]});
+          if(remote&&Object.hasOwn(remote,'completionHistory')){base.completionHistory=remote.completionHistory;desired.completionHistory=remote.completionHistory;}
+        }
         const comparison = F.compare(base,desired,remote);
         const checklistChanged = comparison.fields.includes("checklist");
         if ((taskSnap.exists()?taskSnap.data().revision:null) !== (head.exists()?head.data().revision:null)) throw Object.assign(new Error("목록 조회 중 서버 revision이 변경되었습니다."),{code:"command-membership-retry",definiteFailure:true,conflicts:[{field:"checklist",reason:"목록과 업무 revision 재확인이 필요합니다.",base:base.checklist,local:desired.checklist,server:remote?.checklist}]});
@@ -1641,7 +1652,7 @@ function backupContextVersion() {
 }
 
 function assertBackupReady() {
-  if (commandSaveGuard) throw new Error("일반 업무 저장 확인 후 백업을 진행하세요.");
+  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인 후 백업을 진행하세요.");
   if (!active || localOnly || !currentUser || !navigator.onLine) throw new Error("클라우드 백업 가져오기는 로그인·온라인 동기화 완료 후에만 가능합니다.");
   if (backupImporting || backupRecoveryRequired || saving || queuedState) throw new Error("저장/복구 확인이 진행 중입니다. 완료 후 미리보기를 다시 열어 주세요.");
   if (!recordMapsEqual(recordMaps, shadowMaps)) throw new Error("미리보기 기준에 원격 변경이 도착했습니다. 취소 후 화면 갱신을 기다려 다시 확인해 주세요.");

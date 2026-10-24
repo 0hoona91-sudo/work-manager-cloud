@@ -52,7 +52,7 @@
     }
     return changeSet(state,next,command);
   }
-  function create({getState,getContext,persist,onStatus=()=>{}}){
+  function create({getState,getContext,persist,beforeApply,onStatus=()=>{}}){
     const operations=new Map();let tail=Promise.resolve(),status={phase:'idle'},blocked=false,dirty=false,lastRequest=null,reviewing=false;
     const publish=value=>{status=value;try{onStatus(copy(value));}catch{/* UI observers cannot change persistence outcomes. */}};
     function execute(input){
@@ -70,6 +70,11 @@
           if(!context||context!==getContext())throw error('conflict','계정 또는 업무공간이 변경되었습니다.');
           const state=getState();changes=plan(state,command);
           if(!changes.changes.length){publish({phase:dirty?'pending-sync':'idle',operationId:command.operationId,noChange:true});return {...status,changeSet:changes};}
+          if(beforeApply){
+            await beforeApply({operationId:command.operationId,type:command.type,changeSet:changes,context});
+            if(context!==getContext())throw error('conflict','복구 기록 저장 중 업무공간이 변경되었습니다.');
+            changes=plan(getState(),command);
+          }
           // Apply this command's target only. Never roll the whole state back after I/O.
           const targetId=command.type==='task.create'?command.task.id:command.taskId;
           const next=changes.after.tasks.find(t=>t.id===targetId),index=state.tasks.findIndex(t=>t.id===targetId);

@@ -1700,6 +1700,7 @@ const sampleTasks=[];
 
 const DBNAME='TaskManagerCloud_v1';
 const DBVERSION=2;
+window.__wmRecoveryReady=new Promise(resolve=>{window.__resolveWMRecovery=resolve;});
 const localObjectUrls=new Map();
 function openDb(){return new Promise((res,rej)=>{const r=indexedDB.open(DBNAME,DBVERSION);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('data'))db.createObjectStore('data');if(!db.objectStoreNames.contains('files'))db.createObjectStore('files')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 const LOCAL_FALLBACK_PREFIX='TaskManagerCloud_v1:';
@@ -1714,7 +1715,7 @@ async function readLocalFile(id){if(!id)return null;try{const db=await openDb();
 async function localFileObjectUrl(id){const record=await readLocalFile(id);if(!record?.blob)return'';const old=localObjectUrls.get(id);if(old)URL.revokeObjectURL(old);const url=URL.createObjectURL(record.blob);localObjectUrls.set(id,url);return url}
 async function hydrateLocalImages(root=document){const nodes=[...root.querySelectorAll?.('img[data-local-file]')||[]];await Promise.all(nodes.map(async img=>{const id=img.dataset.localFile;if(!id)return;const url=await localFileObjectUrl(id);if(url){img.src=url;img.classList.remove('drive-image-pending')}else{img.title='이 로컬 저장소에 사진 파일이 없습니다.'}}))}
 async function openOrDownloadLocalFile(id,name='첨부파일',mime=''){const record=await readLocalFile(id);if(!record?.blob)throw new Error('이 로컬 저장소에 파일이 없습니다.');const url=URL.createObjectURL(record.blob);const type=String(mime||record.mimeType||'').toLowerCase();if(type.startsWith('image/')||type==='application/pdf'||type.startsWith('text/')){const opened=window.open(url,'_blank','noopener');if(!opened){const a=document.createElement('a');a.href=url;a.download=name||record.name||'첨부파일';a.click()}}else{const a=document.createElement('a');a.href=url;a.download=name||record.name||'첨부파일';a.click()}setTimeout(()=>URL.revokeObjectURL(url),60000)}
-async function clearAllLocalData(){try{const db=await openDb();const tx=db.transaction(['data','files'],'readwrite');tx.objectStore('data').clear();tx.objectStore('files').clear();await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}catch(error){console.warn('IndexedDB 초기화 실패',error)}try{for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key?.startsWith(LOCAL_FALLBACK_PREFIX))localStorage.removeItem(key)}}catch{}for(const url of localObjectUrls.values())URL.revokeObjectURL(url);localObjectUrls.clear()}
+async function clearAllLocalData(){try{const db=await openDb();const tx=db.transaction(['data','files'],'readwrite');const cursor=tx.objectStore('data').openCursor();cursor.onsuccess=()=>{const item=cursor.result;if(item){if(!String(item.key).startsWith('operation-journal:v1:'))item.delete();item.continue();}};tx.objectStore('files').clear();await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}catch(error){console.warn('IndexedDB 초기화 실패',error)}try{for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key?.startsWith(LOCAL_FALLBACK_PREFIX))localStorage.removeItem(key)}}catch{}for(const url of localObjectUrls.values())URL.revokeObjectURL(url);localObjectUrls.clear()}
 function localStableTaskId(key){const text=String(key||'');let h1=2166136261,h2=0x9e3779b9;for(let i=0;i<text.length;i++){const c=text.charCodeAt(i);h1^=c;h1=Math.imul(h1,16777619);h2^=c+((h2<<6)>>>0)+(h2>>>2)}return `local-auto-${(h1>>>0).toString(36)}-${(h2>>>0).toString(36)}`}
 async function localSaveTrashEntry(entry){if(!entry?.id)throw new Error('휴지통 항목 ID가 없습니다.');const list=await readLocalMeta('trashEntries',[]),value=clone(entry);await writeLocalMeta('trashEntries',[value,...(Array.isArray(list)?list:[]).filter(item=>item?.id!==value.id)]);return clone(value)}
 async function localListTrashEntries(){const list=await readLocalMeta('trashEntries',[]);return (Array.isArray(list)?list:[]).map(clone).sort((a,b)=>String(b.deletedAt||'').localeCompare(String(a.deletedAt||'')))}
@@ -1727,10 +1728,11 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261024-phase6b');
+  const cloud=await import('./js/cloud-sync.js?v=20261024-phase6c');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
+  window.WMRecovery?.show();
   return state;
 }
 let localSaveTailV33=Promise.resolve();
@@ -2103,6 +2105,7 @@ function openTaskForm(id=null){
   $('#saveTask').onclick=async()=>{const name=$('#tfName').value.trim();if(!name)return toast('업무명을 입력하세요.');let start=$('#tfStart').value||todayISO(),un=$('#tfUnconfirmed').checked;if(un)start=shiftWorkday(endOfMonth(Number(start.slice(0,4)),Number(start.slice(5,7))),'prev');const rule={type:$('#tfEndType').value,date:$('#tfEndDate').value,days:Number($('#tfAfterDays').value||0),includeHolidays:$('#tfIncludeHolidays').checked,shift:$('#tfHolidayShift').value};let end=calcEnd(start,rule),deadline=$('#tfDeadline').value||end;if(un){end=start;deadline=start}const cleanChecks=checks.filter(x=>x.text.trim()).map(x=>({...x,text:x.text.trim()}));const base={...work,category:$('#tfCategory').value,name,urgent:$('#tfUrgent').checked,owner:$('#tfOwner').value,start,end,deadline,endRule:{...rule},unconfirmed:un,checklist:cleanChecks,notes:$('#tfNotes').value,status:t?.status||'planned',periodLabel:periodFromDate(start)};const linked=$('input[name=taskKind]:checked').value==='linked';if(Object.prototype.hasOwnProperty.call(work,'workType'))base.workType=linked?'linked':'single';const repeatOn=$('#tfRepeat').checked;const stepDefs=linked?taskStepDefsFromDomV11(steps):[];const createdNow=[];
     if(t&&commandSessionV6A&&!linked&&!repeatOn&&window.WMSaveCommand.ordinary(t)){
       const button=$('#saveTask'),dialog=button.closest('.modal');
+      dialog.commandOperationId=commandSessionV6A.operationId;
       const formVersion=()=>JSON.stringify([...dialog.querySelectorAll('input,select,textarea')].map(el=>[el.id,el.value,el.checked]));
       const submitted=formVersion();
       try{
@@ -12222,7 +12225,9 @@ openTaskForm=function(id=null){
 <link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-v175">
 <script src="./js/workflow-reform-v17.js?v=20261022-v175"></script>
 <script src="./js/backup-ui.js?v=20261023-phase3d"></script>
-<script src="./js/save-command.js?v=20261024-phase6b"></script>
-<script src="./js/task-save-conflict.js?v=20261024-phase6b"></script>
-<script src="./js/save-command-adapter.js?v=20261024-phase6b"></script>
+<script src="./js/save-command.js?v=20261024-phase6c"></script>
+<script src="./js/task-save-conflict.js?v=20261024-phase6c"></script>
+<script src="./js/operation-journal.js?v=20261024-phase6c"></script>
+<script src="./js/recovery-ui.js?v=20261024-phase6c"></script>
+<script src="./js/save-command-adapter.js?v=20261024-phase6c"></script>
 </body></html>

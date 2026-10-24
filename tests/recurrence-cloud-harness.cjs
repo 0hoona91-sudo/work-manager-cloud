@@ -9,7 +9,7 @@ function harness(transport,state){
   const C=loadCloud(),initial=C.serializeState(state);let ctx;
   const copy=plain,events=[];
   ctx=vm.createContext({TextEncoder,btoa,console:{error:()=>{}},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},
-    window:{WMSaveCommand:require('../js/save-command.js'),WMTaskSaveConflict:require('../js/task-save-conflict.js'),dispatchEvent:event=>events.push(event)},navigator:{onLine:true},db:transport.db,
+    window:{WMSaveCommand:require('../js/save-command.js'),WMTaskSaveConflict:require('../js/task-save-conflict.js'),WMOperationJournal:require('../js/operation-journal.js'),dispatchEvent:event=>events.push(event)},navigator:{onLine:true},db:transport.db,
     stateRef:copy(state),recordMaps:initial,shadowMaps:C.serializeState(state),currentUser:{uid:'synthetic-owner'},buildingUser:{uid:'synthetic-owner'},workspaceProfile:{workspace:{firebaseConfig:{projectId:'demo-work-manager'}}},
     DATA_COLLECTIONS:Object.keys(initial).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(initial),
     makeRecordMaps:()=>Object.fromEntries(Object.keys(initial).map(k=>[k,new Map()])),clone:copy,plain:copy,

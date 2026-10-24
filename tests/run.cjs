@@ -28,6 +28,7 @@ async function main() {
     assert.equal(classify(1, 1, { observed: 0 }), 'XPASS');
     assert.throws(() => classify(2, 1, { observed: 0 }), assert.AssertionError);
   });
+  const journalOnly = process.argv.includes('--journal-only');
   const conflictsOnly = process.argv.includes('--conflicts-only');
   const commandsOnly = process.argv.includes('--commands-only');
   const atomicityOnly = process.argv.includes('--atomicity-only');
@@ -38,8 +39,8 @@ async function main() {
   const credentialOnly = process.argv.includes('--credentials-only');
   const backupOnly = process.argv.includes('--backups-only');
   const completionOnly = process.argv.includes('--completion-only');
-  if (conflictsOnly || commandsOnly || atomicityOnly || recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly) cases.length = 0;
-  for (const suite of (conflictsOnly ? ['save-conflicts'] : commandsOnly ? ['save-command'] : atomicityOnly ? ['recurrence-atomicity'] : recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date','schedule','recurrence-rules','recurrence-identity','recurrence-atomicity','save-command','save-conflicts'])) {
+  if (journalOnly || conflictsOnly || commandsOnly || atomicityOnly || recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly) cases.length = 0;
+  for (const suite of (journalOnly ? ['journal'] : conflictsOnly ? ['save-conflicts'] : commandsOnly ? ['save-command'] : atomicityOnly ? ['recurrence-atomicity'] : recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential'] : attachmentOnly ? ['attachment'] : ['static', 'model', 'data', 'recurrence', 'browser', 'attachment', 'credential','completion','backup','backup-cloud','date','schedule','recurrence-rules','recurrence-identity','recurrence-atomicity','save-command','save-conflicts','journal'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -63,8 +64,8 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: '4b7231cfe56a7f42f7018a85a876195710c49d35',
-    commandSourceSha256: Object.fromEntries(['index.html','js/cloud-sync.js','js/save-command.js','js/save-command-adapter.js','js/task-save-conflict.js'].map(file=>[file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
+    refactorBase: '6b513296bee09da591d084b8eaa8b97389623581',
+    commandSourceSha256: Object.fromEntries(['index.html','js/cloud-sync.js','js/save-command.js','js/save-command-adapter.js','js/task-save-conflict.js','js/operation-journal.js','js/recovery-ui.js'].map(file=>[file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     recurrenceSourceSha256: Object.fromEntries(['index.html','js/recurrence-rules.js','js/recurrence-identity.js','js/project-ui.js','js/cloud-sync.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     scheduleSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     dateSourceSha256: Object.fromEntries(['index.html','js/date-only.js','js/project-model.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
@@ -76,7 +77,7 @@ async function main() {
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase6b-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, journalOnly ? 'journal-results.json' : conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : 'phase6c-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }
