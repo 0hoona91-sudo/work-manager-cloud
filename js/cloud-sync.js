@@ -446,7 +446,7 @@ function serializeState(state) {
     maps.templates.set(template.id, plain({ ...templateFields, attachments: attachments.map(cleanAttachmentMetadata), id: template.id }));
     checklist.forEach((text, order) => {
       maps.checklistItems.set(docId("template", template.id, order),
-        plain({ parentType: "template", parentId: template.id, order, text: String(text || ""), done: false }));
+        plain({ parentType: "template", parentId: template.id, order, text: typeof text === "object" && text !== null ? String(text.text || "") : String(text || ""), done: false }));
     });
     linkedSteps.forEach((step, order) => {
       const { checklist: stepChecks = [], methodBlocks: stepBlocks = [], ...stepFields } = step;
@@ -454,7 +454,7 @@ function serializeState(state) {
       maps.linkedRules.set(ruleId, plain({ id: ruleId, rootTemplateId: template.id, order, ...stepFields }));
       stepChecks.forEach((text, checkOrder) => {
         maps.checklistItems.set(docId("linkedRule", ruleId, checkOrder),
-          plain({ parentType: "linkedRule", parentId: ruleId, order: checkOrder, text: String(text || ""), done: false }));
+          plain({ parentType: "linkedRule", parentId: ruleId, order: checkOrder, text: typeof text === "object" && text !== null ? String(text.text || "") : String(text || ""), done: false }));
       });
       stepBlocks.forEach((block, blockOrder) => {
         const id = block.id || docId("step-block", ruleId, blockOrder);

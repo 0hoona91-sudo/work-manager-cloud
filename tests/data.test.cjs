@@ -50,11 +50,11 @@ module.exports = ({ test, known }) => {
       [{ id: 'fixture-task', status: 'planned', actualComplete: null }]);
     assert.deepEqual([next[0].status, next[0].actualComplete], ['done', '2026-10-01']);
   });
-  known('BUG-08', 'Object-form template checklist must retain text instead of string coercion', () => {
+  test('BUG-08', 'Object-form template checklist must retain text instead of string coercion', () => {
     const C = loadCloud(), input = schema11();
     input.templates[0].checklist = [{ id: 'fixture-check', text: 'First', done: false }];
-    return plain(C.deserializeState(C.serializeState(input)).templates[0].checklist);
-  }, ['First'], ['[object Object]'], source);
+    assert.deepEqual(plain(C.deserializeState(C.serializeState(input)).templates[0].checklist), ['First']);
+  });
   known('BUG-09', 'Task projectResources must exclude inline bytes and transient URLs too', () => {
     const C = loadCloud(), input = schema11();
     input.tasks[0].projectResources = [{ id: 'fixture-file', data: 'SYNTHETIC_INLINE_DATA', previewUrl: 'blob:fixture' }];
