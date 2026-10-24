@@ -48,20 +48,15 @@ module.exports = ({ test, known }) => {
     assert.doesNotMatch(read('index.html'),/googleTasksToggle|workManagerTasksBridge|wm:tasks-v15-saved/);
     assert.doesNotMatch(read('js/workspace-profile.js'),/googleapis\.com\/auth\/tasks|authorizeBuildingTasks|getBuildingTasksToken/);
   });
-  test('STATIC-03', 'All other inline and external CSS parses', () => {
+  test('STATIC-03', 'All inline and external CSS parses', () => {
     const items = ['index.html', 'privacy.html'].flatMap(f => blocks('style', f))
       .concat(fs.readdirSync(path.join(root, 'css')).filter(f => f.endsWith('.css')).map(f => ({ source: read(`css/${f}`), label: f })));
-    assert.equal(items.filter(brokenStyle).length, 1);
     assert.ok(items.length >= 64);
-    for (const b of items.filter(b => !brokenStyle(b))) assert.doesNotThrow(() => postcss.parse(b.source, { from: b.label }), b.label);
+    for (const b of items) assert.doesNotThrow(() => postcss.parse(b.source, { from: b.label }), b.label);
   });
-  known('BUG-02', 'Dashboard style block must have valid CSS syntax', () => {
+  test('BUG-02', 'Dashboard style block must have valid CSS syntax', () => {
     const items = blocks('style').filter(brokenStyle);
     assert.equal(items.length, 1);
-    try { postcss.parse(items[0].source); return null; }
-    catch (e) {
-      if (e.name !== 'CssSyntaxError') throw e;
-      return { reason: e.reason, line: e.line };
-    }
-  }, null, { reason: 'Unexpected }', line: 197 }, 'index.html #app-v21-navy-dashboard-style / phase1 02-technical-debt.md');
+    assert.doesNotThrow(() => postcss.parse(items[0].source));
+  });
 };
