@@ -1727,7 +1727,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261024-phase6a');
+  const cloud=await import('./js/cloud-sync.js?v=20261024-phase6b');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1745,11 +1745,12 @@ async function saveState(meta={}){
   // 클라우드 큐에는 즉시 최신 스냅샷을 넘겨 cloud-sync.js의 병합 저장을 유지한다.
   const cloudJob=window.cloudSync?window.cloudSync.save(snapshot,meta):Promise.resolve();
   const [,result]=await Promise.all([localJob,cloudJob]);
-  if(result?.recurrenceReconciled){
+  if(result?.recurrenceReconciled||result?.commandReconciled){
     const corrected=clone(state);
     const cacheJob=localSaveTailV33.then(()=>writeLocalState(corrected));
     localSaveTailV33=cacheJob.catch(()=>{});await cacheJob;
   }
+  if(result?.commandReconciled)window.cloudSync?.acknowledgeTaskCommand?.(meta.operationId);
   return result;
 }
 const persistStateV6A=saveState; // Capture the original persistence boundary before legacy wrappers.
@@ -2106,10 +2107,11 @@ function openTaskForm(id=null){
       const submitted=formVersion();
       try{
         const result=await window.WMSaveCommands.edit(commandSessionV6A,base,button);
-        if(formVersion()===submitted&&dialog.isConnected)closeModal();
-        else commandSessionV6A=window.WMSaveCommands.beginEdit(state.tasks.find(task=>task.id===t.id));
+        if(result.phase==='saved'||result.phase==='idle'&&result.noChange){if(formVersion()===submitted&&dialog.isConnected)closeModal();
+        else commandSessionV6A=window.WMSaveCommands.beginEdit(state.tasks.find(task=>task.id===t.id),base);}
+        else window.WMSaveCommands.showReview(dialog,()=>{commandSessionV6A=window.WMSaveCommands.beginEdit(state.tasks.find(task=>task.id===t.id),base);});
         renderTaskTable();renderHome();toast(result.phase==='saved'?'업무를 저장했습니다.':result.noChange?'변경 사항이 없습니다.':'업무 변경을 보관했습니다. 서버 동기화 확인이 필요합니다.');
-      }catch(error){toast(window.WMSaveCommands.getStatus().phase==='conflict'?'다른 변경이 있습니다. 입력을 보존했으니 확인해 주세요.':'저장 결과 확인이 필요합니다. 입력은 보존했습니다.');}
+      }catch(error){window.WMSaveCommands.showReview(dialog,()=>{commandSessionV6A=window.WMSaveCommands.beginEdit(state.tasks.find(task=>task.id===t.id),base);});toast(window.WMSaveCommands.getStatus().phase==='conflict'?'다른 변경이 있습니다. 입력을 보존했으니 확인해 주세요.':'저장 결과 확인이 필요합니다. 입력은 보존했습니다.');}
       return;
     }
     if(t){Object.assign(t,base);if(repeatOn){t.repeat={cycle:$('#tfRepeatCycle').value,until:$('#tfRepeatUntil').value||start,holidayShift:$('#tfRepeatHoliday').value,weekdays:$$('[data-rwd]:checked').map(x=>Number(x.dataset.rwd)),months:repeatMonthsFromFormV20()}}else if(t.repeat)t.repeat=null}
@@ -12220,6 +12222,7 @@ openTaskForm=function(id=null){
 <link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-v175">
 <script src="./js/workflow-reform-v17.js?v=20261022-v175"></script>
 <script src="./js/backup-ui.js?v=20261023-phase3d"></script>
-<script src="./js/save-command.js?v=20261024-phase6a"></script>
-<script src="./js/save-command-adapter.js?v=20261024-phase6a"></script>
+<script src="./js/save-command.js?v=20261024-phase6b"></script>
+<script src="./js/task-save-conflict.js?v=20261024-phase6b"></script>
+<script src="./js/save-command-adapter.js?v=20261024-phase6b"></script>
 </body></html>

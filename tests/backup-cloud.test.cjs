@@ -13,7 +13,7 @@ function harness(current=fixture()){
   const clone=v=>JSON.parse(JSON.stringify(v));
   const ctx=vm.createContext({window:{WMBackupSafety:B,WMBackupUI:{writeImportedCache:async next=>{events.push('cache');control.cache=plain(next)}}},
     stateRef:plain(current),recordMaps:C.serializeState(current),shadowMaps:C.serializeState(current),currentUser:{uid:'fixture-user'},buildingUser:{uid:'fixture-google'},workspaceProfile:{workspace:{firebaseConfig:{projectId:'fixture-project'}}},
-    DATA_COLLECTIONS:Object.keys(maps).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(maps),active:true,localOnly:false,saving:false,queuedState:null,backupImporting:false,backupRecoveryRequired:false,
+    DATA_COLLECTIONS:Object.keys(maps).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(maps),commandSaveGuard:null,active:true,localOnly:false,saving:false,queuedState:null,backupImporting:false,backupRecoveryRequired:false,
     TextEncoder,btoa,navigator:{onLine:true},serializeState:C.serializeState,deserializeState:C.deserializeState,clone,plain:clone,makeRecordMaps:()=>Object.fromEntries(Object.keys(maps).map(k=>[k,new Map()])),
     setSyncStatus:(...args)=>events.push(['status',...args]),renderRemote:()=>events.push('render'),db:{},
     doc:(...args)=>args.length===1?{collection:args[0].collection,id:`log-${++control.log}`}:{collection:args[1],id:args[2]},collection:(_db,name)=>({collection:name}),

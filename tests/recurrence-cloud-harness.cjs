@@ -3,24 +3,24 @@ const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const {read,parse,loadCloud,plain}=require('./helpers.cjs');
 const names=['recurrenceError','recurrenceWorkspace','assertRecurrenceWorkspace','needsRecurrenceClaim','reconcileRecurrenceCollisions',
-  'mapClone','withoutSyncFields','stableKeyId','diffMaps','changedFields','patchFor','changeBundleKey','chunkChanges','commitOnlineChunks','commitOfflineChunks','commitTransaction','belongsToSkippedTask','commitOfflineBatch','save','flushQueue'];
+  'mapClone','withoutSyncFields','stableKeyId','diffMaps','changedFields','patchFor','changeBundleKey','chunkChanges','commitOnlineChunks','commitOfflineChunks','commitTransaction','belongsToSkippedTask','commitOfflineBatch','save','flushQueue','saveTaskCommand'];
 function harness(transport,state){
   if(transport.fork)transport={...transport,...transport.fork()};
   const C=loadCloud(),initial=C.serializeState(state);let ctx;
   const copy=plain,events=[];
   ctx=vm.createContext({TextEncoder,btoa,console:{error:()=>{}},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},
-    window:{dispatchEvent:event=>events.push(event)},navigator:{onLine:true},db:transport.db,
+    window:{WMSaveCommand:require('../js/save-command.js'),WMTaskSaveConflict:require('../js/task-save-conflict.js'),dispatchEvent:event=>events.push(event)},navigator:{onLine:true},db:transport.db,
     stateRef:copy(state),recordMaps:initial,shadowMaps:C.serializeState(state),currentUser:{uid:'synthetic-owner'},buildingUser:{uid:'synthetic-owner'},workspaceProfile:{workspace:{firebaseConfig:{projectId:'demo-work-manager'}}},
     DATA_COLLECTIONS:Object.keys(initial).filter(k=>k!=='changeLogs'),LIVE_COLLECTIONS:Object.keys(initial),
     makeRecordMaps:()=>Object.fromEntries(Object.keys(initial).map(k=>[k,new Map()])),clone:copy,plain:copy,
     serializeState:s=>{C.setShadow(ctx.shadowMaps);return C.serializeState(s);},deserializeState:C.deserializeState,
-    active:true,localOnly:false,saving:false,queuedState:null,queuedWorkspace:null,queuedVersion:0,queuedResolvers:[],lastSyncAt:null,
+    commandSaveGuard:null,active:true,localOnly:false,saving:false,queuedState:null,queuedWorkspace:null,queuedVersion:0,queuedResolvers:[],lastSyncAt:null,
     backupImporting:false,backupRecoveryRequired:false,recurrenceRecoveryRequired:false,recurrenceLocalEditsPending:false,
     ensureImageUploads:async()=>{},setSyncStatus:(...args)=>events.push(args),friendlyError:e=>e.message,
     makeLog:()=>({synthetic:true}),...transport.sdk});
   const source=read('js/cloud-sync.js'),nodes=parse(source,'module').body.filter(n=>n.type==='FunctionDeclaration'&&names.includes(n.id.name));
   assert.equal(nodes.length,names.length);vm.runInContext(nodes.map(n=>source.slice(n.start,n.end)).join('\n'),ctx);
-  return {ctx,events,codec:C,api:vm.runInContext('({save,commitTransaction,commitOnlineChunks,commitOfflineChunks,commitOfflineBatch,chunkChanges,diffMaps,reconcileRecurrenceCollisions,needsRecurrenceClaim,stableKeyId})',ctx)};
+  return {ctx,events,codec:C,api:vm.runInContext('({save,saveTaskCommand,commitTransaction,commitOnlineChunks,commitOfflineChunks,commitOfflineBatch,chunkChanges,diffMaps,reconcileRecurrenceCollisions,needsRecurrenceClaim,stableKeyId})',ctx)};
 }
 function mockTransport(){
   const records=new Map(),versions=new Map();let log=0;

@@ -103,6 +103,7 @@ let backupImporting = false;
 let backupRecoveryRequired = false;
 let queuedState = null;
 let queuedResolvers = [];
+let commandSaveGuard = null; // Scoped ordinary edit; retained until cache acknowledgement/review.
 let queuedVersion = 0;
 let unsubscribeAll = [];
 let coreReadyPromise = null;
@@ -842,7 +843,7 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
   }
   hideGate();
   setSyncStatus(navigator.onLine ? "online" : "offline", navigator.onLine ? "동기화 준비" : "오프라인");
-  window.addEventListener("online", () => setSyncStatus("online", "온라인"));
+  window.addEventListener("online", () => setSyncStatus("online", commandSaveGuard ? "온라인 · 저장 결과 확인 필요" : "온라인"));
   window.addEventListener("offline", () => setSyncStatus("offline", "오프라인 · 변경 대기"));
   return controller();
 }
@@ -862,6 +863,7 @@ function controller() {
     stableTaskId: stableKeyId,
     activate,
     save,
+    acknowledgeTaskCommand(operationId) { if (commandSaveGuard?.operationId === operationId && commandSaveGuard.confirmed) commandSaveGuard = null; },
     importState,
     previewImport,
     get backupWriteBlocked() { return backupImporting || backupRecoveryRequired; },
@@ -926,7 +928,7 @@ function applySnapshotChanges(name, snapshot) {
   });
   if (!snapshot.metadata.fromCache) {
     lastSyncAt = new Date();
-    setSyncStatus("online", "최신 상태");
+    if (!commandSaveGuard && !window.WMSaveCommands?.blocksRemoteApply) setSyncStatus("online", "최신 상태");
   }
   return changed;
 }
@@ -1132,7 +1134,7 @@ function appModalOpenForRemoteApply() {
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
-    if (recurrenceRecoveryRequired || recurrenceLocalEditsPending || window.WMSaveCommands?.blocksRemoteApply) return;
+    if (commandSaveGuard || recurrenceRecoveryRequired || recurrenceLocalEditsPending || window.WMSaveCommands?.blocksRemoteApply) return;
     if (saving || queuedState || backupImporting || backupRecoveryRequired || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
@@ -1141,6 +1143,8 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
+  if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode);
+  if (commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
   if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (localOnly || !active) {
@@ -1154,6 +1158,100 @@ async function save(snapshot, metadata = {}) {
     queuedResolvers.push({ targetVersion, operationId: metadata.operationId, resolve, reject });
     if (!saving) void flushQueue(metadata);
   });
+}
+
+
+// Only the 6-A ordinary edit adapter uses this port. No snapshot queue, uploads or offline batch.
+async function saveTaskCommand(request, reviewMode) {
+  const C = window.WMSaveCommand, F = window.WMTaskSaveConflict;
+  const change = request.changeSet.changes.find(c => c.collection === "tasks" && c.action === "update");
+  if (request.type !== "task.update" || !change || request.changeSet.taskIds.length !== 1) throw new Error("일반 업무 수정 명령만 지원합니다.");
+  const workspace = recurrenceWorkspace(), serverDb = db;
+  if (request.context !== `cloud:${workspaceProfile?.workspace?.firebaseConfig?.projectId}:${currentUser?.uid}`) throw Object.assign(new Error("업무공간이 변경되었습니다."), {code:"conflict"});
+  if (!active || backupImporting || backupRecoveryRequired || recurrenceRecoveryRequired || saving || queuedState) throw Object.assign(new Error("다른 저장 또는 복구가 진행 중입니다. 입력을 보존하고 다시 확인하세요."), {code:"conflict"});
+  if (commandSaveGuard && (commandSaveGuard.operationId !== request.operationId || commandSaveGuard.signature !== C.canonical(request))) throw Object.assign(new Error("이전 명령의 서버 확인이 필요합니다."), {code:"conflict"});
+  if (commandSaveGuard?.running) throw Object.assign(new Error("서버 확인 중입니다."), {code:"conflict"});
+  commandSaveGuard ||= {operationId:request.operationId, signature:C.canonical(request), workspace, uncertain:false};
+  assertRecurrenceWorkspace(commandSaveGuard.workspace);
+  if (commandSaveGuard.uncertain && reviewMode !== "verify") throw Object.assign(new Error("응답 불명확: 읽기 전용 서버 확인이 먼저 필요합니다."), {recoveryRequired:true});
+  if (!navigator.onLine) {setSyncStatus("offline","입력 보관 · 서버 확인 대기");return {operationId:request.operationId,persistence:"pending-sync",recoveryRequired:commandSaveGuard.uncertain,message:"오프라인 입력 보관 · 서버 검사 미실행"};}
+  commandSaveGuard.running = true;
+  setSyncStatus("syncing", reviewMode === "verify" ? "서버 반영 확인 중" : "업무 충돌 검사 중");
+  let transactionStarted = false;
+  try {
+    const baseMaps = serializeState({tasks:[change.before]});
+    const desiredMaps = serializeState({tasks:[change.after]});
+    const recordAtStart = clone(recordMaps.tasks.get(change.id) || null);
+    const checksAtStart = C.canonical([...recordMaps.checklistItems]);
+    const inspectAndCommit = async () => {
+      // Membership discovery is server-only. Task revision is the participating-writer fence.
+      const head = await getDocFromServer(doc(serverDb,"tasks",change.id));
+      const discovered = await getDocsFromServer(query(collection(serverDb,"checklistItems"),where("parentType","==","task"),where("parentId","==",change.id)));
+      const checkIds = [...new Set([...baseMaps.checklistItems.keys(),...desiredMaps.checklistItems.keys(),...discovered.docs.map(d=>d.id)])];
+      if (checkIds.length > 300) throw Object.assign(new Error("체크 항목 묶음이 안전한 트랜잭션 한도를 초과했습니다."),{code:"validation",definiteFailure:true});
+      assertRecurrenceWorkspace(workspace);
+      transactionStarted = true;
+      return runTransaction(serverDb, async transaction => {
+        assertRecurrenceWorkspace(workspace);
+        const taskRef = doc(serverDb,"tasks",change.id), taskSnap = await transaction.get(taskRef);
+        const linkSnap = await transaction.get(doc(serverDb,"taskLinks",change.id));
+        const maps = makeRecordMaps();
+        if (taskSnap.exists()) maps.tasks.set(change.id,withoutSyncFields(taskSnap.data()));
+        if (linkSnap.exists()) maps.taskLinks.set(change.id,withoutSyncFields(linkSnap.data()));
+        for (const id of checkIds) {const snap=await transaction.get(doc(serverDb,"checklistItems",id));if(snap.exists())maps.checklistItems.set(id,withoutSyncFields(snap.data()));}
+        const remote = deserializeState(maps).tasks[0] || null;
+        // Compare normalized checklist fields as stored in schema11, not UI-only defaults.
+        const base = deserializeState(baseMaps).tasks[0], desired = deserializeState(desiredMaps).tasks[0];
+        const comparison = F.compare(base,desired,remote);
+        const checklistChanged = comparison.fields.includes("checklist");
+        if ((taskSnap.exists()?taskSnap.data().revision:null) !== (head.exists()?head.data().revision:null)) throw Object.assign(new Error("목록 조회 중 서버 revision이 변경되었습니다."),{code:"command-membership-retry",definiteFailure:true,conflicts:[{field:"checklist",reason:"목록과 업무 revision 재확인이 필요합니다.",base:base.checklist,local:desired.checklist,server:remote?.checklist}]});
+        if (comparison.conflicts.length) throw Object.assign(new Error("서버 변경과 충돌했습니다. 입력을 보존하고 차이를 확인하세요."),{code:"conflict",conflicts:comparison.conflicts,serverTask:remote,definiteFailure:true});
+        if (comparison.alreadyApplied) return {confirmed:true,serverTask:remote,maps,revision:taskSnap.data()?.revision,alreadyApplied:true};
+        if (reviewMode === "verify") return {confirmed:false,serverTask:remote,revision:taskSnap.data()?.revision};
+        const mergedMaps=serializeState({tasks:[comparison.merged]});
+        if(!checklistChanged)mergedMaps.checklistItems=new Map(maps.checklistItems);
+        else for(const [id,value] of mergedMaps.checklistItems)if(maps.checklistItems.has(id))mergedMaps.checklistItems.set(id,{...maps.checklistItems.get(id),...value});
+        const writes=diffMaps(maps,mergedMaps).filter(c=>c.collection==="tasks"||checklistChanged&&c.collection==="checklistItems");
+        assertRecurrenceWorkspace(workspace);
+        // A checklist-only edit also updates the task revision, fencing other participating writers.
+        if (writes.length) {
+          const taskChange=writes.find(c=>c.collection==="tasks");
+          transaction.update(taskRef,{...(taskChange?patchFor(taskChange):{}),revision:Number(taskSnap.data().revision||0)+1,updatedAt:serverTimestamp()});
+          for(const c of writes.filter(c=>c.collection==="checklistItems")){
+            const ref=doc(serverDb,c.collection,c.id);
+            if(c.type==="delete")transaction.delete(ref);
+            else if(c.type==="create")transaction.set(ref,{...c.after,revision:1,updatedAt:serverTimestamp()});
+            else transaction.update(ref,{...patchFor(c),updatedAt:serverTimestamp()});
+          }
+          transaction.set(doc(collection(serverDb,"changeLogs")),makeLog(writes,{reason:"일반 업무 충돌 검사 저장"}));
+        }
+        return {confirmed:true,serverTask:comparison.merged,maps:mergedMaps,revision:Number(taskSnap.data()?.revision||0)+(writes.length?1:0),alreadyApplied:comparison.alreadyApplied};
+      });
+    };
+    let result;
+    for(let attempt=0;attempt<3;attempt++){
+      try{result=await inspectAndCommit();break;}
+      catch(error){if(error.code!=="command-membership-retry")throw error;if(attempt===2){error.code="conflict";throw error;}}
+    }
+    assertRecurrenceWorkspace(workspace);
+    if (!result.confirmed) {setSyncStatus("online","서버 미반영 · 입력 보관 중");return {operationId:request.operationId,persistence:"pending-sync",recoveryRequired:commandSaveGuard.uncertain,serverTask:result.serverTask};}
+    const current=stateRef.tasks.find(t=>t.id===change.id);
+    if(current)F.reconcile(current,change.after,result.serverTask);
+    for(const maps of [shadowMaps,recordMaps]){
+      if(maps===shadowMaps || C.equal(recordAtStart,maps.tasks.get(change.id)||null))maps.tasks.set(change.id,result.maps.tasks.get(change.id));
+      if(maps===recordMaps && checksAtStart!==C.canonical([...maps.checklistItems]))continue;
+      for(const [id,value] of maps.checklistItems)if(value.parentType==="task"&&value.parentId===change.id)maps.checklistItems.delete(id);
+      for(const [id,value] of result.maps.checklistItems)maps.checklistItems.set(id,value);
+    }
+    commandSaveGuard.confirmed=true;
+    setSyncStatus("online","해당 업무 서버 저장 확인");
+    return {operationId:request.operationId,persistence:"server-confirmed",commandReconciled:true,serverTask:result.serverTask,revision:result.revision,alreadyApplied:result.alreadyApplied};
+  } catch(error) {
+    if(!transactionStarted || ["permission-denied","invalid-argument"].includes(error.code)) error.definiteFailure=true;
+    if(transactionStarted && !error.definiteFailure) {commandSaveGuard.uncertain=true;error.recoveryRequired=true;}
+    setSyncStatus("error",error.code==="conflict"?"충돌 · 입력 보존":error.definiteFailure?"저장 보류 · 입력 보존":"서버 확인 필요 · 입력 보존");
+    throw error;
+  } finally { if(commandSaveGuard)commandSaveGuard.running=false; }
 }
 
 async function flush() {
@@ -1208,7 +1306,7 @@ async function flushQueue(metadata = {}) {
       recurrenceRecoveryRequired = true; error.recoveryRequired = true;
       queuedState = null;
     }
-    console.error("Cloud save", error);
+    console.error("Cloud save", error?.code || "save-failed");
     setSyncStatus("error", friendlyError(error));
     const done = recurrenceRecoveryRequired ? queuedResolvers : queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
     queuedResolvers = recurrenceRecoveryRequired ? [] : queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
@@ -1543,6 +1641,7 @@ function backupContextVersion() {
 }
 
 function assertBackupReady() {
+  if (commandSaveGuard) throw new Error("일반 업무 저장 확인 후 백업을 진행하세요.");
   if (!active || localOnly || !currentUser || !navigator.onLine) throw new Error("클라우드 백업 가져오기는 로그인·온라인 동기화 완료 후에만 가능합니다.");
   if (backupImporting || backupRecoveryRequired || saving || queuedState) throw new Error("저장/복구 확인이 진행 중입니다. 완료 후 미리보기를 다시 열어 주세요.");
   if (!recordMapsEqual(recordMaps, shadowMaps)) throw new Error("미리보기 기준에 원격 변경이 도착했습니다. 취소 후 화면 갱신을 기다려 다시 확인해 주세요.");

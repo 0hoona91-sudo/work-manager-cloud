@@ -116,7 +116,7 @@ module.exports=({test,EnvironmentUnavailable})=>{
   test('ATOMIC-MOCK-22','MOCK deferred realtime application cannot wipe retained unsaved edits',()=>{
     const vm=require('node:vm'),{parse}=require('./helpers.cjs'),source=read('js/cloud-sync.js');
     const node=parse(source,'module').body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='scheduleRemoteApply');
-    let callback;const ctx={recurrenceRecoveryRequired:false,recurrenceLocalEditsPending:true,remoteApplyTimer:0,clearTimeout:()=>{},setTimeout:fn=>{callback=fn;return 1;}};
+    let callback;const ctx={commandSaveGuard:null,recurrenceRecoveryRequired:false,recurrenceLocalEditsPending:true,remoteApplyTimer:0,clearTimeout:()=>{},setTimeout:fn=>{callback=fn;return 1;}};
     vm.runInNewContext(source.slice(node.start,node.end)+';scheduleRemoteApply()',ctx);assert.doesNotThrow(()=>callback());
   });
   const {withEmulator}=require('./recurrence-emulator.cjs');

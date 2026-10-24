@@ -53,7 +53,7 @@
     return changeSet(state,next,command);
   }
   function create({getState,getContext,persist,onStatus=()=>{}}){
-    const operations=new Map();let tail=Promise.resolve(),status={phase:'idle'},blocked=false,dirty=false;
+    const operations=new Map();let tail=Promise.resolve(),status={phase:'idle'},blocked=false,dirty=false,lastRequest=null,reviewing=false;
     const publish=value=>{status=value;try{onStatus(copy(value));}catch{/* UI observers cannot change persistence outcomes. */}};
     function execute(input){
       const command=copy(input),signature=canonical(command);
@@ -64,6 +64,7 @@
       const run=async()=>{
         let applied=false,changes;
         try{
+          if(reviewing)throw error('conflict','서버 확인 중입니다.');
           if(blocked)throw error('recovery-required','이전 저장 결과 확인이 필요합니다. 자동 재시도하지 않습니다.');
           publish({phase:'validating',operationId:command.operationId,type:command.type});
           if(!context||context!==getContext())throw error('conflict','계정 또는 업무공간이 변경되었습니다.');
@@ -74,24 +75,44 @@
           const next=changes.after.tasks.find(t=>t.id===targetId),index=state.tasks.findIndex(t=>t.id===targetId);
           if(index<0)state.tasks.push(copy(next));else if(!next)state.tasks.splice(index,1);else Object.assign(state.tasks[index],copy(next));
           applied=true;dirty=true;publish({phase:'saving',operationId:command.operationId,type:command.type});
-          const receipt=await persist({operationId:command.operationId,type:command.type,changeSet:changes,context});
+          lastRequest={operationId:command.operationId,type:command.type,changeSet:changes,context};
+          const receipt=await persist(lastRequest);
           if(context!==getContext())throw error('recovery-required','저장 중 계정 또는 업무공간이 변경되었습니다. 서버 결과를 확인해 주세요.');
           if(receipt?.phase==='conflict'||receipt?.recurrenceReconciled)throw error('conflict','서버 충돌을 확인해 주세요. 현재 입력은 보존했습니다.');
           const confirmed=receipt?.persistence==='server-confirmed'&&receipt.operationId===command.operationId;
-          dirty=!confirmed||!equal(getState(),changes.after);
+          const expectedAfter=copy(changes.after);
+          if(receipt?.commandReconciled&&receipt.serverTask)expectedAfter.tasks[expectedAfter.tasks.findIndex(t=>t.id===receipt.serverTask.id)]=copy(receipt.serverTask);
+          dirty=!confirmed||!equal(getState(),expectedAfter);
           publish({phase:confirmed?'saved':'pending-sync',operationId:command.operationId,type:command.type,persistence:confirmed?'server-confirmed':'unconfirmed'});
           return {...status,changeSet:changes};
         }catch(cause){
           const uncertain=cause.recoveryRequired||cause.committedChunks>0;
-          const phase=cause.code==='conflict'&&!uncertain?'conflict':applied||uncertain||cause.code==='recovery-required'?'recovery-required':'failed';
+          const phase=cause.code==='conflict'&&!uncertain?'conflict':cause.definiteFailure&&!uncertain?'failed':applied||uncertain||cause.code==='recovery-required'?'recovery-required':'failed';
           if(applied){blocked=true;dirty=true;}
-          publish({phase,operationId:command.operationId,type:command.type,message:cause.message});
+          publish({phase,operationId:command.operationId,type:command.type,message:cause.message,conflicts:cause.conflicts||[],serverTask:cause.serverTask||null});
           throw cause;
         }
       };
       const promise=tail.then(run);tail=promise.catch(()=>{});operations.set(command.operationId,{signature,promise});return promise;
     }
-    return Object.freeze({execute,getStatus:()=>copy(status),get blocksRemoteApply(){return dirty||blocked||status.phase==='saving';}});
+    async function review({retry=false}={}){
+      if(!lastRequest||['saving','validating'].includes(status.phase))throw error('validation','확인할 저장 명령이 없거나 저장 중입니다.');
+      if(retry&&status.phase!=='pending-sync')throw error('recovery-required','미확정 오프라인 명령만 명시적으로 다시 저장할 수 있습니다. 먼저 서버를 확인하세요.');
+      const request=lastRequest;
+      if(request.context!==getContext())throw error('conflict','계정 또는 업무공간이 변경되었습니다. 이전 명령은 전송하지 않습니다.');
+      reviewing=true;publish({...status,phase:'saving'});
+      try{
+        const receipt=await persist({...request,reviewMode:retry?'resume':'verify'});
+        if(request.context!==getContext())throw error('recovery-required','서버 확인 중 업무공간이 변경되었습니다.');
+        const confirmed=receipt?.persistence==='server-confirmed'&&receipt.operationId===request.operationId;
+        const expected=copy(request.changeSet.after);
+        if(confirmed&&receipt.serverTask)expected.tasks[expected.tasks.findIndex(t=>t.id===receipt.serverTask.id)]=copy(receipt.serverTask);
+        dirty=!confirmed||!equal(getState(),expected);blocked=!confirmed;
+        publish({phase:confirmed?'saved':receipt?.recoveryRequired?'recovery-required':'pending-sync',operationId:request.operationId,serverTask:receipt?.serverTask||null,message:confirmed?'해당 명령의 서버 반영을 확인했습니다.':'서버 반영을 확인하지 못했습니다. 입력을 보관하고 있습니다.'});
+        return copy(status);
+      }catch(cause){blocked=true;dirty=true;publish({phase:cause.code==='conflict'&&!cause.recoveryRequired?'conflict':'recovery-required',operationId:request.operationId,message:cause.message,conflicts:cause.conflicts||[],serverTask:cause.serverTask||null});throw cause;}finally{reviewing=false;}
+    }
+    return Object.freeze({execute,review,getStatus:()=>copy(status),get blocksRemoteApply(){return dirty||blocked||status.phase==='saving';}});
   }
   return Object.freeze({canonical,equal,editable,ordinary,changeSet,plan,create});
 });
