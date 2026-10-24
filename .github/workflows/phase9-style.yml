@@ -1,0 +1,66 @@
+name: Phase 9 style and performance verification
+on:
+  push:
+    branches: [refactor/phase9-style-assets-performance]
+permissions:
+  contents: read
+concurrency:
+  group: phase9-emulator-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      GCLOUD_PROJECT: demo-work-manager
+      FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true'
+      PHASE6D_SCOPE: full
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Locked dependencies and existing Chromium
+        run: |
+          npm ci
+          chrome=$(command -v chromium || command -v google-chrome)
+          test -n "$chrome"
+          echo "CHROMIUM_PATH=$chrome" >> "$GITHUB_ENV"
+      - uses: actions/cache/restore@v4
+        id: emulator-cache
+        with:
+          path: ~/.cache/firebase/emulators
+          key: phase6d-firestore-15.34.1-linux
+      - name: Demo-only Firestore verification
+        run: |
+          set -o pipefail
+          node tests/phase6f-prepare.cjs
+          ./node_modules/.bin/firebase emulators:exec --only firestore --project demo-work-manager --config tests/emulator/firebase.json "node tests/phase9-ci.cjs" 2>&1 | tee phase6d-emulator.log
+      - uses: actions/cache/save@v4
+        if: always() && steps.emulator-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        with:
+          path: ~/.cache/firebase/emulators
+          key: phase6d-firestore-15.34.1-linux
+      - name: Publish test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase9-evidence-${{ github.sha }}
+          if-no-files-found: warn
+          path: |
+            test-results/
+            phase6d-emulator.log
+            *debug.log
+            tests/emulator/*debug.log
+      - name: Run summary
+        if: always()
+        run: node tests/phase9-summary.cjs
