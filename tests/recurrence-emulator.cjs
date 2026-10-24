@@ -15,7 +15,7 @@ async function withEmulator(EnvironmentUnavailable,run){
     const [hostname,port]=host.split(':');sdk.connectFirestoreEmulator(db,hostname,Number(port),{mockUserToken:{sub:uid,user_id:uid}});
     clients.push({app,db});return {db,sdk};
   }
-  const t={...fork(),sdk:{...sdk},fork:()=>({ ...fork(), sdk:t.sdk }),otherUser:async()=>fork('synthetic-intruder')};
+  const t={...fork(),sdk:require('./sdk-realm.cjs').realmSdk(sdk),fork:()=>({ ...fork(), sdk:t.sdk }),otherUser:async()=>fork('synthetic-intruder')};
   t.list=async collection=>(await sdk.getDocsFromServer(sdk.collection(t.db,collection))).docs.map(d=>d.data());
   t.remove=(collection,id)=>sdk.deleteDoc(sdk.doc(t.db,collection,id));
   t.offline=()=>Promise.all(clients.map(c=>sdk.disableNetwork(c.db)));
