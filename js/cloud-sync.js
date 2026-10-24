@@ -851,6 +851,7 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
     rulesButton.disabled = true;
     const signOutButton = document.getElementById("cloudSignOut");
     if (signOutButton) signOutButton.disabled = true;
+    disposeAttachmentRecoveryUI();
     window.WMRecovery?.suspend();
     clearDriveAccessToken();
     stopRealtime();
@@ -888,19 +889,46 @@ export async function bootstrapCloud({ state, legacyState = null } = {}) {
   setSyncStatus(navigator.onLine ? "online" : "offline", navigator.onLine ? "동기화 준비" : "오프라인");
   window.addEventListener("online", () => setSyncStatus("online", commandSaveGuard ? "온라인 · 저장 결과 확인 필요" : "온라인"));
   window.addEventListener("offline", () => setSyncStatus("offline", "오프라인 · 변경 대기"));
+  initializeAttachmentRecoveryUI();
   return controller();
 }
 
-function controller() {
-  if(!document.getElementById('attachmentRecoveryButton') && document.getElementById('cloudUser')){
-    const button=document.createElement('button');button.id='attachmentRecoveryButton';button.textContent='첨부 저장 확인';
-    button.onclick=async()=>{try{const rows=await getAttachmentStore().diagnose(stateRef);const report=rows.map(r=>({fileId:r.fileId,name:r.name,phase:r.phase,referenced:r.referenced,needsReview:r.needsReview}));
+let attachmentUiGeneration = 0;
+function disposeAttachmentRecoveryUI() {
+  attachmentUiGeneration++;
+  document.getElementById('attachmentRecoveryButton')?.remove();
+  document.getElementById('attachmentRecoveryDialog')?.remove();
+  window.removeEventListener('work-manager-credentials-cleared', disposeAttachmentRecoveryUI);
+}
+function initializeAttachmentRecoveryUI() {
+  disposeAttachmentRecoveryUI();
+  const anchor=document.getElementById('cloudUser');
+  if(!anchor || !currentUser || !buildingUser)return;
+  const generation=attachmentUiGeneration;
+  const scope=()=>`${recurrenceWorkspace()}/${buildingUser?.uid||''}`;
+  const bound=scope();
+  const current=()=>generation===attachmentUiGeneration && Boolean(currentUser) && Boolean(buildingUser) && scope()===bound;
+  const button=document.createElement('button');button.id='attachmentRecoveryButton';button.textContent='첨부 저장 확인';
+  button.onclick=async()=>{
+    if(button.disabled || !current())return;
+    button.disabled=true;
+    try {
+      const rows=await getAttachmentStore().diagnose(stateRef);
+      if(!current())return;
+      const report=rows.map(r=>({fileId:r.fileId,name:r.name,phase:r.phase,referenced:r.referenced,needsReview:r.needsReview}));
+      document.getElementById('attachmentRecoveryDialog')?.remove();
       const dialog=document.createElement('dialog'),text=document.createElement('pre'),close=document.createElement('button');
+      dialog.id='attachmentRecoveryDialog';
       text.textContent='업로드와 업무 저장은 별개입니다. 미확정 파일은 자동 삭제하지 않습니다. 같은 계정에서 원본 파일을 다시 선택하면 기존 ID로 확인·재시도합니다. 참조 있음은 현재 화면 기준이며 서버 확정을 뜻하지 않습니다.\n'+JSON.stringify(report,null,2);
       close.textContent='닫기';close.onclick=()=>{dialog.close();dialog.remove();};dialog.append(text,close);document.body.append(dialog);dialog.showModal();
-    }catch(e){alert('첨부 기록 확인 실패: '+e.message);}};
-    document.getElementById('cloudUser').after(button);
-  }
+    }catch(error){if(current())alert('첨부 기록 확인 실패: '+error.message);}
+    finally{button.disabled=false;}
+  };
+  anchor.after(button);
+  window.addEventListener('work-manager-credentials-cleared', disposeAttachmentRecoveryUI);
+}
+
+function controller() {
   return {
     get user() { return buildingUser || currentUser; },
     get workspaceUser() { return currentUser; },
