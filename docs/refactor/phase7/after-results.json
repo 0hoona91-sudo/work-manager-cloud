@@ -1,0 +1,1824 @@
+{
+  "file": "phase7-results.json",
+  "sha": "6cdf90170cb1451adeea3289152f308f8f765174",
+  "total": 406,
+  "counts": {
+    "PASS": 403,
+    "FAIL": 0,
+    "XFAIL": 3,
+    "XPASS": 0,
+    "NOT_RUN": 0
+  },
+  "run": "https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40133113289",
+  "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+  "source": "GitHub Actions public job annotations; full detailed report and source hashes are retained in phase7-evidence artifact. Documentation-only final commit reuses this verified code SHA.",
+  "baseline": {
+    "commit": "3d3f81ac055a32d6951c41eb5c41b0b9da2faad2",
+    "registered": 371,
+    "allIdsPreserved": true,
+    "documentedChanges": [
+      "BUG-01",
+      "STATIC-02",
+      "AUTH-12",
+      "PROVISION-07"
+    ],
+    "newIds": [
+      "FILE-BACKUP-01",
+      "FILE-BACKUP-02",
+      "FILE-BACKUP-03",
+      "FILE-BACKUP-04",
+      "FILE-BACKUP-05",
+      "FILE-BACKUP-06",
+      "FILE-BACKUP-07",
+      "FILE-BACKUP-08",
+      "FILE-BACKUP-09",
+      "FILE-BACKUP-10",
+      "FILE-BACKUP-11",
+      "DRIVE-AUTH-06",
+      "DRIVE-AUTH-07",
+      "DRIVE-AUTH-08",
+      "DRIVE-AUTH-09",
+      "ATTACH-01",
+      "ATTACH-02",
+      "ATTACH-03",
+      "ATTACH-04",
+      "ATTACH-05",
+      "ATTACH-06",
+      "ATTACH-07",
+      "ATTACH-08",
+      "ATTACH-09",
+      "ATTACH-10",
+      "ATTACH-11",
+      "ATTACH-12",
+      "ATTACH-13",
+      "ATTACH-UI-01",
+      "DRIVE-AUTH-01",
+      "DRIVE-AUTH-02",
+      "DRIVE-AUTH-03",
+      "DRIVE-AUTH-04",
+      "DRIVE-AUTH-05",
+      "TASKS-RETIRED-01"
+    ]
+  },
+  "actualSdkEmulator": {
+    "total": 60,
+    "PASS": 60,
+    "ids": [
+      "JOURNAL-SDK-08",
+      "RULES-EMU-01",
+      "RULES-EMU-02",
+      "RULES-EMU-03",
+      "RULES-EMU-04",
+      "RULES-EMU-05",
+      "RULES-EMU-06",
+      "RULES-EMU-07",
+      "RULES-EMU-08",
+      "RULES-EMU-09",
+      "RULES-EMU-10",
+      "RULES-EMU-11",
+      "RULES-EMU-12",
+      "RULES-EMU-13",
+      "RULES-EMU-14",
+      "RULES-EMU-15",
+      "RULES-EMU-16",
+      "RULES-EMU-17",
+      "RULES-EMU-21",
+      "RULES-EMU-20",
+      "RULES-EMU-19",
+      "RULES-EMU-18",
+      "PROVISION-EMU-01",
+      "PROVISION-EMU-02",
+      "PROVISION-EMU-03",
+      "PROVISION-EMU-04",
+      "PROVISION-EMU-05",
+      "PROVISION-EMU-06",
+      "PROVISION-EMU-07",
+      "PROVISION-EMU-08",
+      "SAVE-EMU-01",
+      "SAVE-EMU-02",
+      "SAVE-EMU-03",
+      "SAVE-EMU-04",
+      "SAVE-EMU-05",
+      "SAVE-EMU-06",
+      "SAVE-EMU-07",
+      "SAVE-EMU-08",
+      "RULES-EMU-DIAG-01",
+      "RULES-EMU-DIAG-02",
+      "JOURNAL-SDK-01",
+      "JOURNAL-SDK-02",
+      "JOURNAL-SDK-03",
+      "JOURNAL-SDK-04",
+      "JOURNAL-SDK-05",
+      "JOURNAL-SDK-06",
+      "JOURNAL-SDK-07",
+      "ATOMIC-EMU-01",
+      "ATOMIC-EMU-02",
+      "ATOMIC-EMU-03",
+      "ATOMIC-EMU-04",
+      "ATOMIC-EMU-05",
+      "ATOMIC-EMU-06",
+      "ATOMIC-EMU-07",
+      "ATOMIC-EMU-08",
+      "ATOMIC-EMU-09",
+      "ATOMIC-EMU-10",
+      "ATOMIC-EMU-11",
+      "ATOMIC-EMU-12",
+      "ATOMIC-EMU-13"
+    ]
+  },
+  "actualChromium": {
+    "total": 56,
+    "PASS": 56,
+    "ids": [
+      "JOURNAL-SDK-08",
+      "PROVISION-UI-01",
+      "PROVISION-UI-02",
+      "PROVISION-UI-03",
+      "JOURNAL-BROWSER-01",
+      "JOURNAL-BROWSER-02",
+      "JOURNAL-BROWSER-03",
+      "JOURNAL-BROWSER-04",
+      "JOURNAL-BROWSER-05",
+      "JOURNAL-SDK-01",
+      "JOURNAL-SDK-02",
+      "JOURNAL-SDK-03",
+      "JOURNAL-SDK-04",
+      "JOURNAL-SDK-05",
+      "JOURNAL-SDK-06",
+      "JOURNAL-SDK-07",
+      "CMD-UI-01",
+      "CMD-UI-02",
+      "CONFLICT-UI-01",
+      "CONFLICT-UI-02",
+      "CONFLICT-UI-03",
+      "CONFLICT-UI-04",
+      "IDENT-UI-01",
+      "SCHED-UI-01",
+      "SCHED-UI-02",
+      "SCHED-UI-03",
+      "RULE-UI-01",
+      "FILE-BACKUP-11",
+      "DATE-UI-01",
+      "HIST-UI-01",
+      "HIST-UI-03",
+      "HIST-UI-02",
+      "BACKUP-UI-01",
+      "BACKUP-UI-02",
+      "BACKUP-UI-03",
+      "BACKUP-UI-04",
+      "SEC-13",
+      "SEC-14",
+      "SEC-15",
+      "SEC-16",
+      "ATTACH-13",
+      "ATTACH-UI-01",
+      "UI-01",
+      "UI-02",
+      "SEC-01",
+      "SEC-02",
+      "SEC-03",
+      "SEC-04",
+      "SEC-05",
+      "SEC-06",
+      "SEC-07",
+      "SEC-08",
+      "SEC-09",
+      "SEC-10",
+      "SEC-11",
+      "SEC-12"
+    ],
+    "overlapWithSdkEmulator": 8
+  },
+  "externalNotVerified": [
+    "Real Google OAuth",
+    "Real Google Drive API and files",
+    "Production Firestore data and Security Rules"
+  ],
+  "results": [
+    {
+      "id": "ATOMIC-EMU-01",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-02",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-03",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-04",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-05",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-06",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-07",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-08",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-09",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-10",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-11",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-12",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-EMU-13",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-01",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-02",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-03",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-04",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-05",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-06",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-07",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-08",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-09",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-10",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-11",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-12",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-13",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-14",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-15",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-16",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-17",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-18",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-19",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-20",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-21",
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC-MOCK-22",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-01",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-02",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-03",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-04",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-05",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-06",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-07",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-08",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-09",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-10",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-11",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-12",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-13",
+      "status": "PASS"
+    },
+    {
+      "id": "ATTACH-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-01",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-11",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-12",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-13",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-14",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-15",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-16",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-17",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-18",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-19",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-20",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-21",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-22",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-01",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-02",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-03",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-04",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-05",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-06",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-07",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-08",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-09",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-10",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-11",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-12",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-13",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-14",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-15",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-01",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-02",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-03",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-04",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-05",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-06",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-07",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-CLOUD-08",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-03",
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-UI-04",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-01",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-02",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-03",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-04",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-05",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-06",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-07",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-08",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-09",
+      "status": "XFAIL"
+    },
+    {
+      "id": "BUG-10",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-11",
+      "status": "PASS"
+    },
+    {
+      "id": "BUG-12",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-01",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-02",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-03",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-04",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-05",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-06",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-07",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-08",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-09",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-10",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-11",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-12",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-13",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-14",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-15",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-16",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-17",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-18",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-19",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-20",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "CMD-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-06",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-07",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-08",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-09",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-10",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-11",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-12",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-13",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-14",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-15",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-16",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-17",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-18",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-19",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-20",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-21",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-22",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-23",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-24",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-25",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-UI-03",
+      "status": "PASS"
+    },
+    {
+      "id": "CONFLICT-UI-04",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-01",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-02",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-03",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-04",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-05",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-01",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-02",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-03",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-04",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-05",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-06",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-07",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-08",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-09",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-10",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-11",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-12",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-13",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-14",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-01",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-02",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-03",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-TZ-04",
+      "status": "PASS"
+    },
+    {
+      "id": "DATE-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-01",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-02",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-03",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-04",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-05",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-06",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-07",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-08",
+      "status": "PASS"
+    },
+    {
+      "id": "DRIVE-AUTH-09",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-01",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-02",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-03",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-04",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-05",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-06",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-07",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-08",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-09",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-10",
+      "status": "PASS"
+    },
+    {
+      "id": "FILE-BACKUP-11",
+      "status": "PASS"
+    },
+    {
+      "id": "HARNESS-01",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-01",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-02",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-03",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-04",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-05",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-06",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-07",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-08",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-09",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-10",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-11",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-12",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-13",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "HIST-UI-03",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-06",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-07",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-08",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-09",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-10",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-11",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-12",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-13",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-14",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-15",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-16",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-17",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-18",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-19",
+      "status": "PASS"
+    },
+    {
+      "id": "IDENT-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-01",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-02",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-03",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-04",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-05",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-06",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-07",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-08",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-09",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-10",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-11",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-12",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-13",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-14",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-15",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-16",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-17",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-18",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-19",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-20",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-21",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-22",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-23",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-24",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-BROWSER-01",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-BROWSER-02",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-BROWSER-03",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-BROWSER-04",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-BROWSER-05",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-01",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-02",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-03",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-04",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-05",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-06",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-07",
+      "status": "PASS"
+    },
+    {
+      "id": "JOURNAL-SDK-08",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-01",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-02",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-03",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-04",
+      "status": "PASS"
+    },
+    {
+      "id": "MODEL-05",
+      "status": "PASS"
+    },
+    {
+      "id": "PREFLIGHT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "PREFLIGHT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "PREFLIGHT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "PREFLIGHT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "PREFLIGHT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-01",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-02",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-03",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-04",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-05",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-06",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-07",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-01",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-02",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-03",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-04",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-05",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-06",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-07",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-EMU-08",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "PROVISION-UI-03",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "REPEAT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-01",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-02",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-03",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-04",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-05",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-06",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-07",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-08",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-09",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-10",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-11",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-12",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-13",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-14",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-15",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-16",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-17",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-01",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-02",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-TZ-03",
+      "status": "PASS"
+    },
+    {
+      "id": "RULE-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-01",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-02",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-03",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-04",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-05",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-06",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-07",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-08",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-09",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-10",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-11",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-12",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-13",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-14",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-15",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-16",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-17",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-18",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-19",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-20",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-21",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-DIAG-01",
+      "status": "PASS"
+    },
+    {
+      "id": "RULES-EMU-DIAG-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-03",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-04",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-05",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-06",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-07",
+      "status": "PASS"
+    },
+    {
+      "id": "SAVE-EMU-08",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-03",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-04",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-05",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-06",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-07",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-08",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-09",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-10",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-11",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-12",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-13",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-TZ-03",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SCHED-UI-03",
+      "status": "PASS"
+    },
+    {
+      "id": "SDK-HARNESS-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-01",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-02",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-03",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-04",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-05",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-06",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-07",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-08",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-09",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-10",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-11",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-12",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-13",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-14",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-15",
+      "status": "PASS"
+    },
+    {
+      "id": "SEC-16",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-01",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-02",
+      "status": "PASS"
+    },
+    {
+      "id": "STATIC-03",
+      "status": "PASS"
+    },
+    {
+      "id": "TASKS-RETIRED-01",
+      "status": "PASS",
+      "evidence": "Aggregate-reconciled: final registered ID absent from public per-ID annotations; CI totals leave exactly one PASS. Full result is retained in Actions artifact; API artifact download was forbidden in this environment."
+    },
+    {
+      "id": "UI-01",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "status": "PASS"
+    }
+  ]
+}

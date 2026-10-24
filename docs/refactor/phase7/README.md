@@ -1,4 +1,6 @@
-# 7단계 진행 기록 — 아직 미완료
+# 7단계 구현 및 검증 기록
+
+아래 A~D 중간 기록의 미완료/다음 작업 문구는 각 커밋 당시 상태를 보존한 것이다. 최종 판정과 CI 결과는 문서 마지막 및 verification.md를 기준으로 한다.
 
 기준 6-F: 3d3f81ac055a32d6951c41eb5c41b0b9da2faad2. 브랜치 refactor/phase7-google-file-adapters.
 
@@ -44,3 +46,17 @@ B 완료. 다음 진행 지점은 **작업 C 첨부파일 안정화**다. 전체
 파일 50MiB/ZIP 총량 200MiB/1000개 제한, 잘못된 경로·정규화 중복 이름·ZIP 한도를 버퍼 생성 전에 검사한다. Drive는 Content-Length를 신뢰하지 않고 스트림 누적 한도도 적용한다. 이미 읽은 원본을 보유한 상태에서는 추가 읽기를 보수적으로 제한한다. 취소 버튼은 다음 처리·최종 다운로드를 중단하며 이미 전송된 HTTP를 되돌린다고 주장하지 않는다. 계정 변경 후 결과 다운로드를 차단한다. 이전 독립 토큰 fallback 대신 검증된 cloud provider만 사용한다.
 
 집중 검사: 기존 백업/데이터 검사 + FILE-BACKUP-01~11 = **44 PASS / 2 XFAIL / FAIL·XPASS·NOT_RUN 0**. XFAIL은 범위 밖 BUG-08/09 그대로다. 실제 Chromium UI 1건과 ZIP 바이트/CRC/한글 경로 검사 포함, Drive는 모의 호출이다. 제한된 Drive 읽기를 연결한 뒤 기존 SEC/ATTACH 26건도 PASS. 원본 hash는 사용자가 압축 해제 후 대조할 수 있으며 자동 ZIP 원본 복원/검증기는 만들지 않았다. 전체 통합 Actions는 다음 작업이다.
+
+## 최종 완료 판정
+
+A Google Tasks 제거, B Drive 인증, C 첨부 복구·참조 보호, D JSON/ZIP·인수인계 개선을 보존했다. 중간 커밋 A `f76181c`, B `2e2f30d`, C `d74ce77`, D `2c27c9b`는 재작성하지 않았다.
+
+최종 CI에서 발견된 IDENT-17 회귀는 `6cdf90170cb1451adeea3289152f308f8f765174`에서 수정했다. controller의 DOM 초기화를 브라우저 bootstrap으로 분리하고 첨부 복구 UI 중복/로그아웃/늦은 계정 응답 보호를 추가했다. 기존 IDENT-17의 ID·기대값은 그대로다.
+
+[최종 Actions 40133113289](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40133113289) 성공: **406건 / PASS 403 / XFAIL 3 / FAIL 0 / XPASS 0 / NOT_RUN 0**. 신규 UI 검사 1건 때문에 이전 405건보다 하나 증가했다. SDK/Emulator 60 PASS, Chromium 56 PASS(8건 중복). 실계정 OAuth·Drive 요청은 실행하지 않았다.
+
+주요 변경 파일: index.html, js/cloud-sync.js, js/workspace-profile.js, 신규 js/attachment-store.js·backup-files.js, Google Tasks 전용 모듈 삭제, 관련 테스트 및 .github/workflows/phase7-files.yml. 이번 CI 복구의 코드 변경은 cloud-sync.js UI 초기화 경계와 신규 UI 검사/등록에 한정했다. 기존 완료·반복·백업·journal·ID 계약과 371개 기준 검사 ID를 유지했다.
+
+6-F 기준 `3d3f81ac055a32d6951c41eb5c41b0b9da2faad2`는 결과 브랜치의 조상이다. 원격 main은 `091dbecd701153e7e1880bd6bb84a277b789c58f`를 유지한다. 운영 데이터/Drive/Rules/Pages는 변경하지 않았다.
+
+**7단계 개발 완료, 8단계 개발 착수 가능**으로 판정한다. 운영 반영 승인을 뜻하지 않는다. 실제 OAuth·Drive API, 구형 캐시/대기 쓰기 및 운영 규칙 적용은 별도 승인·검증 대상이다. 위험과 롤백은 deployment.md, 검사별 결과와 증거 한계는 verification.md 및 after-results.json에 기록했다. B/C/D의 기존 집중 결과 파일을 보존했다.
