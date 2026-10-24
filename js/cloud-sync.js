@@ -1615,6 +1615,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
       if (belongsToSkippedTask(change, skippedTaskIds)) continue;
       if (change.type === "update") {
         const snap = snapshots.get(`${change.collection}/${change.id}`);
+        if (change.revisionFence && !snap?.exists()) throw recurrenceError("missing-check-parent", "서버에서 삭제된 체크 부모를 자동 복원하지 않습니다.");
         if (change.collection === "tasks" && change.after?.generatedKey && !snap?.exists()) throw recurrenceError("missing-task", "서버에서 삭제된 반복 업무를 자동 복원하지 않습니다. 저장 결과를 확인해 주세요.");
         if (snap?.exists()) {
           const remote = snap.data() || {};

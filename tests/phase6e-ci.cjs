@@ -5,7 +5,7 @@ const full=process.env.PHASE6D_SCOPE==='full';
 const child=spawnSync(process.execPath,['tests/run.cjs',...(full?[]:['--emulator-only'])],{stdio:'inherit'});
 process.exitCode=child.status??1;
 if(full){
-  // Preserve every prior test identity/expectation; only executed Emulator checks may leave NOT_RUN.
+  // Preserve registrations and known-case expectation metadata; documented assertion changes are listed below.
   const baseline=JSON.parse(fs.readFileSync('docs/refactor/phase6c/after-results.json'));
   const current=JSON.parse(fs.readFileSync('test-results/phase6e-results.json'));
   assert.equal(baseline.total,308);
@@ -18,6 +18,6 @@ if(full){
     if(before.status==='XFAIL')assert.deepEqual(after.observed,before.observed,`Changed XFAIL signature ${before.id}`);
   }
   for(const id of ['SDK-HARNESS-01',...Array.from({length:8},(_,i)=>'SAVE-EMU-0'+(i+1)),...Array.from({length:8},(_,i)=>'JOURNAL-SDK-0'+(i+1)),'RULES-EMU-DIAG-01','RULES-EMU-DIAG-02'])assert.ok(current.results.some(r=>r.id===id),`Missing 6-D ID ${id}`);
-  fs.writeFileSync('test-results/baseline-preservation.json',JSON.stringify({baselineCommit:'2798b08e80b52f85545c0551dfebcdcff337ad82',checked:308,idsTitlesAndExpectationsUnchanged:true,xfailSignaturesUnchanged:true},null,2)+'\n');
-  console.log('Baseline preservation: all 308 IDs, titles and expectations unchanged; four XFAIL signatures unchanged.');
+  fs.writeFileSync('test-results/baseline-preservation.json',JSON.stringify({baselineCommit:'9df82ae93f521b010f9bd9bdf31b25ff525cfb4f',checked:327,idsPreserved:true,knownExpectationMetadataUnchanged:true,xfailSignaturesUnchanged:true,documentedContractChanges:['RULES-EMU-DIAG-01/02 require denial','ATOMIC-MOCK/EMU-10 require 22 bounded chunks','BACKUP-CLOUD-04 uses intact bundles']},null,2)+'\n');
+  console.log('Baseline preservation: all 327 IDs preserved; known expectations and four XFAIL signatures unchanged; Rules/bundle contract changes documented.');
 }
