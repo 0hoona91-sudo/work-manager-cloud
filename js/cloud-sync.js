@@ -1978,8 +1978,8 @@ function getAttachmentStore() {
       assertRecurrenceWorkspace(workspace);await uploadDriveMediaWithRetry(fileId,file,row.mimeType,{attempts:1});
     },
     verify:async(fileId,row)=>{
-      const token=await currentDriveToken();const r=await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,size,trashed`,{headers:{Authorization:`Bearer ${token}`}});
-      if(r.status===404)return false;if(!r.ok)throw Error(`Drive 확인 실패 (${r.status})`);const data=await r.json();if(data.trashed)throw Error('파일이 휴지통에 있습니다. 자동 복원하지 않습니다.');return data.id===fileId&&Number(data.size)===row.size;
+      const token=await currentDriveToken();const r=await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,size,trashed,sha256Checksum`,{headers:{Authorization:`Bearer ${token}`}});
+      if(r.status===404)return false;if(!r.ok)throw Error(`Drive 확인 실패 (${r.status})`);const data=await r.json();if(data.trashed)throw Error('파일이 휴지통에 있습니다. 자동 복원하지 않습니다.');if(Number(data.size)>0&&(Number(data.size)!==row.size||(data.sha256Checksum&&data.sha256Checksum!==row.hash)))throw Error('기존 원본 내용이 다릅니다. 덮어쓰지 않고 수동 확인이 필요합니다.');return data.id===fileId&&Number(data.size)===row.size;
     }
   });
 }
