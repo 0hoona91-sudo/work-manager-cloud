@@ -1939,7 +1939,7 @@ function renderHome(){
   $('#periodListTitle').textContent=`${periodName($('#homePeriod').value)} 업무`;$('#periodListCount').textContent=`${tasks.length}건`;$('#periodList').innerHTML=tasks.slice(0,20).map(t=>`<tr><td><button class="task-link" data-task="${t.id}">${esc(t.name)}${t.urgent?'<span class="dot"></span>':''}</button></td><td>${fmtDate(t.deadline||t.end)}</td><td>${statusBadge(t)}</td></tr>`).join('')||'<tr><td colspan=3 class="muted">해당 기간 업무 없음</td></tr>';
   $('#homeVisualGrid').classList.toggle('visual-wide',view==='calendar'||view==='list');
   $('#periodSummaryCard').classList.toggle('period-hidden',view==='calendar');
-  renderVisual(tasks,a,b);bindTaskLinks();saveState();
+  renderVisual(tasks,a,b);bindTaskLinks();
 }
 function renderVisual(tasks,a,b){const view=state.settings.homeView||'gantt';$$('[data-homeview]').forEach(x=>x.classList.toggle('active',x.dataset.homeview===view));$('#ganttView').classList.toggle('hidden',view==='calendar');$('#calendarView').classList.toggle('hidden',view!=='calendar');$('#visualTitle').textContent=view==='gantt'?'간트차트':view==='calendar'?'달력':'목록';if(view==='gantt')renderGantt(tasks,a,b);else if(view==='calendar')renderCalendar(tasks,a,b);else renderHomeListV2(tasks)}
 function renderHomeListV2(tasks){$('#ganttView').innerHTML=`<div class="listbox"><table class="mini-list"><thead><tr><th>업무명</th><th>예정일</th><th>마감일</th><th>상태</th></tr></thead><tbody>${tasks.map(t=>`<tr><td><button class="task-link" data-task="${t.id}">${t.urgent?'● ':''}${esc(t.name)}</button></td><td>${fmtDate(t.start)}</td><td>${fmtDate(t.deadline||t.end)}</td><td>${statusBadge(t)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">업무 없음</td></tr>'}</tbody></table></div>`;bindTaskLinks()}
