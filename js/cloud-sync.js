@@ -1132,7 +1132,7 @@ function appModalOpenForRemoteApply() {
 function scheduleRemoteApply() {
   clearTimeout(remoteApplyTimer);
   remoteApplyTimer = setTimeout(() => {
-    if (recurrenceRecoveryRequired || recurrenceLocalEditsPending) return;
+    if (recurrenceRecoveryRequired || recurrenceLocalEditsPending || window.WMSaveCommands?.blocksRemoteApply) return;
     if (saving || queuedState || backupImporting || backupRecoveryRequired || appModalOpenForRemoteApply()) return scheduleRemoteApply();
     shadowMaps = mapClone(recordMaps);
     replaceState(stateRef, deserializeState(recordMaps, stateRef.settings || {}));
@@ -1151,7 +1151,7 @@ async function save(snapshot, metadata = {}) {
   queuedWorkspace = recurrenceWorkspace();
   const targetVersion = ++queuedVersion;
   return new Promise((resolve, reject) => {
-    queuedResolvers.push({ targetVersion, resolve, reject });
+    queuedResolvers.push({ targetVersion, operationId: metadata.operationId, resolve, reject });
     if (!saving) void flushQueue(metadata);
   });
 }
@@ -1168,7 +1168,7 @@ async function flushQueue(metadata = {}) {
   const snapshot = queuedState;
   const snapshotVersion = queuedVersion;
   const workspace = queuedWorkspace || recurrenceWorkspace();
-  let guarded = false, reconciled = false;
+  let guarded = false, reconciled = false, serverConfirmed = false;
   queuedState = null;
   try {
     assertRecurrenceWorkspace(workspace);
@@ -1181,6 +1181,7 @@ async function flushQueue(metadata = {}) {
       if (navigator.onLine) {
         try {
           const collisions = await commitOnlineChunks(changes, nextMaps, { ...metadata, recurrenceWorkspace: workspace });
+          serverConfirmed = true;
           if (collisions.length) {
             await reconcileRecurrenceCollisions(collisions, snapshot, nextMaps, workspace);
             reconciled = true;
@@ -1197,10 +1198,11 @@ async function flushQueue(metadata = {}) {
       if (guarded || reconciled || recurrenceLocalEditsPending) recurrenceLocalEditsPending = diffMaps(nextMaps, serializeState(stateRef)).length > 0;
       lastSyncAt = new Date();
     }
-    setSyncStatus(navigator.onLine ? "online" : "offline", navigator.onLine ? "저장됨" : "오프라인 · 전송 대기");
+    setSyncStatus(navigator.onLine ? "online" : "offline", serverConfirmed && !reconciled ? "서버 저장 확인" : reconciled ? "충돌 조정 · 확인 필요" : "동기화 확인 대기");
     const done = queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
     queuedResolvers = queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
-    done.forEach(({ resolve }) => resolve({ recurrenceReconciled: reconciled }));
+    done.forEach(({ resolve, targetVersion, operationId }) => resolve({ recurrenceReconciled: reconciled,
+      operationId, persistence: serverConfirmed && targetVersion === snapshotVersion && !reconciled ? "server-confirmed" : "pending-sync" }));
   } catch (error) {
     if (guarded || error.code?.startsWith("recurrence/")) {
       recurrenceRecoveryRequired = true; error.recoveryRequired = true;

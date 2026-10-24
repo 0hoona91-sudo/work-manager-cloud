@@ -1727,7 +1727,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=20261023-phase5b2');
+  const cloud=await import('./js/cloud-sync.js?v=20261024-phase6a');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1752,6 +1752,7 @@ async function saveState(meta={}){
   }
   return result;
 }
+const persistStateV6A=saveState; // Capture the original persistence boundary before legacy wrappers.
 function seed(){state.categories=['시설','안전','행정','기타'];state.owners=['담당자'];state.holidays=clone(holidaySeed);state.templates=[];state.tasks=[];state.projects=[];state.selectedCategories=[];state.changeLogs=[];state.settings={homeView:'gantt',localBeta:true}}
 
 
@@ -2038,6 +2039,7 @@ function recurrenceDatesV2(from,until,cycle,weekdays,months){
 function cloneOccurrenceV2(base,ds,seriesId,index,repeatMeta){const fresh=clone(base);delete fresh.completionHistory;const dur=Math.max(0,Math.round((dateOf(base.end||base.start)-dateOf(base.start))/86400000)||0),dueOff=Math.max(0,Math.round((dateOf(base.deadline||base.end||base.start)-dateOf(base.start))/86400000)||0);const shifted=repeatMeta.holidayShift==='keep'?ds:shiftWorkday(ds,repeatMeta.holidayShift||'prev');return {...fresh,id:uid('task'),seriesId,repeat:repeatMeta,repeatIndex:index,start:shifted,end:addDays(shifted,dur),deadline:addDays(shifted,dueOff),actualComplete:null,status:'planned',relatedDocumentTitle:'',checklist:(base.checklist||[]).map(c=>({...c,id:uid('c'),done:false})),generatedKey:`${seriesId}:${ds}`}}
 function openTaskForm(id=null){
   const t=id?state.tasks.find(x=>x.id===id):null;modal(t?'업무 수정':'업무 작성',taskFormHtml(t),`<button class="btn" data-close>취소</button>${t?'<button class="btn danger" id="deleteTask">삭제</button>':''}<button class="btn primary" id="saveTask">저장</button>`);const work=clone(t||{category:state.categories[0]||'',urgent:false,status:'planned',owner:state.owners[0]||'',start:todayISO(),end:todayISO(),deadline:todayISO(),unconfirmed:false,checklist:[],templateId:null,notes:'',repeat:null,groupId:null,step:1});let checks=clone(work.checklist||[]);let steps=[];if(t?.groupId){steps=state.tasks.filter(x=>x.groupId===t.groupId&&x.step>(t.step||1)).sort((a,b)=>a.step-b.step).map(x=>clone(x))}
+  let commandSessionV6A=window.WMSaveCommands?.beginEdit(t);
   function renderChecks(){const root=$('#tfChecks');root.innerHTML=checks.map((c,i)=>`<div class="step-check-row"><span>□</span><input type="text" value="${esc(c.text)}" data-ci="${i}"><button class="btn small danger" data-rmci="${i}" type="button">×</button></div>`).join('');$$('[data-ci]').forEach(x=>x.oninput=()=>checks[+x.dataset.ci].text=x.value);$$('[data-rmci]').forEach(x=>x.onclick=()=>{checks.splice(+x.dataset.rmci,1);renderChecks()})}
   function renderSteps(){
     const root=$('#tfSteps');
@@ -2098,6 +2100,18 @@ function openTaskForm(id=null){
   function endTypeFromCurrent(){if(work.end===work.start)return'same';return'date'}$('#tfEndType').value=endTypeFromCurrent();function toggleEnd(){const v=$('#tfEndType').value;$('#tfEndDateField').classList.toggle('hidden',v!=='date');$('#tfAfterField').classList.toggle('hidden',v!=='after')}$('#tfEndType').onchange=toggleEnd;toggleEnd();
   if($('#deleteTask'))$('#deleteTask').onclick=async()=>{if(t?.seriesId&&confirm('이 업무는 반복 일정입니다. 반복 전체를 삭제할까요?\n[확인]=전체 삭제 / [취소]=이 회차만 삭제')){const sid=t.seriesId;const groups=new Set(state.tasks.filter(x=>x.seriesId===sid).map(x=>x.groupId).filter(Boolean));state.tasks=state.tasks.filter(x=>x.seriesId!==sid&&x.parentSeriesId!==sid&&!groups.has(x.groupId))}else{state.tasks=state.tasks.filter(x=>x.id!==id)}await saveState();closeModal();renderTaskTable();renderHome()};
   $('#saveTask').onclick=async()=>{const name=$('#tfName').value.trim();if(!name)return toast('업무명을 입력하세요.');let start=$('#tfStart').value||todayISO(),un=$('#tfUnconfirmed').checked;if(un)start=shiftWorkday(endOfMonth(Number(start.slice(0,4)),Number(start.slice(5,7))),'prev');const rule={type:$('#tfEndType').value,date:$('#tfEndDate').value,days:Number($('#tfAfterDays').value||0),includeHolidays:$('#tfIncludeHolidays').checked,shift:$('#tfHolidayShift').value};let end=calcEnd(start,rule),deadline=$('#tfDeadline').value||end;if(un){end=start;deadline=start}const cleanChecks=checks.filter(x=>x.text.trim()).map(x=>({...x,text:x.text.trim()}));const base={...work,category:$('#tfCategory').value,name,urgent:$('#tfUrgent').checked,owner:$('#tfOwner').value,start,end,deadline,endRule:{...rule},unconfirmed:un,checklist:cleanChecks,notes:$('#tfNotes').value,status:t?.status||'planned',periodLabel:periodFromDate(start)};const linked=$('input[name=taskKind]:checked').value==='linked';if(Object.prototype.hasOwnProperty.call(work,'workType'))base.workType=linked?'linked':'single';const repeatOn=$('#tfRepeat').checked;const stepDefs=linked?taskStepDefsFromDomV11(steps):[];const createdNow=[];
+    if(t&&commandSessionV6A&&!linked&&!repeatOn&&window.WMSaveCommand.ordinary(t)){
+      const button=$('#saveTask'),dialog=button.closest('.modal');
+      const formVersion=()=>JSON.stringify([...dialog.querySelectorAll('input,select,textarea')].map(el=>[el.id,el.value,el.checked]));
+      const submitted=formVersion();
+      try{
+        const result=await window.WMSaveCommands.edit(commandSessionV6A,base,button);
+        if(formVersion()===submitted&&dialog.isConnected)closeModal();
+        else commandSessionV6A=window.WMSaveCommands.beginEdit(state.tasks.find(task=>task.id===t.id));
+        renderTaskTable();renderHome();toast(result.phase==='saved'?'업무를 저장했습니다.':result.noChange?'변경 사항이 없습니다.':'업무 변경을 보관했습니다. 서버 동기화 확인이 필요합니다.');
+      }catch(error){toast(window.WMSaveCommands.getStatus().phase==='conflict'?'다른 변경이 있습니다. 입력을 보존했으니 확인해 주세요.':'저장 결과 확인이 필요합니다. 입력은 보존했습니다.');}
+      return;
+    }
     if(t){Object.assign(t,base);if(repeatOn){t.repeat={cycle:$('#tfRepeatCycle').value,until:$('#tfRepeatUntil').value||start,holidayShift:$('#tfRepeatHoliday').value,weekdays:$$('[data-rwd]:checked').map(x=>Number(x.dataset.rwd)),months:repeatMonthsFromFormV20()}}else if(t.repeat)t.repeat=null}
     else if(repeatOn){const meta={cycle:$('#tfRepeatCycle').value,from:$('#tfStart').value||start,until:$('#tfRepeatUntil').value||start,holidayShift:$('#tfRepeatHoliday').value,weekdays:$$('[data-rwd]:checked').map(x=>Number(x.dataset.rwd)),months:repeatMonthsFromFormV20()};const dates=recurrenceDatesV2(meta.from,meta.until,meta.cycle,meta.weekdays,meta.months);if(!dates.length)return toast('반복 기간과 반복 요일을 확인하세요.');const sid=uid('series');dates.forEach((ds,i)=>{const occ=cloneOccurrenceV2(base,ds,sid,i+1,meta);occ.groupId=linked?uid('grp'):null;state.tasks.push(occ);createdNow.push(occ);if(linked)createdNow.push(...createLinkedStepsV2(occ,stepDefs))});toast(`${dates.length}개의 반복 일정을 만들었습니다.`)}else{base.id=uid('task');base.step=1;base.groupId=linked?uid('grp'):null;base.actualComplete=null;state.tasks.push(base);createdNow.push(base);if(linked)createdNow.push(...createLinkedStepsV2(base,stepDefs))}
     if(t){if(linked){if(!t.groupId&&!t.link)t.groupId=uid('grp');syncLinkedStepsForEditedV2(t,stepDefs)}else if(!t.link){syncLinkedStepsForEditedV2(t,[]);t.groupId=null}}
@@ -12206,4 +12220,6 @@ openTaskForm=function(id=null){
 <link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-v175">
 <script src="./js/workflow-reform-v17.js?v=20261022-v175"></script>
 <script src="./js/backup-ui.js?v=20261023-phase3d"></script>
+<script src="./js/save-command.js?v=20261024-phase6a"></script>
+<script src="./js/save-command-adapter.js?v=20261024-phase6a"></script>
 </body></html>
