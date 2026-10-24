@@ -65,7 +65,8 @@ async function main() {
   assert.ok(results.length > 1, 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
-    refactorBase: '2798b08e80b52f85545c0551dfebcdcff337ad82',
+    refactorBase: 'b1f448ec0620b0ccba4f3614d6335e04726e07a0',
+    rulesSourceSha256: Object.fromEntries(['js/firestore-rules-policy.js','js/workspace-rules-ui.js','js/workspace-preflight.js','tests/emulator/firestore.rules'].map(file=>[file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     commandSourceSha256: Object.fromEntries(['index.html','js/cloud-sync.js','js/save-command.js','js/save-command-adapter.js','js/task-save-conflict.js','js/operation-journal.js','js/recovery-ui.js'].map(file=>[file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     recurrenceSourceSha256: Object.fromEntries(['index.html','js/recurrence-rules.js','js/recurrence-identity.js','js/project-ui.js','js/cloud-sync.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
     scheduleSourceSha256: Object.fromEntries(['index.html','js/project-model.js','js/project-ui.js'].map(file => [file,createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex')])),
