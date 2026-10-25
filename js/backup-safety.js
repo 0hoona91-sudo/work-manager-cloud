@@ -114,6 +114,8 @@
   function attachments(value,path='',out=[],depth=0){
     if(!value||typeof value!=='object'||depth>60)return out;
     for(const [key,child] of Object.entries(value)){
+      // backupMeta is the JSON export's inventory, not a stored attachment reference.
+      if(path===''&&key==='backupMeta')continue;
       if(['resources','projectResources','attachments','methodBlocks','photos'].includes(key)&&Array.isArray(child)){
         for(const [i,ref] of child.entries())if(object(ref)&&ref.type!=='text')out.push({path:`${path}.${key}[${i}]`,ref});
       }

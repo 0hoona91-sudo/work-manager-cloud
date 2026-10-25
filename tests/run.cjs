@@ -42,12 +42,13 @@ async function main() {
   const completionOnly = process.argv.includes('--completion-only');
   const styleOnly = process.argv.includes('--styles-only');
   const phase10Only = process.argv.includes('--phase10-only');
+  const idFilter = process.argv.find(arg => arg.startsWith('--id='))?.slice(5);
   if (emulatorOnly || journalOnly || conflictsOnly || commandsOnly || atomicityOnly || recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly || styleOnly || phase10Only) cases.length = 0;
   for (const suite of (emulatorOnly ? ['recurrence-atomicity','emulator-integration','rules-hardening','provisioning','tasks-retirement'] : journalOnly ? ['journal'] : conflictsOnly ? ['save-conflicts'] : commandsOnly ? ['save-command'] : atomicityOnly ? ['recurrence-atomicity'] : recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud','backup-files'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential','drive-auth'] : attachmentOnly ? ['attachment','attachment-store','attachment-recovery-ui'] : styleOnly ? ['static','style-assets','reach'] : phase10Only ? ['phase10-integration'] : ['static','style-assets','reach','model', 'data', 'recurrence', 'browser','feature-ui', 'attachment','attachment-store','attachment-recovery-ui', 'credential','drive-auth','completion','backup','backup-cloud','backup-files','date','schedule','recurrence-rules','recurrence-identity','recurrence-atomicity','save-command','save-conflicts','journal','emulator-integration','rules-hardening','provisioning','tasks-retirement','phase10-integration'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
-  for (const item of cases) {
+  for (const item of idFilter ? cases.filter(item => item.id === idFilter) : cases) {
     const result = { id: item.id, title: item.title };
     try {
       if (item.known) {
@@ -64,7 +65,7 @@ async function main() {
     console.log(`${result.status.padEnd(7)} ${result.id} ${result.title}`);
     if (result.error) console.error(result.error);
   }
-  assert.ok(results.length > (phase10Only ? 0 : 1), 'Zero test runs are forbidden');
+  assert.ok(results.length > (phase10Only || idFilter ? 0 : 1), 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
     refactorBase: 'b1f448ec0620b0ccba4f3614d6335e04726e07a0',
