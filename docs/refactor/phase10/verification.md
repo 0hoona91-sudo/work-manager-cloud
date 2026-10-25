@@ -15,4 +15,8 @@
 
 Node 24·Chromium·1440×900·Asia/Seoul, 합성 schema11 업무 1천/1만 건을 `tests/phase9-benchmark.cjs`로 8단계 기준과 현재 코드에서 같은 방식으로 각 1회 실행했다. [performance-results.json](performance-results.json)은 원자료다. 1만 건 기준 코드는 홈·달력·프로젝트 Gantt가 문자열 길이 오류로 실패했다. 현재 코드는 홈 4,228.8ms, 달력 4,851.6ms, 프로젝트 2,391.7ms로 완료됐다. 업무 목록은 기준 26,037.6ms, 현재 24,949.5ms로 여전히 느리다. 모든 읽기 전용 측정에서 저장 호출은 0회다. 단일 실행이므로 정밀한 속도 향상률은 주장하지 않는다.
 
-최종 전체 회귀·Actions 결과는 모든 코드와 문서 묶음을 마친 뒤 채운다. 운영 OAuth/Drive, 운영 규칙, 실제 사용자 데이터는 이 표의 PASS에 포함하지 않는다.
+## 최종 전체 회귀
+
+코드 SHA `082cee075f2f699d1c1b2c9fb46ff75b7b7cbc90`의 [Actions 40156994761](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40156994761)은 성공했다. 실제 실행 집계는 **424 PASS / 0 XFAIL / 0 FAIL / 0 XPASS / 0 NOT_RUN**이다. 최종 게이트는 기존 415개 검사 ID와 상태를 모두 대조했고, 신규 9개 ID도 통과했다. 기존 기준 60건에 신규 `INTEG-EMU-01`을 더한 실제 Firebase SDK/Emulator 검사는 61건, 기존 63건에 신규 Gantt 2건·UI 1건·asset 1건을 더한 실제 Chromium 검사는 67건이다. 이 수치는 사용자 계정·운영 서비스 검사가 아니다.
+
+GitHub 공개 작업 화면의 결과 주석은 SHA와 424 PASS 집계를 제공한다. 개별 ID 결과는 9단계의 보존된 결과와 이번에 등록한 9개 검사를 조합해 [after-results.json](after-results.json)에 기록했다. CI 아티팩트 다운로드가 불가능한 환경이므로 이 재구성 경로를 명시한다. 문서만 수정한 후속 SHA는 코드 검증 SHA와 구분한다. 운영 OAuth/Drive, 운영 규칙, 실제 사용자 데이터는 위 PASS에 포함하지 않는다.

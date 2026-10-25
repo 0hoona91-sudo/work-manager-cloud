@@ -21,3 +21,5 @@ F: `INTEG-UI-01`은 Chromium 320/390/768/1440px에서 홈 넘침 0, 키보드 �
 G: `INTEG-ARTIFACT-01`은 추적된 비밀 설정·source map·debug 파일과 생산 파일의 private key/OAuth 토큰 패턴이 없음을 확인했다. 기존 Firebase Web API key 문자열 2곳은 브라우저 구성으로 유지되며 운영 제한 설정은 확인되지 않았다. `security-preflight.md`, `deployment-plan.md`, `rollback-plan.md`, `known-limitations.md`에 승인·차단 사유를 정리했다. 운영 배포는 하지 않았다.
 
 F 후속: 집중 검사에서 빠른 업무의 취소 버튼이 모달을 닫은 뒤 focus를 원래 실행 버튼으로 돌리지 않는 문제를 재현했다. 빠른 업무 모달의 두 닫기 버튼에만 1회성 focus 복귀를 붙였고 `INTEG-UI-01`은 수정 후 PASS다. 저장 동작과 다른 모달은 변경하지 않았다.
+
+최종 판정: [Actions 40156994761](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40156994761)이 코드 SHA `082cee075f2f699d1c1b2c9fb46ff75b7b7cbc90`에서 424 PASS, 그 외 상태 0건으로 성공했다. **10단계 개발·자동 통합검증은 완료**했다. **운영 배포 준비 완료는 아니다.** 실제 OAuth·Drive, 운영 Security Rules, 오래된 클라이언트와 캐시 전환, 운영 자료 규모 및 백업 복구 절차는 승인된 운영 전 검증이 필요하다. 이 브랜치는 main에 병합하지 않았고 운영 시스템을 변경하지 않았다.
