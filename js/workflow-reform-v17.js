@@ -415,8 +415,14 @@ function bindVisibleSelectAllV173(){
   if(!selectAll||!body)return;
   const visible=getAll('input[data-task-select]',body);
   const visibleIds=new Set(visible.map(input=>input.dataset.taskSelect));
+  const filteredIds=window.__wmTaskListFilteredIdsRelease instanceof Set?window.__wmTaskListFilteredIdsRelease:visibleIds;
+  const projects=new Set((state.projects||[]).map(project=>project.id));
+  const taskIds=new Set((state.tasks||[]).map(task=>task.id));
+  const projectTaskIds=new Set((state.tasks||[]).filter(task=>task.projectId&&projects.has(task.projectId)).map(task=>task.id));
   if(typeof selectedTaskIdsV2!=='undefined'&&selectedTaskIdsV2 instanceof Set){
-    for(const id of [...selectedTaskIdsV2])if(!visibleIds.has(id))selectedTaskIdsV2.delete(id);
+    for(const id of [...selectedTaskIdsV2]){
+      if(!filteredIds.has(id)||!taskIds.has(id)||projectTaskIds.has(id))selectedTaskIdsV2.delete(id);
+    }
   }
   selectAll.checked=visible.length>0&&visible.every(input=>input.checked);
   selectAll.onchange=()=>{

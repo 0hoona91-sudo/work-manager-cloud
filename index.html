@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" content="#172d51" />
+<meta name="wm-release" content="predeploy1" />
 <meta name="description" content="Google 로그인으로 여러 기기에서 실시간 동기화하는 업무관리시스템" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>업무관리시스템</title>
@@ -1721,7 +1722,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=phase6f-rules-v1');
+  const cloud=await import('./js/cloud-sync.js?v=phase6f-rules-v1&release=predeploy1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1732,6 +1733,15 @@ let localSaveTailV33=Promise.resolve();
 async function saveState(meta={}){
   if(window.__backupRecoveryRequired||window.WMBackupUI?.isSaving||window.cloudSync?.backupWriteBlocked)throw new Error('백업 저장/복구 확인 중입니다. 다른 저장을 중단하고 서버 상태를 확인해 주세요.');
   const snapshot=clone(state);
+  if(meta.projectSave&&window.cloudSync?.mode==='cloud'){
+    // 프로젝트는 충돌 검사와 서버 확정이 끝나기 전 로컬 복구본을 새 값으로 덮지 않는다.
+    const result=await window.cloudSync.save(snapshot,meta);
+    if(result?.persistence!=='server-confirmed')throw Object.assign(new Error('프로젝트 서버 저장을 확인하지 못했습니다.'),{code:'project/unconfirmed',recoveryRequired:true});
+    const cacheJob=localSaveTailV33.then(()=>writeLocalState(clone(state)));
+    localSaveTailV33=cacheJob.catch(()=>{});
+    try{await cacheJob;}catch(error){error.code='project/cache-failed';error.serverConfirmed=true;throw error;}
+    return result;
+  }
   // IndexedDB 저장은 호출 순서대로 직렬화한다. 빠른 연속 변경에서 오래된 스냅샷이
   // 나중에 저장되어 최신 체크 상태를 덮어쓰는 경쟁 상태를 막는다.
   const localJob=localSaveTailV33.then(()=>writeLocalState(snapshot));
@@ -3705,6 +3715,9 @@ function taskListVisibleV8(){
 const TASK_LIST_PAGE_SIZE_RELEASE=500;
 let taskListPageRelease=0,taskListPageKeyRelease='';
 function taskListPageRowsRelease(rows){
+  // The workflow split keeps bulk selection within the full filtered list,
+  // including rows on other explicit pages, while excluding hidden projects.
+  window.__wmTaskListFilteredIdsRelease=new Set(rows.map(row=>row.id));
   const search=$('#taskSearch')?.value||'',status=$('#taskStatusFilter')?.value||'';
   const key=JSON.stringify([search,status,state.settings?.taskListViewV35,state.settings?.taskListCategories,window.v25HomeFocusKey,rows.length,rows[0]?.id,rows.at(-1)?.id]);
   if(key!==taskListPageKeyRelease){taskListPageRelease=0;taskListPageKeyRelease=key;}
@@ -12149,7 +12162,7 @@ requestAnimationFrame(()=>{
 <script src="./js/project-model.js?v=20261023-phase4b"></script>
 <script src="./js/recurrence-rules.js?v=20261023-phase5a"></script>
 <script src="./js/recurrence-identity.js?v=20261023-phase5b2"></script>
-<script src="./js/project-ui.js?v=20261023-phase5b2"></script>
+<script src="./js/project-ui.js?v=20261023-phase5b2&release=predeploy1"></script>
 
 <script id="linked-schedule-v1-5-2">
 'use strict';
@@ -12190,7 +12203,7 @@ openTaskForm=function(id=null){
 };
 </script>
 <link rel="stylesheet" href="./css/workflow-reform-v17.css?v=20261022-v175">
-<script src="./js/workflow-reform-v17.js?v=20261022-v175"></script>
+<script src="./js/workflow-reform-v17.js?v=20261022-v175&release=predeploy1"></script>
 <script src="./js/backup-ui.js?v=20261023-phase3d"></script>
 <script src="./js/save-command.js?v=20261024-phase6c"></script>
 <script src="./js/task-save-conflict.js?v=20261024-phase6c"></script>

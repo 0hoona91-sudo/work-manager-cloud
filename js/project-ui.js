@@ -422,10 +422,12 @@ async function saveEditor(){
     before={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
     const result=M.reconcile(state,project,holidayCheck);
     state.projects=result.projects;state.tasks=result.tasks;
-    await saveState({reason:result.isNew?'프로젝트 생성':'프로젝트 단계/정보 수정'});
+    const saved=await saveState({reason:result.isNew?'프로젝트 생성':'프로젝트 단계/정보 수정',projectSave:true});
+    if(window.cloudSync?.mode==='cloud'&&saved?.persistence!=='server-confirmed')throw Object.assign(new Error('서버 저장 확정을 확인하지 못했습니다. 새로고침 전에 서버 상태를 확인해 주세요.'),{code:'project/unconfirmed',recoveryRequired:true});
     dirty=false;editor=null;pendingFiles.clear();closeModal();
     renderProjectPage();renderTaskTable();renderHome();toast('프로젝트와 단계별 수행업무를 저장했습니다.');
   }catch(error){
+    if(error.serverConfirmed){dirty=false;editor=null;pendingFiles.clear();closeModal();renderProjectPage();renderTaskTable();renderHome();alert('서버에는 프로젝트가 저장됐으나 이 기기의 캐시 저장에 실패했습니다. 새로고침 후 서버 내용을 확인해 주세요.');return;}
     if(before){state.projects=before.projects;state.tasks=before.tasks;}
     console.error('프로젝트 저장 실패',error);
     alert(`프로젝트를 저장하지 못했습니다.\n${error?.message||error}`);
@@ -440,8 +442,10 @@ async function deleteProject(){
   try{
     const result=M.removeProject(state,editor.id);
     state.projects=result.projects;state.tasks=result.tasks;
-    await saveState({reason:'프로젝트 폐기'});editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();toast('프로젝트를 삭제했습니다.');
-  }catch(error){state.projects=prior.projects;state.tasks=prior.tasks;alert(`프로젝트 삭제 실패: ${error?.message||error}`);}
+    const saved=await saveState({reason:'프로젝트 폐기',projectSave:true});
+    if(window.cloudSync?.mode==='cloud'&&saved?.persistence!=='server-confirmed')throw Object.assign(new Error('프로젝트 폐기 결과를 서버에서 확인하지 못했습니다.'),{code:'project/unconfirmed',recoveryRequired:true});
+    editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();toast('프로젝트를 삭제했습니다.');
+  }catch(error){if(error.serverConfirmed){editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();alert('서버 폐기는 확인됐으나 로컬 캐시 저장에 실패했습니다. 새로고침 후 서버를 확인해 주세요.');}else{state.projects=prior.projects;state.tasks=prior.tasks;alert(`프로젝트 삭제 실패: ${error?.message||error}`);}}
   finally{saving=false;}
 }
 function completionHistoryHtml(task){

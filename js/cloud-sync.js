@@ -1225,7 +1225,13 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
+  if (typeof document !== 'undefined' && document.querySelector('meta[name="wm-release"]')?.content !== 'predeploy1') {
+    const error=Object.assign(new Error('화면과 저장 코드 버전이 다릅니다. 입력을 보관하고 모든 탭에서 새로고침한 뒤 다시 저장해 주세요.'),{code:'client/update-required',definiteFailure:true});
+    window.dispatchEvent(new CustomEvent('cloud-sync-error',{detail:error.message}));
+    throw error;
+  }
   if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode, metadata.journalUncertain);
+  if (metadata.projectSave && !localOnly && (!active || navigator.onLine === false)) throw Object.assign(new Error('프로젝트 저장은 온라인 서버 확인 후 가능합니다. 입력을 유지하고 연결 상태를 확인해 주세요.'),{code:'project/online-required'});
   if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
   if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
@@ -1361,6 +1367,7 @@ async function flushQueue(metadata = {}) {
     assertRecurrenceWorkspace(workspace);
     const nextMaps = serializeState(snapshot);
     const changes = diffMaps(shadowMaps, nextMaps);
+    if (metadata.projectSave && navigator.onLine === false) throw Object.assign(new Error('프로젝트 저장은 온라인 서버 확인 후 가능합니다.'),{code:'project/online-required'});
     guarded = needsRecurrenceClaim(changes);
     if (changes.length) {
       if (navigator.onLine) {
@@ -1372,7 +1379,7 @@ async function flushQueue(metadata = {}) {
             reconciled = true;
           }
         } catch (error) {
-          if (guarded || error.committedChunks > 0 || error.code?.startsWith("recurrence/")) throw error;
+          if (metadata.projectSave || guarded || error.committedChunks > 0 || error.code?.startsWith("recurrence/")) throw error;
           if (!["unavailable", "deadline-exceeded", "failed-precondition"].includes(error?.code)) throw error;
           await commitOfflineChunks(changes, nextMaps, metadata);
         }
@@ -1561,6 +1568,7 @@ function chunkChanges(changes, maps, maxWrites = 320) {
 
 async function commitOnlineChunks(changes, maps, metadata) {
   const chunks = chunkChanges(changes, maps);
+  if (metadata.projectSave && chunks.length !== 1) throw Object.assign(new Error('프로젝트와 단계 업무를 한 트랜잭션에 저장할 수 없습니다. 저장을 중단하고 변경 범위를 줄여 주세요.'),{code:'project/too-large'});
   const backupBaseMaps = metadata.backupImport ? mapClone(shadowMaps) : null;
   const collisions = [];
   for (let index = 0; index < chunks.length; index++) {
@@ -1634,7 +1642,7 @@ async function commitTransaction(changes, nextMaps, metadata) {
     assertRecurrenceWorkspace(workspace);
     const snapshots = new Map();
     // 일반 저장은 기존 읽기 범위를 유지한다. 백업은 생성·삭제도 기준값을 재검사한다.
-    const readChanges = metadata.backupImport ? [...changes] : [...generatedCreates, ...writeChanges.filter((item) => item.type === "update" || item.collection === "tasks" && item.type === "create" && item.after.generatedKey)];
+    const readChanges = metadata.backupImport || metadata.projectSave ? [...changes] : [...generatedCreates, ...writeChanges.filter((item) => item.type === "update" || item.collection === "tasks" && item.type === "create" && item.after.generatedKey)];
     if (metadata.backupImport) {
       const base = metadata.backupBaseMaps || shadowMaps;
       const guarded = new Set(readChanges.map(change => `${change.collection}/${change.id}`));
@@ -1656,6 +1664,13 @@ async function commitTransaction(changes, nextMaps, metadata) {
     for (const change of readChanges) {
       const ref = doc(db, change.collection, change.id);
       snapshots.set(`${change.collection}/${change.id}`, await transaction.get(ref));
+    }
+    if (metadata.projectSave) for (const change of readChanges) {
+      const snap = snapshots.get(`${change.collection}/${change.id}`);
+      const remote = snap?.exists() ? withoutSyncFields(snap.data()) : null;
+      if (remote === null ? change.before !== null : !change.before || changedFields(remote,change.before).length) {
+        throw Object.assign(new Error('프로젝트 또는 단계 업무가 다른 기기에서 변경됐습니다. 입력을 유지하고 서버 내용을 다시 확인해 주세요.'),{code:'project/conflict',definiteFailure:true,collection:change.collection,id:change.id});
+      }
     }
     if (metadata.backupImport) {
       for (const change of readChanges) {
