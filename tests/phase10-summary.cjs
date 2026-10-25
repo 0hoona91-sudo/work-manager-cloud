@@ -1,0 +1,22 @@
+const fs=require('node:fs');
+let text=`## Phase 10 evidence\n\nCommit: ${process.env.GITHUB_SHA||'local'}\n\nProject: demo-work-manager. No production credentials or deployments.\n\n`;
+const files=fs.existsSync('test-results')?fs.readdirSync('test-results').filter(f=>f.endsWith('-results.json')&&f!=='performance-results.json'):[];
+for(const file of files){const report=JSON.parse(fs.readFileSync('test-results/'+file));text+=`### ${file}\n\nTotal ${report.total}: ${JSON.stringify(report.counts)}\n\n| ID | Status | Check |\n|---|---|---|\n`;for(const r of report.results)text+=`| ${r.id} | ${r.status} | ${r.title.replaceAll('|','/')} |\n`;for(const r of report.results.filter(r=>r.status==='FAIL'||r.status==='NOT_RUN'))text+=`\n#### ${r.id}\n\n\`\`\`text\n${r.error}\n\`\`\`\n`;}
+if(!files.length)text+='No result report: see environment/setup/emulator log. No test success is inferred.\n';
+if(fs.existsSync('test-results/performance-results.json')){
+ const benchmark=JSON.parse(fs.readFileSync('test-results/performance-results.json'));
+ text+='\n### Performance benchmark\n\nSynthetic 1k/10k tasks, phase8 versus current. Existing failed operations remain limitations, not PASS.\n\n';
+ for(const row of benchmark.results)text+=`- ${row.count} ${row.variant}: ${JSON.stringify({loadMs:row.loadMs,home:row.home,tasks:row.tasks,search:row.search,calendar:row.calendar,library:row.library,projects:row.projects,serialize:row.serialize,saveCalls:row.saveCalls,heap:row.heap})}\n`;
+ text+=`\nBaseline limitations: ${JSON.stringify(benchmark.limitations||[])}\n`;
+}
+if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text);else process.stdout.write(text);
+// Public job annotations expose compact synthetic results even when API/log downloads are unavailable.
+const annotation=(kind,title,value)=>console.log(`::${kind} title=${title}::${String(value).replaceAll('%','%25').replaceAll('\r','%0D').replaceAll('\n','%0A')}`);
+for(const file of files){
+ const report=JSON.parse(fs.readFileSync('test-results/'+file));
+ annotation('notice','Phase10 counts',JSON.stringify({file,sha:report.checkoutHead,total:report.total,counts:report.counts}));
+ for(let i=0;i<report.results.length;i+=45)annotation('notice','Phase10 results '+i,JSON.stringify(report.results.slice(i,i+45).map(r=>({id:r.id,status:r.status}))));
+ for(const r of report.results.filter(r=>r.status==='FAIL'||r.status==='NOT_RUN'))annotation('warning',r.id,r.error);
+}
+
+if(!files.length&&fs.existsSync('phase6d-emulator.log'))annotation('warning','Phase10 environment',fs.readFileSync('phase6d-emulator.log','utf8').slice(-10000));

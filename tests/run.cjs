@@ -41,8 +41,9 @@ async function main() {
   const backupOnly = process.argv.includes('--backups-only');
   const completionOnly = process.argv.includes('--completion-only');
   const styleOnly = process.argv.includes('--styles-only');
-  if (emulatorOnly || journalOnly || conflictsOnly || commandsOnly || atomicityOnly || recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly || styleOnly) cases.length = 0;
-  for (const suite of (emulatorOnly ? ['recurrence-atomicity','emulator-integration','rules-hardening','provisioning','tasks-retirement'] : journalOnly ? ['journal'] : conflictsOnly ? ['save-conflicts'] : commandsOnly ? ['save-command'] : atomicityOnly ? ['recurrence-atomicity'] : recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud','backup-files'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential','drive-auth'] : attachmentOnly ? ['attachment','attachment-store','attachment-recovery-ui'] : styleOnly ? ['static','style-assets','reach'] : ['static','style-assets','reach','model', 'data', 'recurrence', 'browser','feature-ui', 'attachment','attachment-store','attachment-recovery-ui', 'credential','drive-auth','completion','backup','backup-cloud','backup-files','date','schedule','recurrence-rules','recurrence-identity','recurrence-atomicity','save-command','save-conflicts','journal','emulator-integration','rules-hardening','provisioning','tasks-retirement'])) {
+  const phase10Only = process.argv.includes('--phase10-only');
+  if (emulatorOnly || journalOnly || conflictsOnly || commandsOnly || atomicityOnly || recurrenceOnly || scheduleOnly || dateOnly || attachmentOnly || credentialOnly || completionOnly || backupOnly || styleOnly || phase10Only) cases.length = 0;
+  for (const suite of (emulatorOnly ? ['recurrence-atomicity','emulator-integration','rules-hardening','provisioning','tasks-retirement'] : journalOnly ? ['journal'] : conflictsOnly ? ['save-conflicts'] : commandsOnly ? ['save-command'] : atomicityOnly ? ['recurrence-atomicity'] : recurrenceOnly ? ['recurrence','recurrence-rules','recurrence-identity'] : scheduleOnly ? ['model','schedule'] : dateOnly ? ['model','date'] : backupOnly ? ['data','backup','backup-cloud','backup-files'] : completionOnly ? ['model','completion'] : credentialOnly ? ['credential','drive-auth'] : attachmentOnly ? ['attachment','attachment-store','attachment-recovery-ui'] : styleOnly ? ['static','style-assets','reach'] : phase10Only ? ['phase10-integration'] : ['static','style-assets','reach','model', 'data', 'recurrence', 'browser','feature-ui', 'attachment','attachment-store','attachment-recovery-ui', 'credential','drive-auth','completion','backup','backup-cloud','backup-files','date','schedule','recurrence-rules','recurrence-identity','recurrence-atomicity','save-command','save-conflicts','journal','emulator-integration','rules-hardening','provisioning','tasks-retirement','phase10-integration'])) {
     require(`./${suite}.test.cjs`)({ test, known, EnvironmentUnavailable });
   }
   const results = [];
@@ -63,7 +64,7 @@ async function main() {
     console.log(`${result.status.padEnd(7)} ${result.id} ${result.title}`);
     if (result.error) console.error(result.error);
   }
-  assert.ok(results.length > 1, 'Zero test runs are forbidden');
+  assert.ok(results.length > (phase10Only ? 0 : 1), 'Zero test runs are forbidden');
   const counts = Object.fromEntries(['PASS', 'FAIL', 'XFAIL', 'XPASS', 'NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length]));
   const report = { generatedAt: new Date().toISOString(), sourceBaseline: '091dbecd701153e7e1880bd6bb84a277b789c58f',
     refactorBase: 'b1f448ec0620b0ccba4f3614d6335e04726e07a0',
@@ -80,7 +81,7 @@ async function main() {
     node: process.version, timezone: process.env.TZ, strict: process.argv.includes('--strict'), total: results.length, counts, results };
   const dir = path.join(root, 'test-results');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, emulatorOnly ? 'emulator-results.json' : journalOnly ? 'journal-results.json' : conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : styleOnly ? 'style-results.json' : 'phase9-results.json'), JSON.stringify(report, null, 2) + '\n');
+  fs.writeFileSync(path.join(dir, emulatorOnly ? 'emulator-results.json' : journalOnly ? 'journal-results.json' : conflictsOnly ? 'conflict-results.json' : commandsOnly ? 'command-results.json' : atomicityOnly ? 'atomicity-results.json' : recurrenceOnly ? 'recurrence-results.json' : scheduleOnly ? 'schedule-results.json' : dateOnly ? 'date-results.json' : backupOnly ? 'backup-results.json' : completionOnly ? 'completion-results.json' : credentialOnly ? 'credential-results.json' : attachmentOnly ? 'attachment-results.json' : styleOnly ? 'style-results.json' : phase10Only ? 'phase10-focused-results.json' : 'phase10-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`\nTotal ${results.length}: ${JSON.stringify(counts)}`);
   process.exitCode = counts.FAIL || counts.XPASS || counts.NOT_RUN || (process.argv.includes('--strict') && counts.XFAIL) ? 1 : 0;
 }
