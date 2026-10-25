@@ -1232,6 +1232,7 @@ async function save(snapshot, metadata = {}) {
     throw error;
   }
   if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode, metadata.journalUncertain);
+  if (metadata.projectSave && (typeof metadata.projectId!=='string'||!metadata.projectId)) throw Object.assign(new Error('프로젝트 식별자가 없어 저장을 중단했습니다.'),{code:'project/invalid-id',definiteFailure:true});
   if (projectSaveInFlight || metadata.projectSave && (saving || queuedState)) throw Object.assign(new Error('다른 저장이 진행 중입니다. 프로젝트 입력을 유지하고 완료 후 다시 확인해 주세요.'),{code:'project/save-busy',definiteFailure:true});
   if (metadata.projectSave && !localOnly && (!active || navigator.onLine === false)) throw Object.assign(new Error('프로젝트 저장은 온라인 서버 확인 후 가능합니다. 입력을 유지하고 연결 상태를 확인해 주세요.'),{code:'project/online-required'});
   if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");

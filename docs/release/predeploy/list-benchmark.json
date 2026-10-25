@@ -5,7 +5,7 @@
     {
       "count": 1000,
       "variant": "before",
-      "milliseconds": 420.8,
+      "milliseconds": 451.4,
       "rows": 1000,
       "pages": 1,
       "saves": 0,
@@ -15,7 +15,7 @@
     {
       "count": 1000,
       "variant": "after",
-      "milliseconds": 404.9,
+      "milliseconds": 409.9,
       "rows": 1000,
       "pages": 1,
       "saves": 0,
@@ -25,7 +25,7 @@
     {
       "count": 10000,
       "variant": "before",
-      "milliseconds": 14666.4,
+      "milliseconds": 14576.2,
       "rows": 10000,
       "pages": 1,
       "saves": 0,
@@ -35,7 +35,7 @@
     {
       "count": 10000,
       "variant": "after",
-      "milliseconds": 275.9,
+      "milliseconds": 271.1,
       "rows": 500,
       "pages": 20,
       "saves": 0,
