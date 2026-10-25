@@ -102,6 +102,7 @@ let recordMaps = makeRecordMaps();
 let shadowMaps = makeRecordMaps();
 let active = false;
 let saving = false;
+let projectSaveInFlight = false;
 let backupImporting = false;
 let backupRecoveryRequired = false;
 let queuedState = null;
@@ -1231,6 +1232,7 @@ async function save(snapshot, metadata = {}) {
     throw error;
   }
   if (metadata.taskCommand && !localOnly) return saveTaskCommand(metadata.taskCommand, metadata.reviewMode, metadata.journalUncertain);
+  if (projectSaveInFlight || metadata.projectSave && (saving || queuedState)) throw Object.assign(new Error('다른 저장이 진행 중입니다. 프로젝트 입력을 유지하고 완료 후 다시 확인해 주세요.'),{code:'project/save-busy',definiteFailure:true});
   if (metadata.projectSave && !localOnly && (!active || navigator.onLine === false)) throw Object.assign(new Error('프로젝트 저장은 온라인 서버 확인 후 가능합니다. 입력을 유지하고 연결 상태를 확인해 주세요.'),{code:'project/online-required'});
   if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
   if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
@@ -1355,6 +1357,7 @@ async function flush() {
 async function flushQueue(metadata = {}) {
   if (saving || !queuedState) return;
   saving = true;
+  projectSaveInFlight=Boolean(metadata.projectSave);
   setSyncStatus("syncing", navigator.onLine ? "저장 중" : "오프라인 저장 중");
   const snapshot = queuedState;
   const snapshotVersion = queuedVersion;
@@ -1409,6 +1412,7 @@ async function flushQueue(metadata = {}) {
     window.dispatchEvent(new CustomEvent("cloud-sync-error", { detail: friendlyError(error) }));
   } finally {
     saving = false;
+    projectSaveInFlight=false;
     if (queuedState) void flushQueue(metadata);
   }
 }
@@ -1677,7 +1681,9 @@ async function commitTransaction(changes, nextMaps, metadata) {
     if (metadata.projectSave) for (const change of readChanges) {
       const snap = snapshots.get(`${change.collection}/${change.id}`);
       const remote = snap?.exists() ? withoutSyncFields(snap.data()) : null;
-      if (remote === null ? change.before !== null : !change.before || changedFields(remote,change.before).length) {
+      const fields=remote&&change.before?changedFields(remote,change.before):[];
+      const independentNote=change.guardOnly&&change.collection==='tasks'&&fields.length>0&&fields.every(field=>field==='notes');
+      if (!independentNote && (remote === null ? change.before !== null : !change.before || fields.length)) {
         throw Object.assign(new Error('프로젝트 또는 단계 업무가 다른 기기에서 변경됐습니다. 입력을 유지하고 서버 내용을 다시 확인해 주세요.'),{code:'project/conflict',definiteFailure:true,collection:change.collection,id:change.id});
       }
     }

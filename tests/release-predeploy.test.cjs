@@ -35,10 +35,13 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
     for(const [collection,map] of Object.entries(a.codec.serializeState(state)))for(const [id,value] of map)t.seed(`${collection}/${id}`,{...plain(value),revision:1});
     const first=plain(state);first.projects[0].name='Changed on A';
     await a.api.save(first,{projectSave:true,projectId:'fixture-project',reason:'프로젝트 단계/정보 수정'});
+    assert.equal((await a.api.save(first,{projectSave:true,projectId:'fixture-project'})).persistence,'no-change');
     const stale=plain(state);stale.projects[0].name='Changed on B';
     await assert.rejects(b.api.save(stale,{projectSave:true,projectId:'fixture-project',reason:'프로젝트 단계/정보 수정'}),error=>error.code==='project/conflict');
     assert.equal(t.records.get('projects/fixture-project').name,'Changed on A');
     assert.deepEqual(t.records.get('tasks/stage-a').completionHistory,[{id:'history'}]);
+    b.ctx.saving=true;
+    await assert.rejects(b.api.save(stale,{projectSave:true,projectId:'fixture-project'}),error=>error.code==='project/save-busy');
   });
   test('RELEASE-PROJECT-EMU-01', 'REAL SDK independent stage edits coexist and same-stage stale date is rejected', () => withEmulator(EnvironmentUnavailable,async t=>{
     const {state,a,b}=await projectClients(t);
