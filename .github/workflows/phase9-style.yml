@@ -10,7 +10,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     env:
       CI: 'true'
       GCLOUD_PROJECT: demo-work-manager
@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -50,6 +51,12 @@ jobs:
         with:
           path: ~/.cache/firebase/emulators
           key: phase6d-firestore-15.34.1-linux
+      - name: Fixed synthetic performance comparison
+        run: |
+          mkdir -p /tmp/phase9-baseline
+          git archive daa15a100837ad4f3aeca2e31136041bf48ad10f | tar -x -C /tmp/phase9-baseline
+          PHASE9_BENCH_OUTPUT=test-results/performance-results.json node tests/phase9-benchmark.cjs
+          node tests/phase9-benchmark-gate.cjs
       - name: Publish test evidence
         if: always()
         uses: actions/upload-artifact@v4

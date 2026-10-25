@@ -5,6 +5,14 @@ const { root } = require('./helpers.cjs');
 const { withPage } = require('./browser.test.cjs');
 
 module.exports = ({ test, EnvironmentUnavailable }) => {
+  test('STYLE-VISUAL-01', 'Mobile home hero keeps the previously rendered 22px heading', async () => {
+    for (const width of [320, 390]) {
+      await withPage({ width, height: 900 }, EnvironmentUnavailable, async page => {
+        const fontSize = await page.locator('.home-hero-v21 h2').evaluate(element => getComputedStyle(element).fontSize);
+        assert.equal(fontSize, '22px');
+      });
+    }
+  });
   test('REACH-01', 'Removed holiday stripe has no production reference; calendar still renders holidays', () =>
     withPage({ width: 390, height: 844 }, EnvironmentUnavailable, async page => {
       const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
