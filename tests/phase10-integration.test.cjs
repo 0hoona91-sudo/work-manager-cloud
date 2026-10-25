@@ -8,8 +8,125 @@ const Backup = require('../js/backup-safety.js');
 const Files = require('../js/backup-files.js');
 const Model = require('../js/project-model.js');
 const { loadCloud } = require('./helpers.cjs');
+const { withPage } = require('./browser.test.cjs');
+const fs = require('node:fs');
+const path = require('node:path');
+const { root } = require('./helpers.cjs');
+const { execFileSync } = require('node:child_process');
 
 module.exports = ({ test, EnvironmentUnavailable }) => {
+  test('INTEG-ARTIFACT-01', 'Tracked production files contain no private-key, OAuth-token or debug artifact pattern', () => {
+    const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString().split('\0').filter(Boolean);
+    assert.deepEqual(tracked.filter(name => /(?:^|\/)(?:\.env(?:\.|$)|.*\.(?:pem|p12|map)$|.*debug\.log$|service[-_]?account.*\.json$)/i.test(name)), []);
+    const production = tracked.filter(name => name === 'index.html' || name === 'privacy.html' || /^(?:js|css|assets)\//.test(name));
+    for (const name of production) {
+      const bytes = fs.readFileSync(path.join(root, name));
+      assert.doesNotMatch(bytes.toString('latin1'), /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|ya29\.[A-Za-z0-9_-]{20,}/);
+    }
+  });
+  test('INTEG-UI-01', 'Chromium viewport, keyboard quick-task, IME and cancel preserve data', () =>
+    withPage({ width: 1440, height: 900 }, EnvironmentUnavailable, async page => {
+      const before = await page.evaluate(() => JSON.stringify(state.tasks));
+      for (const width of [320, 390, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.evaluate(() => showPage('homePage'));
+        const sizes = await page.evaluate(() => ({ visible: innerWidth, document: document.documentElement.scrollWidth }));
+        assert.ok(sizes.document <= sizes.visible + 1, `Page overflows ${width}px: ${JSON.stringify(sizes)}`);
+      }
+      const button = page.getByRole('button', { name: '＋ 빠른 업무', exact: true });
+      await button.focus();
+      await page.keyboard.press('Enter');
+      assert.equal(await page.locator('#qtNameV119').isVisible(), true);
+      await page.locator('#qtNameV119').evaluate(input => {
+        input.value = '한';
+        input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+        input.value = '한글';
+        input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
+      });
+      assert.equal(await page.locator('#qtNameV119').inputValue(), '한글');
+      await page.locator('#modalRoot [data-close]').last().click();
+      assert.equal(await page.evaluate(() => JSON.stringify(state.tasks)), before);
+    }));
+  test('INTEG-ASSET-01', 'Chromium resolves shared theme asset under GitHub Pages subpath at four widths', () =>
+    withPage({ width: 1440, height: 900 }, EnvironmentUnavailable, async page => {
+      const prefix = '/work-manager-cloud/';
+      const origin = new URL(page.url()).origin;
+      const asset = [];
+      page.on('response', response => {
+        if (response.url().includes('shared-hello-kitty-bg')) asset.push({ url: response.url(), status: response.status() });
+      });
+      await page.route('**/work-manager-cloud/**', async route => {
+        const requestUrl = new URL(route.request().url());
+        const relative = decodeURIComponent(requestUrl.pathname.slice(prefix.length)) || 'index.html';
+        if (relative.split('/').includes('..')) return route.fulfill({ status: 403 });
+        const file = path.join(root, relative);
+        if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return route.fulfill({ status: 404 });
+        const type = path.extname(file) === '.webp' ? 'image/webp'
+          : path.extname(file) === '.js' ? 'text/javascript'
+            : path.extname(file) === '.css' ? 'text/css' : 'text/html';
+        return route.fulfill({ status: 200, contentType: type, body: fs.readFileSync(file) });
+      });
+      await page.goto(origin + prefix, { waitUntil: 'networkidle' });
+      for (const width of [320, 390, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.evaluate(() => { showPage('homePage'); state.settings.uiTheme = 'hellokitty'; applyThemeV7(); });
+        await page.waitForLoadState('networkidle');
+      }
+      assert.ok(asset.length >= 1);
+      assert.ok(asset.every(item => item.status === 200 && item.url.includes(prefix + 'assets/')));
+    }));
+  test('INTEG-GANTT-02', 'Chromium keeps the existing full 1k Gantt view without pagination or save', () =>
+    withPage({ width: 1440, height: 900 }, EnvironmentUnavailable, async page => {
+      page.setDefaultTimeout(120000);
+      const result = await page.evaluate(() => {
+        const originalTasks = state.tasks, originalSave = saveState;
+        let writes = 0;
+        try {
+          state.tasks = Array.from({ length: 1000 }, (_, i) => ({
+            id: `SMALL-${i}`, name: `Synthetic task ${i}`, category: 'fixture-category',
+            status: 'planned', start: '2026-10-23', end: '2026-10-24', checklist: []
+          }));
+          saveState = () => { writes++; return Promise.resolve(); };
+          showPage('homePage'); renderHome();
+          return { rows: document.querySelectorAll('#ganttView .gantt-v2-row').length,
+            pager: document.querySelectorAll('#ganttPageV10').length, writes };
+        } finally { state.tasks = originalTasks; saveState = originalSave; }
+      });
+      assert.deepEqual(result, { rows: 1000, pager: 0, writes: 0 });
+    }));
+  test('INTEG-GANTT-01', 'Chromium shows all 10k synthetic Gantt tasks through explicit pages without saving', () =>
+    withPage({ width: 1440, height: 900 }, EnvironmentUnavailable, async page => {
+      page.setDefaultTimeout(120000);
+      const result = await page.evaluate(() => {
+        const originalTasks = state.tasks, originalSave = saveState;
+        let writes = 0;
+        try {
+          state.tasks = Array.from({ length: 10000 }, (_, i) => ({
+            id: `INTEG-${String(i).padStart(5, '0')}`, name: `Synthetic task ${i}`,
+            category: 'fixture-category', status: 'planned',
+            start: `2026-10-${String(i % 28 + 1).padStart(2, '0')}`,
+            end: `2026-11-${String(i % 28 + 1).padStart(2, '0')}`, checklist: []
+          }));
+          saveState = () => { writes++; return Promise.resolve(); };
+          showPage('homePage');
+          renderHome();
+          const first = [...document.querySelectorAll('#ganttView .gantt-v2-row [data-task]')].map(el => el.dataset.task);
+          const pages = document.querySelectorAll('#ganttPageV10 option').length;
+          const picker = document.querySelector('#ganttPageV10');
+          if (picker) { picker.value = String(pages - 1); picker.dispatchEvent(new Event('change', { bubbles: true })); }
+          const last = [...document.querySelectorAll('#ganttView .gantt-v2-row [data-task]')].map(el => el.dataset.task);
+          return { total: state.tasks.length, first, last, pages,
+            notice: document.querySelector('#ganttPageNoticeV10')?.textContent || '', writes };
+        } finally { saveState = originalSave; state.tasks = originalTasks; }
+      });
+      assert.equal(result.total, 10000);
+      assert.equal(result.pages, 20);
+      assert.equal(result.first.length, 500);
+      assert.equal(result.last.length, 500);
+      assert.equal(new Set([...result.first, ...result.last]).size, 1000);
+      assert.match(result.notice, /10000/);
+      assert.equal(result.writes, 0);
+    }));
   test('INTEG-LEGACY-01', 'Older schema11 IDs, Tasks metadata and recurring locks survive codec and JSON review', () => {
     const old = schema11();
     old.projects = [];

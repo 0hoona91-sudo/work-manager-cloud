@@ -2749,6 +2749,7 @@ function renderDbTable(){
   $$('[data-db]').forEach(x=>x.onclick=()=>openDbDetail(x.dataset.db));$$('[data-editdb]').forEach(x=>x.onclick=()=>openDbForm(x.dataset.editdb));
 }
 
+let ganttPageKeyV10='',ganttPageIndexV10=0;
 function renderGantt(tasks,selectedStart,selectedEnd){
   const scale=state.settings.ganttScale||'day';
   const [a,b]=ganttWindowV4(selectedStart,selectedEnd,scale),start=dateOf(a),end=dateOf(b);
@@ -2761,14 +2762,24 @@ function renderGantt(tasks,selectedStart,selectedEnd){
   const today=todayISO(),todayLine=today>=a&&today<=b?`<div class="today-line" style="left:${pct(today)}%"></div>`:'';
   const selectedBand=(selectedStart>=a&&selectedStart<=b)?`<div class="selected-period-band" style="left:${pct(selectedStart)}%;width:${Math.max(.08,pct(addDays(selectedEnd,1))-pct(selectedStart))}%"></div>`:'';
   const visibleTasks=ganttTasksV4(a,b),rangeLabel=`${a.slice(0,7).replace('-','/')} ~ ${b.slice(0,7).replace('-','/')}`;
+  const pagedV10=visibleTasks.length>1000,pageSizeV10=500;
+  const pageKeyV10=[a,b,scale,visibleTasks.length,visibleTasks[0]?.id,visibleTasks.at(-1)?.id,window.cloudSync?.user?.uid||'local'].join('|');
+  if(pageKeyV10!==ganttPageKeyV10){ganttPageKeyV10=pageKeyV10;ganttPageIndexV10=0;}
+  const pageCountV10=Math.ceil(visibleTasks.length/pageSizeV10);
+  ganttPageIndexV10=Math.min(ganttPageIndexV10,Math.max(0,pageCountV10-1));
+  const pageStartV10=ganttPageIndexV10*pageSizeV10;
+  const renderedTasksV10=pagedV10?visibleTasks.slice(pageStartV10,pageStartV10+pageSizeV10):visibleTasks;
+  const pageControlsV10=pagedV10?`<div class="gantt-tools"><span id="ganttPageNoticeV10">업무 ${pageStartV10+1}~${pageStartV10+renderedTasksV10.length} / 전체 ${visibleTasks.length}건 · 표시 페이지 선택</span><select id="ganttPageV10" aria-label="간트 업무 페이지">${Array.from({length:pageCountV10},(_,i)=>`<option value="${i}" ${i===ganttPageIndexV10?'selected':''}>${i+1} / ${pageCountV10}</option>`).join('')}</select></div>`:'';
   $('#visualRange').textContent=`스크롤 범위 ${rangeLabel}`;
   const legend=[...new Set(visibleTasks.map(t=>t.category))].map(c=>`<span class="legend-item"><span class="cat-dot" style="background:${categoryColorV5(c)}"></span>${esc(c)}</span>`).join('');
-  let h=`<div class="gantt-tools"><div class="inline"><div class="segmented">${[['day','일'],['week','주'],['month','월'],['year','연']].map(([v,l])=>`<button data-gscale="${v}" class="${scale===v?'active':''}">${l}</button>`).join('')}</div>${ganttCategoryFilterHtmlV5()}</div><div class="inline"><span class="gantt-range-note">선택기간 <b>${fmtDate(selectedStart)} ~ ${fmtDate(selectedEnd)}</b></span><span class="gantt-pan-buttons"><button class="btn small" id="ganttLeft">‹</button><button class="btn small" id="ganttRight">›</button></span><button class="btn small" id="ganttSelected">선택기간</button><button class="btn small" id="ganttToday">오늘</button></div></div><div class="category-legend">${legend}</div><div class="gantt-scroll" id="ganttScroll"><div style="width:${220+trackWidth}px;min-width:${220+trackWidth}px"><div class="gantt-v2-head"><div class="gantt-sticky-name">업무명</div><div class="gantt-track" style="width:${trackWidth}px">${selectedBand}${headerUnits}${todayLine}</div></div>`;
-  for(const t of visibleTasks){
+  let h=`<div class="gantt-tools"><div class="inline"><div class="segmented">${[['day','일'],['week','주'],['month','월'],['year','연']].map(([v,l])=>`<button data-gscale="${v}" class="${scale===v?'active':''}">${l}</button>`).join('')}</div>${ganttCategoryFilterHtmlV5()}</div><div class="inline"><span class="gantt-range-note">선택기간 <b>${fmtDate(selectedStart)} ~ ${fmtDate(selectedEnd)}</b></span><span class="gantt-pan-buttons"><button class="btn small" id="ganttLeft">‹</button><button class="btn small" id="ganttRight">›</button></span><button class="btn small" id="ganttSelected">선택기간</button><button class="btn small" id="ganttToday">오늘</button></div></div><div class="category-legend">${legend}</div>${pageControlsV10}<div class="gantt-scroll" id="ganttScroll"><div style="width:${220+trackWidth}px;min-width:${220+trackWidth}px"><div class="gantt-v2-head"><div class="gantt-sticky-name">업무명</div><div class="gantt-track" style="width:${trackWidth}px">${selectedBand}${headerUnits}${todayLine}</div></div>`;
+  for(const t of renderedTasksV10){
     const st=effectiveStatus(t),barLeft=pct(t.start),barWidth=widthPct(t.start,t.end||t.start),col=categoryColorV5(t.category);
     h+=`<div class="gantt-v2-row"><div class="gantt-sticky-name"><button class="task-link" data-task="${t.id}">${t.urgent?'<span style="color:#e34d47">●</span> ':''}${esc(t.name)}</button></div><div class="gantt-track" style="width:${trackWidth}px">${selectedBand}${rowGrid}${todayLine}<div class="gbar-v2 ${st==='done'?'is-done':''} ${st==='overdue'?'is-overdue':''} ${t.urgent?'is-urgent':''}" style="left:${barLeft}%;width:${barWidth}%;background:${col}" title="${esc(t.category)} · ${fmtDate(t.start)} ~ ${fmtDate(t.end||t.start)}"></div></div></div>`;
   }
   h+='</div></div>';$('#ganttView').innerHTML=visibleTasks.length?h:'<div class="gantt-empty">스크롤 범위에 등록된 업무가 없습니다.</div>';
+  const pagePickerV10=$('#ganttPageV10');
+  if(pagePickerV10)pagePickerV10.onchange=()=>{const next=Number(pagePickerV10.value);if(!Number.isInteger(next)||next<0||next>=pageCountV10)return;const left=$('#ganttScroll')?.scrollLeft||0;ganttPageIndexV10=next;renderGantt(tasks,selectedStart,selectedEnd);const scroll=$('#ganttScroll');if(scroll)scroll.scrollLeft=left;};
   $$('[data-gscale]').forEach(x=>x.onclick=()=>{state.settings.ganttScale=x.dataset.gscale;saveState();renderHome()});bindGanttCategoryFilterV5();
   const sc=$('#ganttScroll');if(sc){let down=false,sx=0,sl=0;const jump=()=>Math.max(320,Math.round(sc.clientWidth*.75));const goDate=ds=>{if(ds<a||ds>b)return;sc.scrollLeft=Math.max(0,220+(pct(ds)/100)*trackWidth-sc.clientWidth*.42)};$('#ganttLeft')?.addEventListener('click',()=>sc.scrollBy({left:-jump(),behavior:'smooth'}));$('#ganttRight')?.addEventListener('click',()=>sc.scrollBy({left:jump(),behavior:'smooth'}));$('#ganttSelected')?.addEventListener('click',()=>goDate(selectedStart));$('#ganttToday')?.addEventListener('click',()=>{if(today<a||today>b)return toast('현재 간트 범위 밖입니다.');goDate(today)});sc.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,label'))return;down=true;sx=e.clientX;sl=sc.scrollLeft;sc.setPointerCapture(e.pointerId);sc.classList.add('dragging')});sc.addEventListener('pointermove',e=>{if(down)sc.scrollLeft=sl-(e.clientX-sx)});const up=()=>{down=false;sc.classList.remove('dragging')};sc.addEventListener('pointerup',up);sc.addEventListener('pointercancel',up);sc.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>=Math.abs(e.deltaX)){e.preventDefault();sc.scrollLeft+=e.deltaY}},{passive:false});requestAnimationFrame(()=>goDate(selectedStart))}
   bindTaskLinks();

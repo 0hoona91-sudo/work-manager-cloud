@@ -1,0 +1,74 @@
+{
+  "baseline": "daa15a100837ad4f3aeca2e31136041bf48ad10f",
+  "browser": "/usr/bin/chromium",
+  "fixture": "synthetic-schema11-phase9",
+  "results": [
+    {
+      "count": 1000,
+      "variant": "before",
+      "loadMs": 1217,
+      "home": 8014.8,
+      "tasks": 1068.2,
+      "search": 117.6,
+      "calendar": 7785,
+      "library": 114,
+      "projects": 4642.4,
+      "serialize": 1,
+      "saveCalls": 0,
+      "taskCount": 1000,
+      "heap": 9671012
+    },
+    {
+      "count": 1000,
+      "variant": "after",
+      "loadMs": 1108,
+      "home": 7884.5,
+      "tasks": 1226.3,
+      "search": 119.9,
+      "calendar": 7928.3,
+      "library": 109.9,
+      "projects": 4459.6,
+      "serialize": 1.1,
+      "saveCalls": 0,
+      "taskCount": 1000,
+      "heap": 6778866
+    },
+    {
+      "count": 10000,
+      "variant": "before",
+      "loadMs": 1152,
+      "home": {
+        "error": "Invalid string length"
+      },
+      "tasks": 26037.6,
+      "search": 493.1,
+      "calendar": {
+        "error": "Invalid string length"
+      },
+      "library": 5.6,
+      "projects": {
+        "error": "Invalid string length"
+      },
+      "serialize": 8,
+      "saveCalls": 0,
+      "taskCount": 10000,
+      "heap": 67939731
+    },
+    {
+      "count": 10000,
+      "variant": "after",
+      "loadMs": 1103,
+      "home": 4228.8,
+      "tasks": 24949.5,
+      "search": 566.2,
+      "calendar": 4851.6,
+      "library": 87.2,
+      "projects": 2391.7,
+      "serialize": 7.8,
+      "saveCalls": 0,
+      "taskCount": 10000,
+      "heap": 53481277
+    }
+  ],
+  "phase10Note": "Single local post-fix comparison; baseline is phase8 synthetic checkout. Baseline 10000 Gantt errors are not successful measurements."
+}
