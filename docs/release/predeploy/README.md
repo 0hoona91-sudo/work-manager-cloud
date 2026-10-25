@@ -7,3 +7,5 @@
 - 일반 업무 목록: 1천 건 이하의 기존 전체 표시를 보존하고, 이를 넘는 결과에 500건 단위 명시적 페이지 선택을 적용했다. 필터·검색은 전체 업무에 먼저 적용하고 화면 행만 나눈다. 다른 페이지에서 고른 일반 업무의 선택을 유지하면서 프로젝트 단계의 숨은 선택은 제거한다. 업무 원본·저장·백업·ID는 그대로다. 관련 파일: `index.html`, `js/workflow-reform-v17.js`.
 
 신규 검사는 `tests/release-predeploy.test.cjs`, 재현 가능한 동일 Chromium 측정은 `tests/release-list-benchmark.cjs`와 `list-benchmark.json`이다. 10단계의 424개 검사 ID·계약은 삭제하거나 완화하지 않았다.
+
+릴리스 후보 자동 검증은 [Actions 40169551148](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40169551148)에서 코드 SHA `9db50988fee4e7620501c9689d16d7952fa82613` 기준 431 PASS로 끝났다. 개발 수정은 완료했으며 다음 작업은 `blockers.md`에 적은 실제 외부 연결·구형 클라이언트·운영 규칙 사전검증과 **별도 사용자 승인에 따른 배포 실행**이다. 현재는 운영 배포 준비 완료 판정이나 배포 승인을 대신하지 않는다.

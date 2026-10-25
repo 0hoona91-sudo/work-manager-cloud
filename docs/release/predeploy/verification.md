@@ -13,4 +13,8 @@
 
 10단계 기존 성능 문서의 약 25초는 다른 전체 화면 측정 절차였다. 위 숫자는 목록 표시만 같은 fixture·브라우저·하드웨어에서 비교한 한 번의 실행이며, 운영 사용자 데이터나 저사양 기기의 성능을 뜻하지 않는다. 페이지 밖 업무는 검색·선택·업무 원본에서 유지됨을 `RELEASE-LIST-01/02` Chromium으로 확인했다.
 
-최종 전체 검사와 GitHub Actions URL은 마지막 코드 검증 후 추가한다.
+## 최종 통합 게이트
+
+[GitHub Actions 40169551148](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40169551148)은 코드 SHA `9db50988fee4e7620501c9689d16d7952fa82613`에서 성공했다. **431 PASS / 0 XFAIL / 0 FAIL / 0 XPASS / 0 NOT_RUN**. `tests/release-ci.cjs`가 10단계의 424개 ID와 기대 상태를 모두 대조했으며 신규 7건이 통과했다. 실제 Firebase SDK/Emulator는 64건(기존 61+신규 프로젝트 3), 실제 Chromium은 69건(기존 67+신규 목록 2)이다. 검증 프로젝트는 `demo-work-manager`이고 Firebase 운영 프로젝트·Google 실계정·Drive 운영 파일은 사용하지 않았다.
+
+공개 Actions 주석의 SHA·집계와 기준 결과를 조합한 개별 ID 목록은 [after-results.json](after-results.json)에 보존했다. 아티팩트를 직접 내려받지 못한 환경이므로 개별 결과의 재구성 출처를 JSON에 명시했다. 이 최종 문서만 추가한 SHA와 위 코드 검증 SHA는 구분한다.
