@@ -11,3 +11,5 @@ B: 기존 `SAVE-EMU-01~08`, `ATOMIC-EMU-01~13`, `JOURNAL-SDK` 계약을 재사�
 B 집중 CI: [Actions 40156380085](https://github.com/0hoona91-sudo/work-manager-cloud/actions/runs/40156380085)에서 `INTEG-EMU-01` 실제 SDK/Emulator PASS. 이는 두 독립 SDK 클라이언트 검증이며 실제 두 물리 기기·실계정 검증은 아니다.
 
 C: `INTEG-BACKUP-01`에서 구조 JSON 백업 → 현재 업무 완료·재개 이력 추가 → 충돌 미리보기 → 취소 0쓰기 → 명시적 복원 → ID/이력/첨부/프로젝트 확인 → 원본 포함/누락 ZIP 분리까지 한 합성 흐름을 검증했다. 테스트 작성 직후 정상 JSON 백업의 `backupMeta.attachments`가 실제 첨부 참조로 잘못 해석되어 복원 전 거부되는 오류를 재현했다. `js/backup-safety.js`에서 최상위 backupMeta 인벤토리만 실제 참조 순회에서 제외했다. 실제 업무·프로젝트·라이브러리 첨부 검증은 유지된다. 수정 후 신규 1 PASS 및 기존 백업 집중 46 PASS. 실제 운영 데이터·Drive는 사용하지 않았다.
+
+D: `INTEG-LEGACY-01`에서 예전 schema11 업무·체크·첨부 ID, generatedKey, 완료 이력, Google Tasks 유래 메타데이터와 설정의 cloud codec 왕복 및 JSON 백업 검증이 PASS. schema 표시 없는 이전 JSON은 경고와 함께 구조 검증 후 수용한다. 구형 클라이언트가 새 규칙에서 부모 revision 계약 없이 저장할 때 거부되는 기존 `PROVISION-EMU-08` 결과를 배포 전환 위험으로 분리했다. 자세한 경계는 `compatibility.md`에 기록했다.

@@ -7,8 +7,36 @@ const { withEmulator } = require('./recurrence-emulator.cjs');
 const Backup = require('../js/backup-safety.js');
 const Files = require('../js/backup-files.js');
 const Model = require('../js/project-model.js');
+const { loadCloud } = require('./helpers.cjs');
 
 module.exports = ({ test, EnvironmentUnavailable }) => {
+  test('INTEG-LEGACY-01', 'Older schema11 IDs, Tasks metadata and recurring locks survive codec and JSON review', () => {
+    const old = schema11();
+    old.projects = [];
+    old.settings.googleTasksV15 = { enabled: true, listId: 'retired-list' };
+    old.tasks[0].googleTaskId = 'retired-task';
+    old.tasks[0].checklist[0].googleTaskId = 'retired-check';
+    old.tasks[0].attachments = [{ id: 'old-attachment', driveFileId: 'old-drive-file', name: 'old.pdf' }];
+    old.tasks[0].completionHistory = [{ id: 'old-history', reopenedAt: '2026-10-23T00:00:00Z',
+      snapshot: { ...plain(old.tasks[0]), completionHistory: undefined } }];
+    delete old.tasks[0].completionHistory[0].snapshot.completionHistory;
+    const original = plain(old);
+    const Cloud = loadCloud();
+    const decoded = plain(Cloud.deserializeState(Cloud.serializeState(old)));
+    assert.deepEqual(decoded, original);
+    const json = Files.jsonSnapshot(decoded);
+    const review = Backup.prepare(decoded, json);
+    assert.deepEqual(review.errors, []);
+    assert.equal(review.counts.tasks.identical, 1);
+    const oldFormat = Backup.prepare(decoded, plain(decoded));
+    assert.deepEqual(oldFormat.errors, []);
+    assert.ok(oldFormat.warnings.some(warning => /스키마 표기/.test(warning)));
+    assert.deepEqual(review.next.tasks[0].completionHistory, original.tasks[0].completionHistory);
+    assert.equal(review.next.tasks[0].generatedKey, original.tasks[0].generatedKey);
+    assert.equal(review.next.tasks[0].attachments[0].driveFileId, 'old-drive-file');
+    assert.equal(review.next.settings.googleTasksV15.enabled, true);
+    assert.deepEqual(old, original, 'Inspection and backup must not migrate old data');
+  });
   test('INTEG-BACKUP-01', 'JSON backup, completed edits, reviewed restore and partial ZIP preserve IDs and originals status', async () => {
     const initial = schema11();
     const linked = project();
