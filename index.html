@@ -1736,7 +1736,7 @@ async function saveState(meta={}){
   if(meta.projectSave&&window.cloudSync?.mode==='cloud'){
     // 프로젝트는 충돌 검사와 서버 확정이 끝나기 전 로컬 복구본을 새 값으로 덮지 않는다.
     const result=await window.cloudSync.save(snapshot,meta);
-    if(result?.persistence!=='server-confirmed')throw Object.assign(new Error('프로젝트 서버 저장을 확인하지 못했습니다.'),{code:'project/unconfirmed',recoveryRequired:true});
+    if(!['server-confirmed','no-change'].includes(result?.persistence))throw Object.assign(new Error('프로젝트 서버 저장을 확인하지 못했습니다.'),{code:'project/unconfirmed',recoveryRequired:true});
     const cacheJob=localSaveTailV33.then(()=>writeLocalState(clone(state)));
     localSaveTailV33=cacheJob.catch(()=>{});
     try{await cacheJob;}catch(error){error.code='project/cache-failed';error.serverConfirmed=true;throw error;}

@@ -17,7 +17,7 @@ async function projectClients(t){
   for(const [collection,map] of Object.entries(a.codec.serializeState(state)))for(const [id,value] of map)batch.set(t.sdk.doc(t.db,collection,id),{...plain(value),revision:1});
   await batch.commit();return {state,a,b};
 }
-const projectSave=(h,state)=>h.api.save(plain(state),{projectSave:true,reason:'Synthetic project edit'});
+const projectSave=(h,state)=>h.api.save(plain(state),{projectSave:true,projectId:'fixture-project',reason:'Synthetic project edit'});
 
 module.exports = ({ test, EnvironmentUnavailable }) => {
   test('RELEASE-CACHE-01', 'MOCK mixed old HTML and new cloud module block writes without clearing data', async () => {
@@ -34,9 +34,9 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
     const t=mockTransport(),a=harness(t,plain(state)),b=harness(t,plain(state));
     for(const [collection,map] of Object.entries(a.codec.serializeState(state)))for(const [id,value] of map)t.seed(`${collection}/${id}`,{...plain(value),revision:1});
     const first=plain(state);first.projects[0].name='Changed on A';
-    await a.api.save(first,{projectSave:true,reason:'프로젝트 단계/정보 수정'});
+    await a.api.save(first,{projectSave:true,projectId:'fixture-project',reason:'프로젝트 단계/정보 수정'});
     const stale=plain(state);stale.projects[0].name='Changed on B';
-    await assert.rejects(b.api.save(stale,{projectSave:true,reason:'프로젝트 단계/정보 수정'}),error=>error.code==='project/conflict');
+    await assert.rejects(b.api.save(stale,{projectSave:true,projectId:'fixture-project',reason:'프로젝트 단계/정보 수정'}),error=>error.code==='project/conflict');
     assert.equal(t.records.get('projects/fixture-project').name,'Changed on A');
     assert.deepEqual(t.records.get('tasks/stage-a').completionHistory,[{id:'history'}]);
   });
@@ -59,6 +59,10 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
     await assert.rejects(projectSave(b,stale),e=>e.code==='project/conflict');
     const row=(await t.list('tasks')).find(x=>x.id==='stage-a');assert.equal(row.notes,undefined);assert.deepEqual(row.completionHistory,[{id:'history'}]);
     const child=(await t.list('checklistItems')).find(x=>x.id==='check-a');assert.equal(child.done,true);
+    await t.sdk.updateDoc(t.sdk.doc(t.db,'tasks','stage-a'),{status:'done',actualComplete:'2026-10-24',revision:3});
+    const staleProject=plain(state);staleProject.projects[0].name='Stale project';
+    await assert.rejects(projectSave(b,staleProject),e=>e.code==='project/conflict');
+    assert.equal((await t.list('projects'))[0].name,'Fixture project');
   }));
   test('RELEASE-PROJECT-EMU-03', 'REAL SDK offline project save waits; lost acknowledgement is not silently retried', () => withEmulator(EnvironmentUnavailable,async t=>{
     const {state,a}=await projectClients(t);

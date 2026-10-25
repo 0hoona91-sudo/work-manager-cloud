@@ -1395,7 +1395,7 @@ async function flushQueue(metadata = {}) {
     const done = queuedResolvers.filter(({ targetVersion }) => targetVersion <= snapshotVersion);
     queuedResolvers = queuedResolvers.filter(({ targetVersion }) => targetVersion > snapshotVersion);
     done.forEach(({ resolve, targetVersion, operationId }) => resolve({ recurrenceReconciled: reconciled,
-      operationId, persistence: serverConfirmed && targetVersion === snapshotVersion && !reconciled ? "server-confirmed" : "pending-sync" }));
+      operationId, persistence: metadata.projectSave && changes.length===0 ? "no-change" : serverConfirmed && targetVersion === snapshotVersion && !reconciled ? "server-confirmed" : "pending-sync" }));
   } catch (error) {
     if (guarded || error.code?.startsWith("recurrence/")) {
       recurrenceRecoveryRequired = true; error.recoveryRequired = true;
@@ -1643,6 +1643,15 @@ async function commitTransaction(changes, nextMaps, metadata) {
     const snapshots = new Map();
     // 일반 저장은 기존 읽기 범위를 유지한다. 백업은 생성·삭제도 기준값을 재검사한다.
     const readChanges = metadata.backupImport || metadata.projectSave ? [...changes] : [...generatedCreates, ...writeChanges.filter((item) => item.type === "update" || item.collection === "tasks" && item.type === "create" && item.after.generatedKey)];
+    if (metadata.projectSave && metadata.projectId) {
+      const guarded=new Set(readChanges.map(change=>`${change.collection}/${change.id}`));
+      const include=(collection,id,before)=>{if(guarded.has(`${collection}/${id}`))return;readChanges.push({collection,id,before,guardOnly:true});guarded.add(`${collection}/${id}`);};
+      include('projects',metadata.projectId,shadowMaps.projects.get(metadata.projectId)||null);
+      for(const [id,task] of shadowMaps.tasks)if(task.projectId===metadata.projectId){
+        include('tasks',id,task);
+        for(const [childId,check] of shadowMaps.checklistItems)if(check.parentType==='task'&&check.parentId===id)include('checklistItems',childId,check);
+      }
+    }
     if (metadata.backupImport) {
       const base = metadata.backupBaseMaps || shadowMaps;
       const guarded = new Set(readChanges.map(change => `${change.collection}/${change.id}`));
