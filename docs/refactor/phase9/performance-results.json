@@ -1,0 +1,467 @@
+{
+  "baselineSha": "daa15a100837ad4f3aeca2e31136041bf48ad10f",
+  "phase9CodeSha": "bcf8840",
+  "measuredTrials": 2,
+  "excludedPreparationTrial": 1,
+  "node": "v24.19.0",
+  "chromium": "154.0.8037.57",
+  "viewport": "1440x900",
+  "timezone": "Asia/Seoul",
+  "date": "2026-10-23T03:00:00Z",
+  "fixture": "synthetic schema11 1000/10000 tasks; no remote API",
+  "units": {
+    "duration": "milliseconds",
+    "heap": "JavaScript heap bytes"
+  },
+  "runs": [
+    {
+      "trial": 2,
+      "rows": [
+        {
+          "count": 1000,
+          "variant": "before",
+          "loadMs": 1198,
+          "home": 7871.3,
+          "tasks": 1178.1,
+          "search": 125.2,
+          "calendar": 8278.9,
+          "library": 113,
+          "projects": 4633.3,
+          "serialize": 1.2,
+          "saveCalls": 0,
+          "taskCount": 1000,
+          "heap": 10171748
+        },
+        {
+          "count": 1000,
+          "variant": "after",
+          "loadMs": 1091,
+          "home": 7971.1,
+          "tasks": 1219,
+          "search": 137.5,
+          "calendar": 7806.3,
+          "library": 111.3,
+          "projects": 4396.5,
+          "serialize": 1.2,
+          "saveCalls": 0,
+          "taskCount": 1000,
+          "heap": 10043865
+        },
+        {
+          "count": 10000,
+          "variant": "before",
+          "loadMs": 1173,
+          "home": {
+            "error": "Invalid string length"
+          },
+          "tasks": 26331.5,
+          "search": 473.5,
+          "calendar": {
+            "error": "Invalid string length"
+          },
+          "library": 5.1,
+          "projects": {
+            "error": "Invalid string length"
+          },
+          "serialize": 7.9,
+          "saveCalls": 0,
+          "taskCount": 10000,
+          "heap": 68121035
+        },
+        {
+          "count": 10000,
+          "variant": "after",
+          "loadMs": 1096,
+          "home": {
+            "error": "Invalid string length"
+          },
+          "tasks": 25609.6,
+          "search": 458.8,
+          "calendar": {
+            "error": "Invalid string length"
+          },
+          "library": 5.3,
+          "projects": {
+            "error": "Invalid string length"
+          },
+          "serialize": 7.8,
+          "saveCalls": 0,
+          "taskCount": 10000,
+          "heap": 67980416
+        }
+      ]
+    },
+    {
+      "trial": 3,
+      "rows": [
+        {
+          "count": 1000,
+          "variant": "before",
+          "loadMs": 1169,
+          "home": 7839.7,
+          "tasks": 1099.2,
+          "search": 120.2,
+          "calendar": 7647.7,
+          "library": 112.3,
+          "projects": 4524.6,
+          "serialize": 1.2,
+          "saveCalls": 0,
+          "taskCount": 1000,
+          "heap": 9671936
+        },
+        {
+          "count": 1000,
+          "variant": "after",
+          "loadMs": 1105,
+          "home": 7811.9,
+          "tasks": 1225.3,
+          "search": 118.2,
+          "calendar": 7645.9,
+          "library": 112.6,
+          "projects": 4434.4,
+          "serialize": 1,
+          "saveCalls": 0,
+          "taskCount": 1000,
+          "heap": 9651866
+        },
+        {
+          "count": 10000,
+          "variant": "before",
+          "loadMs": 1158,
+          "home": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:2777:511)",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:3744:3)",
+              "    at renderHome (http://127.0.0.1:37633/before/index.html:2801:3)"
+            ]
+          },
+          "tasks": 26341.8,
+          "search": 497.2,
+          "calendar": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:2777:511)",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:3744:3)",
+              "    at renderHome (http://127.0.0.1:37633/before/index.html:2801:3)"
+            ]
+          },
+          "library": 5.2,
+          "projects": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:2777:511)",
+              "    at renderGantt (http://127.0.0.1:37633/before/index.html:3744:3)",
+              "    at renderHome (http://127.0.0.1:37633/before/index.html:2801:3)"
+            ]
+          },
+          "serialize": 7.7,
+          "saveCalls": 0,
+          "taskCount": 10000,
+          "heap": 67942703
+        },
+        {
+          "count": 10000,
+          "variant": "after",
+          "loadMs": 1084,
+          "home": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:2769:511)",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:3736:3)",
+              "    at renderHome (http://127.0.0.1:37633/after/index.html:2793:3)"
+            ]
+          },
+          "tasks": 25325.3,
+          "search": 443.3,
+          "calendar": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:2769:511)",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:3736:3)",
+              "    at renderHome (http://127.0.0.1:37633/after/index.html:2793:3)"
+            ]
+          },
+          "library": 5,
+          "projects": {
+            "error": "Invalid string length",
+            "stack": [
+              "RangeError: Invalid string length",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:2769:511)",
+              "    at renderGantt (http://127.0.0.1:37633/after/index.html:3736:3)",
+              "    at renderHome (http://127.0.0.1:37633/after/index.html:2793:3)"
+            ]
+          },
+          "serialize": 7.3,
+          "saveCalls": 0,
+          "taskCount": 10000,
+          "heap": 58767475
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "1000": {
+      "loadMs": {
+        "before": {
+          "median": 1183.5,
+          "min": 1169,
+          "max": 1198
+        },
+        "after": {
+          "median": 1098.0,
+          "min": 1091,
+          "max": 1105
+        }
+      },
+      "home": {
+        "before": {
+          "median": 7855.5,
+          "min": 7839.7,
+          "max": 7871.3
+        },
+        "after": {
+          "median": 7891.5,
+          "min": 7811.9,
+          "max": 7971.1
+        }
+      },
+      "tasks": {
+        "before": {
+          "median": 1138.65,
+          "min": 1099.2,
+          "max": 1178.1
+        },
+        "after": {
+          "median": 1222.15,
+          "min": 1219,
+          "max": 1225.3
+        }
+      },
+      "search": {
+        "before": {
+          "median": 122.7,
+          "min": 120.2,
+          "max": 125.2
+        },
+        "after": {
+          "median": 127.85,
+          "min": 118.2,
+          "max": 137.5
+        }
+      },
+      "calendar": {
+        "before": {
+          "median": 7963.299999999999,
+          "min": 7647.7,
+          "max": 8278.9
+        },
+        "after": {
+          "median": 7726.1,
+          "min": 7645.9,
+          "max": 7806.3
+        }
+      },
+      "library": {
+        "before": {
+          "median": 112.65,
+          "min": 112.3,
+          "max": 113
+        },
+        "after": {
+          "median": 111.94999999999999,
+          "min": 111.3,
+          "max": 112.6
+        }
+      },
+      "projects": {
+        "before": {
+          "median": 4578.950000000001,
+          "min": 4524.6,
+          "max": 4633.3
+        },
+        "after": {
+          "median": 4415.45,
+          "min": 4396.5,
+          "max": 4434.4
+        }
+      },
+      "serialize": {
+        "before": {
+          "median": 1.2,
+          "min": 1.2,
+          "max": 1.2
+        },
+        "after": {
+          "median": 1.1,
+          "min": 1,
+          "max": 1.2
+        }
+      },
+      "heap": {
+        "before": {
+          "median": 9921842.0,
+          "min": 9671936,
+          "max": 10171748
+        },
+        "after": {
+          "median": 9847865.5,
+          "min": 9651866,
+          "max": 10043865
+        }
+      },
+      "saveCalls": {
+        "before": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    "10000": {
+      "loadMs": {
+        "before": {
+          "median": 1165.5,
+          "min": 1158,
+          "max": 1173
+        },
+        "after": {
+          "median": 1090.0,
+          "min": 1084,
+          "max": 1096
+        }
+      },
+      "home": {
+        "before": {
+          "status": "BASELINE_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        },
+        "after": {
+          "status": "UNCHANGED_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        }
+      },
+      "tasks": {
+        "before": {
+          "median": 26336.65,
+          "min": 26331.5,
+          "max": 26341.8
+        },
+        "after": {
+          "median": 25467.449999999997,
+          "min": 25325.3,
+          "max": 25609.6
+        }
+      },
+      "search": {
+        "before": {
+          "median": 485.35,
+          "min": 473.5,
+          "max": 497.2
+        },
+        "after": {
+          "median": 451.05,
+          "min": 443.3,
+          "max": 458.8
+        }
+      },
+      "calendar": {
+        "before": {
+          "status": "BASELINE_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        },
+        "after": {
+          "status": "UNCHANGED_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        }
+      },
+      "library": {
+        "before": {
+          "median": 5.15,
+          "min": 5.1,
+          "max": 5.2
+        },
+        "after": {
+          "median": 5.15,
+          "min": 5,
+          "max": 5.3
+        }
+      },
+      "projects": {
+        "before": {
+          "status": "BASELINE_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        },
+        "after": {
+          "status": "UNCHANGED_FAILURE",
+          "errors": [
+            "Invalid string length",
+            "Invalid string length"
+          ]
+        }
+      },
+      "serialize": {
+        "before": {
+          "median": 7.800000000000001,
+          "min": 7.7,
+          "max": 7.9
+        },
+        "after": {
+          "median": 7.55,
+          "min": 7.3,
+          "max": 7.8
+        }
+      },
+      "heap": {
+        "before": {
+          "median": 68031869.0,
+          "min": 67942703,
+          "max": 68121035
+        },
+        "after": {
+          "median": 63373945.5,
+          "min": 58767475,
+          "max": 67980416
+        }
+      },
+      "saveCalls": {
+        "before": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    }
+  },
+  "knownFailure": "Both variants fail in renderGantt with RangeError: Invalid string length at 10000 tasks; the affected home/calendar/project measurements are not successful."
+}

@@ -1,0 +1,112 @@
+{
+  "baseline": "daa15a100837ad4f3aeca2e31136041bf48ad10f",
+  "initialScenes": 20,
+  "initialExact": 6,
+  "stabilizedRechecked": 14,
+  "stabilizedExact": 10,
+  "remainingAfterCorrection": [
+    {
+      "width": 320,
+      "scene": "homePage",
+      "equal": false,
+      "differentPixels": 55,
+      "totalPixels": 288000,
+      "differenceBounds": [
+        12,
+        128,
+        308,
+        236
+      ],
+      "shaBefore": "aed5ff3c55ae121fba2e78b56483cdf01ede22e058de19bae3568f0e0d1720a9",
+      "shaAfter": "a5d640bde74faae6ac54e2207e15758d376e2e73320a580d0b960905b9978566"
+    },
+    {
+      "width": 320,
+      "scene": "projectPage",
+      "equal": false,
+      "differentPixels": 55,
+      "totalPixels": 288000,
+      "differenceBounds": [
+        12,
+        128,
+        308,
+        236
+      ],
+      "shaBefore": "1dc0f5351339f7f602f32bc5e24fd32a45de3eeb4b6b4766a690397d38bb1abe",
+      "shaAfter": "822cb2aa50c66ab438bb0940f44feeec2114ea5a1ff288092d16c62f10aa9451"
+    },
+    {
+      "width": 390,
+      "scene": "homePage",
+      "equal": false,
+      "differentPixels": 85,
+      "totalPixels": 351000,
+      "differenceBounds": [
+        12,
+        128,
+        378,
+        248
+      ],
+      "shaBefore": "85413cae696123c48fb76326bcd82fe759e201d2623d2182d9ce5f4f1885fadf",
+      "shaAfter": "9d3b94256f4214f099f6b3aab2b1b7b206678ec4245d0f9461b0b3e3e7034dea"
+    },
+    {
+      "width": 390,
+      "scene": "projectPage",
+      "equal": false,
+      "differentPixels": 85,
+      "totalPixels": 351000,
+      "differenceBounds": [
+        12,
+        128,
+        378,
+        248
+      ],
+      "shaBefore": "5df754d33d5f32153bcc589545d0797f9a0fd38b5659f3dfbd6f1b6cc0eb0e1d",
+      "shaAfter": "e2b10b0e12c3d18ff93ce09645efae2010b084a2b5a5baf1e6647369153311ab"
+    }
+  ],
+  "theme": [
+    {
+      "width": 320,
+      "equal": true,
+      "requestsBefore": 0,
+      "requestsAfter": 1,
+      "missingBefore": 2,
+      "missingAfter": 0,
+      "shaBefore": "00333b26a5985f2a0c9a4bb1f20258d072fded120507b9a6c5d101259c983437",
+      "shaAfter": "00333b26a5985f2a0c9a4bb1f20258d072fded120507b9a6c5d101259c983437"
+    },
+    {
+      "width": 390,
+      "equal": true,
+      "requestsBefore": 0,
+      "requestsAfter": 1,
+      "missingBefore": 1,
+      "missingAfter": 0,
+      "shaBefore": "6ae33c993cb13593a4f24927918a074d797da8313fc6ba6f353c07195c3935fc",
+      "shaAfter": "6ae33c993cb13593a4f24927918a074d797da8313fc6ba6f353c07195c3935fc"
+    },
+    {
+      "width": 768,
+      "equal": true,
+      "requestsBefore": 0,
+      "requestsAfter": 1,
+      "missingBefore": 1,
+      "missingAfter": 0,
+      "shaBefore": "473056f88c56ce8e136997bbb3eff0a021079a4435f6a12892a28c41bcbe5778",
+      "shaAfter": "473056f88c56ce8e136997bbb3eff0a021079a4435f6a12892a28c41bcbe5778"
+    },
+    {
+      "width": 1440,
+      "equal": true,
+      "requestsBefore": 0,
+      "requestsAfter": 1,
+      "missingBefore": 1,
+      "missingAfter": 0,
+      "shaBefore": "01327e125e7e21e16f0132eef62400f800d4cecc72ab05e0dd304a0482817491",
+      "shaAfter": "01327e125e7e21e16f0132eef62400f800d4cecc72ab05e0dd304a0482817491"
+    }
+  ],
+  "conditions": "Chromium 154; 320/390/768/1440 x 900; Asia/Seoul; fixed 2026-10-23; external network blocked; font ready; animations disabled for stable comparison"
+}
