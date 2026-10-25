@@ -1,0 +1,46 @@
+{
+  "baseline": "082cee075f2f699d1c1b2c9fb46ff75b7b7cbc90",
+  "fixture": "synthetic 1k/10k same Chromium and machine, one run each",
+  "results": [
+    {
+      "count": 1000,
+      "variant": "before",
+      "milliseconds": 420.8,
+      "rows": 1000,
+      "pages": 1,
+      "saves": 0,
+      "error": null,
+      "sourceCount": 1000
+    },
+    {
+      "count": 1000,
+      "variant": "after",
+      "milliseconds": 404.9,
+      "rows": 1000,
+      "pages": 1,
+      "saves": 0,
+      "error": null,
+      "sourceCount": 1000
+    },
+    {
+      "count": 10000,
+      "variant": "before",
+      "milliseconds": 14666.4,
+      "rows": 10000,
+      "pages": 1,
+      "saves": 0,
+      "error": null,
+      "sourceCount": 10000
+    },
+    {
+      "count": 10000,
+      "variant": "after",
+      "milliseconds": 275.9,
+      "rows": 500,
+      "pages": 20,
+      "saves": 0,
+      "error": null,
+      "sourceCount": 10000
+    }
+  ]
+}

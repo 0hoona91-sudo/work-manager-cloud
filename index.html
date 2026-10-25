@@ -3702,11 +3702,38 @@ openDbDetailV6=function(ref){
 function taskListVisibleV8(){
   return taskListVisibleV6();
 }
+const TASK_LIST_PAGE_SIZE_RELEASE=500;
+let taskListPageRelease=0,taskListPageKeyRelease='';
+function taskListPageRowsRelease(rows){
+  const search=$('#taskSearch')?.value||'',status=$('#taskStatusFilter')?.value||'';
+  const key=JSON.stringify([search,status,state.settings?.taskListViewV35,state.settings?.taskListCategories,window.v25HomeFocusKey,rows.length,rows[0]?.id,rows.at(-1)?.id]);
+  if(key!==taskListPageKeyRelease){taskListPageRelease=0;taskListPageKeyRelease=key;}
+  const pages=rows.length>1000?Math.ceil(rows.length/TASK_LIST_PAGE_SIZE_RELEASE):1;
+  taskListPageRelease=Math.min(taskListPageRelease,pages-1);
+  const wrap=$('#taskTableBody')?.closest('.tablewrap');
+  let controls=$('#taskListPagesRelease');
+  if(wrap&&!controls){
+    controls=document.createElement('div');controls.id='taskListPagesRelease';controls.className='inline';
+    controls.style.cssText='align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0';
+    const label=document.createElement('label');label.htmlFor='taskListPageSelectRelease';controls.append(label);
+    const select=document.createElement('select');select.id='taskListPageSelectRelease';select.setAttribute('aria-label','업무 목록 페이지');controls.append(select);
+    wrap.before(controls);
+    select.onchange=()=>{const page=Number(select.value);if(!Number.isInteger(page)||page<0||page>=select.options.length)return;taskListPageRelease=page;renderTaskTable();};
+  }
+  if(controls){
+    controls.hidden=pages===1;
+    const label=controls.querySelector('label'),select=controls.querySelector('select');
+    label.textContent=`전체 ${rows.length}건 · 현재 ${taskListPageRelease*TASK_LIST_PAGE_SIZE_RELEASE+1}–${Math.min(rows.length,(taskListPageRelease+1)*TASK_LIST_PAGE_SIZE_RELEASE)}건 (페이지 ${taskListPageRelease+1}/${pages})`;
+    if(select.options.length!==pages){select.replaceChildren();for(let i=0;i<pages;i++){const option=document.createElement('option');option.value=String(i);option.textContent=`${i+1} / ${pages}`;select.append(option);}}
+    select.value=String(taskListPageRelease);
+  }
+  return pages===1?rows:rows.slice(taskListPageRelease*TASK_LIST_PAGE_SIZE_RELEASE,(taskListPageRelease+1)*TASK_LIST_PAGE_SIZE_RELEASE);
+}
 function renderTaskTable(){
   ensureV7Ui();
   const th=$('#taskListPage .datatable thead tr');
   if(th)th.innerHTML='<th><input type="checkbox" id="selectAllTasks" title="현재 화면 전체선택"></th><th>긴급</th><th>구분</th><th>업무명</th><th>담당자</th><th>진행 월/분기/반기</th><th>일정 </th><th>반복</th><th>상태</th><th>비고</th>';
-  const arr=taskListVisibleV8();
+  const arr=taskListPageRowsRelease(taskListVisibleV8());
   $('#taskTableBody').innerHTML=arr.map(t=>`<tr>
     <td><input type="checkbox" data-task-select="${t.id}" ${selectedTaskIdsV2.has(t.id)?'checked':''}></td>
     <td>${t.urgent?'<span class="dot"></span>':''}</td><td>${esc(t.category)}</td>
