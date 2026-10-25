@@ -8,7 +8,7 @@
 | C 백업 | `INTEG-BACKUP-01` PASS, 기존 백업 집중 46 PASS | JSON 구조 백업→완료 이력 추가→미리보기→취소/승인 복원→첨부·프로젝트·ID 대조→ZIP 누락/해시 |
 | D 구형 데이터 | `INTEG-LEGACY-01` PASS | schema11·Tasks 유래 메타·이전 JSON·첨부/체크 ID·생성키 왕복. 구형 클라이언트 실제 실행은 미검증 |
 | E Gantt | 수정 전 `INTEG-GANTT-01`은 `RangeError: Invalid string length`; 수정 후 PASS. `INTEG-GANTT-02` PASS | 1천 건 전체 표시, 1만 건 20페이지 중 첫·끝 페이지, 페이지 선택, 저장 호출 0 |
-| F 화면·자원 | `INTEG-UI-01`, `INTEG-ASSET-01` PASS | Chromium 320/390/768/1440px, 키보드 빠른 업무, IME, 취소, Pages 하위경로 WebP 200 |
+| F 화면·자원 | `INTEG-UI-01`, `INTEG-ASSET-01/02` PASS | Chromium 320/390/768/1440px, 키보드 빠른 업무, IME, 취소 후 focus 복귀, Pages 하위경로 WebP 200 |
 | G 산출물 | `INTEG-ARTIFACT-01` PASS | 추적 파일명의 credential/debug/source map 후보, 생산 파일의 private-key/OAuth-token 패턴 부재. 기존 Firebase Web API key 2곳은 별도 운영 제한 확인 필요 |
 
 ## 같은 fixture 성능 비교

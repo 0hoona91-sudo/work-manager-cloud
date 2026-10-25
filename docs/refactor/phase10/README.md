@@ -16,6 +16,8 @@ D: `INTEG-LEGACY-01`에서 예전 schema11 업무·체크·첨부 ID, generatedK
 
 E: 기존 stack에서 `renderGantt`가 각 행에 날짜 격자 HTML을 반복해 연결할 때 1만 건에서 V8 문자열 길이 오류가 나는 것을 확인했다. 실제 Gantt 데이터는 건드리지 않고 1천 건 초과일 때 500건씩 명시적 페이지 선택을 제공한다. 전체 건수·현재 범위를 표시하고 마지막 페이지까지 접근 가능하다. `INTEG-GANTT-01`은 수정 전 FAIL→후 PASS, `INTEG-GANTT-02`는 1천 건 전체 표시 PASS. 같은 1만 fixture에서 홈 4.23초·달력 4.85초·프로젝트 2.39초로 완료됐지만 업무 목록 24.95초는 남은 성능 위험이다. 읽기 중 저장 호출 0.
 
-F: `INTEG-UI-01`은 Chromium 320/390/768/1440px에서 홈 넘침 0, 키보드 빠른 업무·한글 IME·취소 시 업무 변경 0을 확인했다. `INTEG-ASSET-01`은 `/work-manager-cloud/` 경로의 WebP 응답 200을 네 너비에서 확인했다. 실제 Pages 배포 검증과 모든 모달 접근성 감사는 하지 않았다.
+F: `INTEG-UI-01`은 Chromium 320/390/768/1440px에서 홈 넘침 0, 키보드 빠른 업무·한글 IME·취소 시 업무 변경 0과 원래 버튼 focus 복귀을 확인했다. `INTEG-ASSET-01`은 `/work-manager-cloud/` 경로의 WebP 응답 200을 네 너비에서 확인했고 `INTEG-ASSET-02`는 정적 HTML/CSS 상대 경로를 검사했다. 실제 Pages 배포 검증과 모든 모달 접근성 감사는 하지 않았다.
 
 G: `INTEG-ARTIFACT-01`은 추적된 비밀 설정·source map·debug 파일과 생산 파일의 private key/OAuth 토큰 패턴이 없음을 확인했다. 기존 Firebase Web API key 문자열 2곳은 브라우저 구성으로 유지되며 운영 제한 설정은 확인되지 않았다. `security-preflight.md`, `deployment-plan.md`, `rollback-plan.md`, `known-limitations.md`에 승인·차단 사유를 정리했다. 운영 배포는 하지 않았다.
+
+F 후속: 집중 검사에서 빠른 업무의 취소 버튼이 모달을 닫은 뒤 focus를 원래 실행 버튼으로 돌리지 않는 문제를 재현했다. 빠른 업무 모달의 두 닫기 버튼에만 1회성 focus 복귀를 붙였고 `INTEG-UI-01`은 수정 후 PASS다. 저장 동작과 다른 모달은 변경하지 않았다.

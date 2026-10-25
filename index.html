@@ -11521,6 +11521,7 @@ function optionListV119(items,current=''){
 }
 
 function openQuickTaskV119(){
+  const returnFocusV119=document.activeElement;
   const today=todayISO();
   modal('빠른 업무 작성',`
     <div class="quick-task-grid-v119">
@@ -11536,6 +11537,9 @@ function openQuickTaskV119(){
     'small locked-modal');
 
   const name=$('#qtNameV119'),save=$('#qtSaveV119'),detail=$('#qtDetailedV119');
+  $$('#modalRoot [data-close]').forEach(button=>button.addEventListener('click',()=>queueMicrotask(()=>{
+    if(returnFocusV119?.isConnected)returnFocusV119.focus();
+  }),{once:true}));
   name?.focus();
 
   async function collectQuickTaskV119(){

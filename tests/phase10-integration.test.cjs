@@ -37,6 +37,7 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
       await button.focus();
       await page.keyboard.press('Enter');
       assert.equal(await page.locator('#qtNameV119').isVisible(), true);
+      assert.equal(await page.evaluate(() => document.activeElement?.id), 'qtNameV119');
       await page.locator('#qtNameV119').evaluate(input => {
         input.value = '한';
         input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
@@ -45,6 +46,7 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
       });
       assert.equal(await page.locator('#qtNameV119').inputValue(), '한글');
       await page.locator('#modalRoot [data-close]').last().click();
+      assert.equal(await button.evaluate(element => document.activeElement === element), true);
       assert.equal(await page.evaluate(() => JSON.stringify(state.tasks)), before);
     }));
   test('INTEG-ASSET-01', 'Chromium resolves shared theme asset under GitHub Pages subpath at four widths', () =>
@@ -75,6 +77,25 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
       assert.ok(asset.length >= 1);
       assert.ok(asset.every(item => item.status === 200 && item.url.includes(prefix + 'assets/')));
     }));
+  test('INTEG-ASSET-02', 'Production static asset paths referenced in markup and CSS resolve locally', () => {
+    const sources = ['index.html', 'privacy.html', ...fs.readdirSync(path.join(root, 'css')).filter(name => name.endsWith('.css')).map(name => 'css/' + name)];
+    const missing = [];
+    let checked = 0;
+    for (const name of sources) {
+      const text = fs.readFileSync(path.join(root, name), 'utf8');
+      for (const match of text.matchAll(/(?:src|href)=["']([^"']+)["']|url\(\s*["']?([^)'"\s]+)["']?\s*\)/g)) {
+        const candidate = match[1] || match[2];
+        if (!/^(?:\.\/)?(?:assets|css|js)\//.test(candidate) && !/^(?:\.\/)?(?:icon[^/]*\.(?:svg|png)|manifest\.webmanifest|privacy\.html)$/.test(candidate)) continue;
+        if (candidate.includes('${')) continue;
+        const relative = candidate.replace(/^\.\//, '').split(/[?#]/)[0];
+        const file = path.join(root, relative);
+        checked++;
+        if (!fs.existsSync(file) || !fs.statSync(file).isFile()) missing.push(`${name}: ${relative}`);
+      }
+    }
+    assert.ok(checked > 0);
+    assert.deepEqual(missing, []);
+  });
   test('INTEG-GANTT-02', 'Chromium keeps the existing full 1k Gantt view without pagination or save', () =>
     withPage({ width: 1440, height: 900 }, EnvironmentUnavailable, async page => {
       page.setDefaultTimeout(120000);
