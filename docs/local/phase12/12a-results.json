@@ -1,0 +1,35 @@
+{
+  "baseSha": "a8eff0b8b47575bc7ad1db96fb0eda669d27ca96",
+  "platform": "linux",
+  "transport": "file://",
+  "productionAccess": false,
+  "results": [
+    {
+      "id": "LOCAL-FILE-01",
+      "status": "NOT_RUN",
+      "detail": "page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at file:///workspace/work-manager-cloud/local/12a-folder-probe.html\nCall log:\n\u001b[2m  - navigating to \"file:///workspace/work-manager-cloud/local/12a-folder-probe.html\", waiting until \"load\"\u001b[22m\n"
+    },
+    {
+      "id": "LOCAL-FOLDER-01",
+      "status": "NOT_RUN",
+      "detail": "file:// navigation prerequisite not met."
+    },
+    {
+      "id": "LOCAL-WRITE-READ-01",
+      "status": "NOT_RUN",
+      "detail": "No native directory handle was acquired; no PC folder write or restart verification claimed."
+    },
+    {
+      "id": "LOCAL-RESTART-01",
+      "status": "NOT_RUN",
+      "detail": "No native directory handle was acquired; no PC folder write or restart verification claimed."
+    }
+  ],
+  "gate": "NOT_VERIFIED",
+  "browser": "154.0.8037.57",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "NOT_RUN": 4
+  }
+}
