@@ -25,8 +25,8 @@ module.exports = ({ test, EnvironmentUnavailable }) => {
     h.ctx.document={querySelector:()=>null};
     await assert.rejects(h.api.save(plain(h.ctx.stateRef),{}),e=>e.code==='client/update-required');
     assert.equal(t.control.commits.length,0);
-    assert.match(read('index.html'),/<meta name="wm-release" content="predeploy1"/);
-    assert.match(read('index.html'),/cloud-sync\.js\?v=phase6f-rules-v1&release=predeploy1/);
+    assert.match(read('index.html'),/<meta name="wm-release" content="hotfix1"/);
+    assert.match(read('index.html'),/cloud-sync\.js\?v=phase6f-rules-v1&release=hotfix1/);
     assert.match(read('index.html'),/project-ui\.js\?v=20261023-phase5b2&release=predeploy1/);
   });
   test('RELEASE-PROJECT-01', 'MOCK stale project stage edit is rejected before it overwrites completed work', async () => {

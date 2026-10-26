@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" content="#172d51" />
-<meta name="wm-release" content="predeploy1" />
+<meta name="wm-release" content="hotfix1" />
 <meta name="description" content="Google 로그인으로 여러 기기에서 실시간 동기화하는 업무관리시스템" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>업무관리시스템</title>
@@ -1722,7 +1722,7 @@ async function loadState(){
   // Google 계정 → Drive appDataFolder → 개인 Firebase 연결이 끝난 뒤에만
   // 프로젝트별 로컬 캐시 키를 사용하여 다른 사용자의 로컬 데이터와 섞이지 않게 한다.
   window.__legacyStateSnapshot=null;
-  const cloud=await import('./js/cloud-sync.js?v=phase6f-rules-v1&release=predeploy1');
+  const cloud=await import('./js/cloud-sync.js?v=phase6f-rules-v1&release=hotfix1');
   window.cloudSync=await cloud.bootstrapCloud({state,legacyState:null});
   window.__workspaceLocalStateKey=`state:${window.cloudSync.workspaceKey||'workspace'}`;
   window.__LOCAL_STATE_READY_V121__=true;
@@ -1967,7 +1967,31 @@ function renderCalendar(tasks,a,b){
   $('#calendarView').innerHTML=`<div class="calendar">${h}</div>`;bindTaskLinks()
 }
 function repeatLabelV2(t){if(!t.seriesId&&!t.repeat)return'';const r=t.repeat||t.repeatSeries||{};return `<span class="series-badge">↻ ${r.cycle==='weekly'?'매주':r.cycle==='monthly'?'매월':r.cycle==='quarterly'?'분기':r.cycle==='half'?'반기':r.cycle==='yearly'?'연간':'반복'}</span>`}
-function updateBulkV2(){const n=selectedTaskIdsV2.size;$('#selectedTaskCount').textContent=`${n}건 선택`;$('#deleteSelectedTasks').disabled=!n;const hasSeries=[...selectedTaskIdsV2].some(id=>state.tasks.find(t=>t.id===id)?.seriesId);$('#deleteSelectedSeries').disabled=!hasSeries;const all=$('#selectAllTasks');if(all){const visible=$$('[data-task-select]');all.checked=visible.length>0&&visible.every(x=>x.checked);all.indeterminate=visible.some(x=>x.checked)&&!all.checked}}
+function repeatSeriesIdentityVHotfix(task){
+  if(!task||task.projectId)return null;
+  if(task.seriesId||task.parentSeriesId)return `series:${task.seriesId||task.parentSeriesId}`;
+  if(task.repeatOriginV181)return `origin:${task.repeatOriginV181}`;
+  if(task.dbAuto&&task.autoSourceTemplateId)return `template:${task.autoSourceTemplateId}`;
+  if(task.parentAutoRootId){const root=state.tasks.find(item=>item.id===task.parentAutoRootId);if(root?.dbAuto&&root.autoSourceTemplateId)return `template:${root.autoSourceTemplateId}`}
+  const canonical=String(task.generatedKey||'').match(/^wm-recurrence:v1:[^:]+:([^:]+):\d{4}-\d{2}-\d{2}$/);
+  if(task.repeatGeneratedV181&&canonical){try{return `origin:${decodeURIComponent(canonical[1])}`}catch{return null}}
+  const template=state.templates.find(item=>item.id===(task.dbManualRootTemplateId||task.dbSourceTemplateId));
+  if(task.repeat?.cycle&&task.repeat.cycle!=='none'||task.repeatSeries?.cycle&&task.repeatSeries.cycle!=='none'||template?.cycle&&template.cycle!=='none'&&task.dbManualRootTemplateId)return `origin:${task.id}`;
+  return null;
+}
+function repeatSeriesDeletionPlanVHotfix(selected){
+  const keys=new Set(selected.map(repeatSeriesIdentityVHotfix).filter(Boolean));
+  const matches=state.tasks.filter(task=>keys.has(repeatSeriesIdentityVHotfix(task)));
+  const protectedIds=new Set(matches.filter(task=>effectiveStatus(task)==='done'||task.actualComplete||task.completionHistory?.length).map(task=>task.id));
+  const blockedAncestors=new Set(protectedIds),byId=new Map(state.tasks.map(task=>[task.id,task]));
+  for(const task of matches)if(protectedIds.has(task.id)){
+    let parent=task.parentAutoRootId||task.link?.parentId;
+    while(parent&&!blockedAncestors.has(parent)){blockedAncestors.add(parent);const ancestor=byId.get(parent);parent=ancestor?.parentAutoRootId||ancestor?.link?.parentId}
+  }
+  const removable=matches.filter(task=>!blockedAncestors.has(task.id));
+  return {keys,ids:removable.map(task=>task.id),templateIds:[...new Set(matches.filter(task=>task.dbAuto).map(task=>task.autoSourceTemplateId).filter(Boolean))],preserved:matches.length-removable.length};
+}
+function updateBulkV2(){const n=selectedTaskIdsV2.size;$('#selectedTaskCount').textContent=`${n}건 선택`;$('#deleteSelectedTasks').disabled=!n;const selected=state.tasks.filter(t=>selectedTaskIdsV2.has(t.id));$('#deleteSelectedSeries').disabled=!repeatSeriesDeletionPlanVHotfix(selected).ids.length;const all=$('#selectAllTasks');if(all){const visible=$$('[data-task-select]');all.checked=visible.length>0&&visible.every(x=>x.checked);all.indeterminate=visible.some(x=>x.checked)&&!all.checked}}
 function statusSelectV2(t){const val=t.status==='done'?'done':t.status||'planned',ov=effectiveStatus(t)==='overdue';return `<select class="status-select ${ov?'status-overdue':''}" data-status-id="${t.id}"><option value="planned" ${val==='planned'?'selected':''}>${ov?'기한초과(자동)':'예정'}</option><option value="prep" ${val==='prep'?'selected':''}>준비중</option><option value="progress" ${val==='progress'?'selected':''}>진행중</option><option value="done" ${val==='done'?'selected':''}>완료</option><option value="hold" ${val==='hold'?'selected':''}>보류</option><option value="overdue" ${val==='overdue'?'selected':''}>기한초과</option></select>`}
 function renderTaskTable(){
   const q=$('#taskSearch').value.trim().toLowerCase(),f=$('#taskStatusFilter').value;let arr=[...state.tasks].sort((a,b)=>(b.start||'').localeCompare(a.start||''));arr=arr.filter(t=>!q||[t.name,t.category,t.notes,t.owner,t.deadline,t.templateId].join(' ').toLowerCase().includes(q));arr=arr.filter(t=>f==='all'||(f==='pending'&&effectiveStatus(t)!=='done')||(f==='done'&&effectiveStatus(t)==='done')||(f==='overdue'&&effectiveStatus(t)==='overdue'));
@@ -5934,9 +5958,10 @@ openTaskForm=function(id=null){
   const result=openTaskFormV29Base(id),button=$('#deleteTask'),task=id?state.tasks.find(item=>item.id===id):null;if(!button||!task)return result;
   button.onclick=async()=>{
     try{
-      if(task.seriesId&&confirm('이 업무는 반복 일정입니다. 반복 전체를 휴지통으로 이동할까요?\n[확인]=전체 / [취소]=이 회차만')){
-        const series=new Set([task.seriesId]),groups=new Set(state.tasks.filter(item=>series.has(item.seriesId)).map(item=>item.groupId).filter(Boolean)),ids=state.tasks.filter(item=>series.has(item.seriesId)||series.has(item.parentSeriesId)||groups.has(item.groupId)).map(item=>item.id),templateIds=[...new Set(state.tasks.filter(item=>ids.includes(item.id)).map(item=>item.autoSourceTemplateId).filter(Boolean))],flags=templateIds.map(templateId=>({id:templateId,autoSchedule:!!state.templates.find(template=>template.id===templateId)?.autoSchedule}));
-        await deleteTaskIdsV29(ids,{templateFlags:flags});
+      const plan=repeatSeriesDeletionPlanVHotfix([task]);
+      if(plan.ids.length&&confirm('이 업무는 반복 일정입니다. 반복 전체를 휴지통으로 이동할까요?\n[확인]=전체 / [취소]=이 회차만')){
+        const flags=plan.templateIds.map(templateId=>({id:templateId,autoSchedule:!!state.templates.find(template=>template.id===templateId)?.autoSchedule}));
+        await deleteTaskIdsV29(plan.ids,{templateFlags:flags});
       }else await deleteTaskIdsV29([task.id]);
       closeModal();toast('수행업무를 휴지통으로 이동했습니다.');
     }catch(error){console.error('수행업무 휴지통 이동 실패',error);toast(error.message||'삭제하지 못했습니다.')}
@@ -5944,10 +5969,9 @@ openTaskForm=function(id=null){
 };
 deleteTasksByIdsV2=async function(ids){try{const result=await deleteTaskIdsV29(ids);if(result)toast(`${result.removed}건을 휴지통으로 이동했습니다.`)}catch(error){console.error('선택업무 휴지통 이동 실패',error);toast(error.message||'삭제하지 못했습니다.')}};
 deleteSeriesV2=async function(){
-  const selected=state.tasks.filter(task=>selectedTaskIdsV2.has(task.id)),series=new Set(selected.map(task=>task.seriesId).filter(Boolean));if(!series.size)return;
-  const groups=new Set(state.tasks.filter(task=>series.has(task.seriesId)).map(task=>task.groupId).filter(Boolean)),ids=state.tasks.filter(task=>series.has(task.seriesId)||series.has(task.parentSeriesId)||groups.has(task.groupId)).map(task=>task.id),templateIds=[...new Set(state.tasks.filter(task=>ids.includes(task.id)).map(task=>task.autoSourceTemplateId).filter(Boolean))];
-  const message=templateIds.length?'선택한 반복업무는 업무DB에서 자동 생성됩니다. 자동생성을 중지하고 반복 묶음을 휴지통으로 이동할까요?':`선택한 ${series.size}개 반복 묶음을 휴지통으로 이동할까요?`;if(!confirm(message))return;
-  const flags=templateIds.map(id=>({id,autoSchedule:!!state.templates.find(template=>template.id===id)?.autoSchedule}));try{const result=await deleteTaskIdsV29(ids,{templateFlags:flags});if(result)toast(`${result.removed}건을 휴지통으로 이동했습니다.`)}catch(error){console.error('반복업무 휴지통 이동 실패',error);toast(error.message||'삭제하지 못했습니다.')}
+  const selected=state.tasks.filter(task=>selectedTaskIdsV2.has(task.id)),plan=repeatSeriesDeletionPlanVHotfix(selected);if(!plan.ids.length)return;
+  const message=plan.templateIds.length?'선택한 반복업무는 업무DB에서 자동 생성됩니다. 자동생성을 중지하고 반복 묶음을 휴지통으로 이동할까요?':`선택한 ${plan.keys.size}개 반복 묶음을 휴지통으로 이동할까요?${plan.preserved?'\n완료 이력이 있는 회차는 보존됩니다.':''}`;if(!confirm(message))return;
+  const flags=plan.templateIds.map(id=>({id,autoSchedule:!!state.templates.find(template=>template.id===id)?.autoSchedule}));try{const result=await deleteTaskIdsV29(plan.ids,{templateFlags:flags});if(result)toast(`${result.removed}건을 휴지통으로 이동했습니다.`)}catch(error){console.error('반복업무 휴지통 이동 실패',error);toast(error.message||'삭제하지 못했습니다.')}
 };
 deleteDbTemplateV6=async function(id,ask=true){
   const template=state.templates.find(item=>item.id===id);if(!template)return;if(ask&&!confirm(`“${template.name}” 업무DB를 휴지통으로 이동할까요?\n연결된 미완료 수행업무도 함께 이동되고 완료 이력은 보존됩니다.`))return;

@@ -8,7 +8,7 @@ module.exports=({test})=>{
 
  test('DRIVE-AUTH-06','MOCK 401 retries once; 403 does not trigger consent; workspace switch blocks retry',async()=>{
   const vm=require('node:vm'),{read,parse}=require('./helpers.cjs'),src=read('js/cloud-sync.js'),n=parse(src,'module').body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='driveFetchResponse');
-  for(const mode of ['401','403','switch']){let calls=0,refresh=0,scope='A';const ctx={localOnly:false,recurrenceWorkspace:()=>scope,assertRecurrenceWorkspace:s=>{if(scope!==s)throw Error('workspace changed');},clearDriveAccessToken:()=>{},invalidateBuildingDriveAccessToken:()=>{},currentDriveToken:async()=>{refresh++;return 'fresh';},fetch:async()=>{calls++;if(mode==='switch')scope='B';return {status:mode==='403'?403:401};}};
+  for(const mode of ['401','403','switch']){let calls=0,refresh=0,scope='A';const ctx={localOnly:false,recurrenceWorkspace:()=>scope,getBuildingUser:()=>({uid:'synthetic-google'}),assertRecurrenceWorkspace:s=>{if(scope!==s)throw Error('workspace changed');},clearDriveAccessToken:()=>{},invalidateBuildingDriveAccessToken:()=>{},currentDriveToken:async()=>{refresh++;return 'fresh';},fetch:async()=>{calls++;if(mode==='switch')scope='B';return {status:mode==='403'?403:401};}};
    const fn=vm.runInNewContext(src.slice(n.start,n.end)+';driveFetchResponse',ctx);if(mode==='switch')await assert.rejects(fn('synthetic'),/workspace/);else assert.equal((await fn('synthetic')).status,Number(mode));assert.equal(calls,mode==='401'?2:1);assert.equal(refresh,mode==='401'?1:0);
   }
  });

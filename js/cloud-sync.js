@@ -97,6 +97,7 @@ let driveAccessToken = "";
 let driveAccessTokenExpiresAt = 0;
 let driveAccessTokenUid = "";
 let driveFolderId = "";
+let driveFolderScope = "";
 let stateRef;
 let recordMaps = makeRecordMaps();
 let shadowMaps = makeRecordMaps();
@@ -158,6 +159,7 @@ function clearDriveAccessToken() {
   driveAccessTokenExpiresAt = 0;
   driveAccessTokenUid = "";
   driveFolderId = "";
+  driveFolderScope = "";
   try { sessionStorage.removeItem(DRIVE_TOKEN_SESSION_KEY); } catch {}
 }
 
@@ -727,34 +729,50 @@ async function authenticateBuildingAndWorkspace() {
     error.code = "app/access-denied";
     throw error;
   }
+  const googleUid = buildingUser?.uid;
+  const assertGoogleAccount = () => {
+    if (googleUid !== getBuildingUser()?.uid) throw recurrenceError("workspace-changed", "로그인 중 Google 계정이 변경되었습니다. 다시 로그인해 주세요.");
+  };
+  const assertConnectedWorkspace = projectId => {
+    assertGoogleAccount();
+    if (projectId !== workspaceProfile?.workspace?.firebaseConfig?.projectId ||
+        `${projectId}/${currentUser?.uid || ''}` !== recurrenceWorkspace())
+      throw recurrenceError("workspace-changed", "로그인 중 업무공간이 변경되었습니다. 다시 연결해 주세요.");
+  };
 
   gate("이 기기에 저장된 내 업무공간 정보를 확인하는 중입니다.");
   const cached = loadCachedWorkspaceProfile(buildingUser);
   if (cached?.profile) {
     try {
       workspaceProfile = cached.profile;
+      const projectId = cached.profile.workspace.firebaseConfig.projectId;
       const cachedConnection = await connectPrivateWorkspace(workspaceProfile);
       firebaseApp = cachedConnection.app;
       auth = cachedConnection.auth;
       db = cachedConnection.db;
       currentUser = cachedConnection.user;
       workspaceProfile = cachedConnection.profile;
+      assertConnectedWorkspace(projectId);
       buildingUser = getBuildingUser() || buildingUser;
       return cachedConnection;
     } catch (error) {
+      if (error?.code === "recurrence/workspace-changed") throw error;
       console.warn("기기 캐시 업무공간 연결에 실패해 Drive에서 다시 확인합니다.");
       workspaceProfile = null;
     }
   }
 
+  assertGoogleAccount();
   gate("내 개인 업무공간을 Google Drive에서 찾는 중입니다.");
   try {
     await ensureBuildingDriveAccess();
+    assertGoogleAccount();
   } catch (error) {
     throw new Error(`Google Drive 연결을 확인하지 못했습니다. ${friendlyError(error)}`);
   }
 
   const loaded = await loadWorkspaceProfile();
+  assertGoogleAccount();
   if (!loaded) {
     gate(
       "이 Google 계정에 연결된 개인 업무공간이 아직 없습니다.",
@@ -769,14 +787,14 @@ async function authenticateBuildingAndWorkspace() {
   }
 
   workspaceProfile = loaded.profile;
+  const projectId = loaded.profile.workspace.firebaseConfig.projectId;
   const connection = await connectPrivateWorkspace(workspaceProfile);
   firebaseApp = connection.app;
   auth = connection.auth;
   db = connection.db;
   currentUser = connection.user;
   workspaceProfile = connection.profile;
-  assertRecurrenceWorkspace(workspace);
-  if (googleUid !== getBuildingUser()?.uid) throw new Error("Drive 인증 중 계정이 변경되었습니다.");
+  assertConnectedWorkspace(projectId);
   buildingUser = getBuildingUser() || buildingUser;
   const token = getBuildingDriveAccessToken();
   if (token) rememberDriveAccessToken(token, buildingUser);
@@ -1226,7 +1244,7 @@ function scheduleRemoteApply() {
 }
 
 async function save(snapshot, metadata = {}) {
-  if (typeof document !== 'undefined' && document.querySelector('meta[name="wm-release"]')?.content !== 'predeploy1') {
+  if (typeof document !== 'undefined' && document.querySelector('meta[name="wm-release"]')?.content !== 'hotfix1') {
     const error=Object.assign(new Error('화면과 저장 코드 버전이 다릅니다. 입력을 보관하고 모든 탭에서 새로고침한 뒤 다시 저장해 주세요.'),{code:'client/update-required',definiteFailure:true});
     window.dispatchEvent(new CustomEvent('cloud-sync-error',{detail:error.message}));
     throw error;
@@ -1900,6 +1918,7 @@ function mergeById(current, incoming) {
 
 async function ensureDriveAccess() {
   if (localOnly) return "";
+  const workspace = recurrenceWorkspace(), googleUid = getBuildingUser()?.uid;
   await ensureBuildingDriveAccess();
   assertRecurrenceWorkspace(workspace);
   if (googleUid !== getBuildingUser()?.uid) throw new Error("Drive 인증 중 계정이 변경되었습니다.");
@@ -1910,7 +1929,9 @@ async function ensureDriveAccess() {
 }
 
 async function ensureDriveFolder() {
-  if (driveFolderId) return driveFolderId;
+  const workspace=recurrenceWorkspace(),googleUid=getBuildingUser()?.uid,scope=`${workspace}/${googleUid||''}`;
+  if (driveFolderId && driveFolderScope===scope) return driveFolderId;
+  driveFolderId="";driveFolderScope="";
   const token = await ensureDriveAccess();
   const marker = appConfig.driveAppMarker || "work-manager-v10";
   const q = `mimeType='application/vnd.google-apps.folder' and trashed=false and appProperties has { key='workManagerApp' and value='${marker.replaceAll("'", "\\'")}' }`;
@@ -1920,7 +1941,9 @@ async function ensureDriveFolder() {
   listUrl.searchParams.set("fields", "files(id,name)");
   const listed = await driveFetch(listUrl, { headers: { Authorization: `Bearer ${token}` } });
   const files = await listed.json();
-  if (files.files?.[0]?.id) return (driveFolderId = files.files[0].id);
+  assertRecurrenceWorkspace(workspace);
+  if (googleUid!==getBuildingUser()?.uid) throw new Error("Drive 폴더 확인 중 계정이 변경되었습니다.");
+  if (files.files?.[0]?.id) {driveFolderId=files.files[0].id;driveFolderScope=scope;return driveFolderId;}
   const created = await driveFetch("https://www.googleapis.com/drive/v3/files?fields=id", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -1931,7 +1954,10 @@ async function ensureDriveFolder() {
     }),
   });
   const folder = await created.json();
+  assertRecurrenceWorkspace(workspace);
+  if (googleUid!==getBuildingUser()?.uid) throw new Error("Drive 폴더 생성 중 계정이 변경되었습니다.");
   driveFolderId = folder.id;
+  driveFolderScope=scope;
   return driveFolderId;
 }
 
@@ -1995,6 +2021,7 @@ async function uploadDriveMediaWithRetry(fileId, file, mimeType, { attempts = 3 
           const body = await response.json();
           message = body?.error?.message || message;
         } catch {}
+        if(response.status===401||response.status===403)message=`Google Drive 업로드 권한을 확인하지 못했습니다 (${response.status}). Google 계정과 Drive 권한을 확인한 뒤 같은 파일을 다시 선택해 주세요. 기존 파일 ID는 보관됩니다.`;
         throw new Error(message);
       }
       lastError = new Error(`Google Drive 업로드 일시 오류 (${response.status})`);
@@ -2033,12 +2060,12 @@ function getAttachmentStore() {
       const response=await driveFetchResponse('https://www.googleapis.com/drive/v3/files?fields=id',{
         method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
         body:JSON.stringify({id:fileId,name:row.name,mimeType:row.mimeType,parents:[folderId],appProperties:{workManagerApp:appConfig.driveAppMarker||'work-manager-v10'}})});
-      if(!response.ok&&response.status!==409)throw Error(`Drive 파일 생성 실패 (${response.status})`);
+      if(!response.ok&&response.status!==409)throw Error(response.status===401||response.status===403?`Google Drive 파일 생성 권한을 확인하지 못했습니다 (${response.status}). Google 계정과 Drive 권한을 확인한 뒤 같은 파일을 다시 선택해 주세요. 기존 파일 ID는 보관됩니다.`:`Drive 파일 생성 실패 (${response.status})`);
       assertRecurrenceWorkspace(workspace);await uploadDriveMediaWithRetry(fileId,file,row.mimeType,{attempts:1});
     },
     verify:async(fileId,row)=>{
       const token=await currentDriveToken();const r=await driveFetchResponse(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,size,trashed,sha256Checksum`,{headers:{Authorization:`Bearer ${token}`}});
-      if(r.status===404)return false;if(!r.ok)throw Error(`Drive 확인 실패 (${r.status})`);const data=await r.json();if(data.trashed)throw Error('파일이 휴지통에 있습니다. 자동 복원하지 않습니다.');if(Number(data.size)>0&&(Number(data.size)!==row.size||(data.sha256Checksum&&data.sha256Checksum!==row.hash)))throw Error('기존 원본 내용이 다릅니다. 덮어쓰지 않고 수동 확인이 필요합니다.');return data.id===fileId&&Number(data.size)===row.size;
+      if(r.status===404)return false;if(!r.ok)throw Error(r.status===401||r.status===403?`Google Drive 원본 확인 권한이 없습니다 (${r.status}). Google 계정과 Drive 권한을 확인해 주세요. 기존 파일 ID와 복구 기록은 보관됩니다.`:`Drive 확인 실패 (${r.status})`);const data=await r.json();if(data.trashed)throw Error('파일이 휴지통에 있습니다. 자동 복원하지 않습니다.');if(Number(data.size)>0&&(Number(data.size)!==row.size||(data.sha256Checksum&&data.sha256Checksum!==row.hash)))throw Error('기존 원본 내용이 다릅니다. 덮어쓰지 않고 수동 확인이 필요합니다.');return data.id===fileId&&Number(data.size)===row.size;
     }
   });
 }
@@ -2278,10 +2305,11 @@ async function repairLegacyDriveAttachments() {
 }
 
 async function driveFetchResponse(url, options = {}, { retryAuth = true } = {}) {
-  const workspace = recurrenceWorkspace();
+  const workspace = recurrenceWorkspace(), googleUid=getBuildingUser()?.uid;
   let requestOptions = { ...options, headers: { ...(options.headers || {}) } };
   let response = await fetch(url, requestOptions);
   assertRecurrenceWorkspace(workspace);
+  if(googleUid!==getBuildingUser()?.uid)throw new Error("Drive 요청 중 계정이 변경되었습니다.");
   if (response.status === 401 && retryAuth && !localOnly) {
     clearDriveAccessToken();
     const freshToken = await currentDriveToken({ forceRefresh: true });
@@ -2290,8 +2318,10 @@ async function driveFetchResponse(url, options = {}, { retryAuth = true } = {}) 
       headers: { ...requestOptions.headers, Authorization: `Bearer ${freshToken}` },
     };
     assertRecurrenceWorkspace(workspace);
+    if(googleUid!==getBuildingUser()?.uid)throw new Error("Drive 요청 중 계정이 변경되었습니다.");
     response = await fetch(url, requestOptions);
     assertRecurrenceWorkspace(workspace);
+    if(googleUid!==getBuildingUser()?.uid)throw new Error("Drive 요청 중 계정이 변경되었습니다.");
   }
   if (response.status === 401) {
     clearDriveAccessToken();
@@ -2303,6 +2333,7 @@ async function driveFetchResponse(url, options = {}, { retryAuth = true } = {}) 
 async function driveFetch(url, options = {}) {
   const response = await driveFetchResponse(url, options);
   if (!response.ok) {
+    if(response.status===401||response.status===403)throw new Error(`Google Drive 권한을 확인하지 못했습니다 (${response.status}). Google 계정과 Drive 권한을 확인한 뒤 다시 시도해 주세요.`);
     let message = `Google Drive ${response.status}`;
     try {
       const body = await response.json();
