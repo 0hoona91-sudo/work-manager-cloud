@@ -1,0 +1,56 @@
+{
+  "environment": "Node 24, real temporary disk, MOCK FSA handles; not native Windows folder permission",
+  "counts": {
+    "PASS": 8,
+    "FAIL": 1,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "LOCAL-B-01",
+      "title": "MOCK FSA: actual temporary disk snapshot readback, IDs and auxiliary history survive reconnect",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-02",
+      "title": "MOCK FSA: exclusive native-style writer lock rejects another client and ignored exclusive mode",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-03",
+      "title": "MOCK FSA: loss of folder permission does not overwrite confirmed state",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-04",
+      "title": "MOCK FSA: snapshot failure leaves submitted journal and prior head; no automatic retry",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-05",
+      "title": "MOCK FSA: lost receipt after confirmed head is rechecked after reopen; explicit acknowledgement retains journal",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-06",
+      "title": "MOCK FSA: malformed head or hash prevents overwriting existing files",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-07",
+      "title": "MOCK FSA: serialized saves retain last submission and external head edit fences writes",
+      "status": "PASS"
+    },
+    {
+      "id": "LOCAL-B-08",
+      "title": "schema11 JSON backup preview preserves completed work, references, unknown fields and cancel is read-only",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   '현재 데이터: tasks/task-a: 재개 시각이 잘못되었습니다.',\n+   '현재 데이터: tasks/task-a: 완료 이력 원본이 잘못되었습니다.'\n+ ]\n- []\n\n    at Object.run (/workspace/work-manager-cloud/tests/local/run.cjs:14:507)\n    at async /workspace/work-manager-cloud/tests/local/run.cjs:16:55"
+    },
+    {
+      "id": "LOCAL-B-09",
+      "title": "schema mismatch and duplicate IDs rejected before any write",
+      "status": "PASS"
+    }
+  ]
+}

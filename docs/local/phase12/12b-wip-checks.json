@@ -1,0 +1,43 @@
+{
+  "status": "WIP_NOT_RELEASE_READY",
+  "checkedAt": "2026-10-26",
+  "node": "v24.19.0",
+  "syntax": {
+    "checkedFiles": [
+      "local/build.cjs",
+      "local/src/folder-store.js",
+      "local/src/local-ui.js",
+      "tests/local/fs-fixture.cjs",
+      "tests/local/run.cjs"
+    ],
+    "pass": 5,
+    "fail": 0
+  },
+  "contractTests": {
+    "command": "node tests/local/run.cjs",
+    "exitCode": 1,
+    "PASS": 8,
+    "FAIL": 1,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0,
+    "results": "12b-contract-results.json",
+    "environment": "MOCK FSA handles with real Node temporary disk; not native browser FSA"
+  },
+  "excludedGeneratedArtifact": {
+    "path": "local/dist/업무관리.html",
+    "bytes": 8600892,
+    "sha256": "cbbb1a2e0185456375302b5e7317378db776fedacea9566c8530e941d9101984",
+    "inlineScriptsSyntaxPass": 57,
+    "containsCurrentFolderStore": false,
+    "preservedLocally": true,
+    "committed": false
+  },
+  "notExecuted": [
+    "12-B browser UI integration",
+    "12-B native Windows FSA and exclusive lock",
+    "full browser restart and recovery",
+    "cloud 440-test regression",
+    "12-B final ZIP"
+  ]
+}
