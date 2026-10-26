@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process'),acorn=require('acorn'),crypto=require('node:crypto');
-const root=path.resolve(__dirname,'..'),base='a8eff0b8b47575bc7ad1db96fb0eda669d27ca96',out=path.join(__dirname,'dist');
+const root=path.resolve(__dirname,'..'),base='15424eae8a6ce4d861c311188cde833f187ad7be',out=path.join(__dirname,'dist');
 const source=file=>execFileSync('git',['show',`${base}:${file}`],{cwd:root,maxBuffer:20*1024*1024,encoding:'utf8'});
 const added=file=>fs.readFileSync(path.join(__dirname,'src',file),'utf8');
 let html=source('index.html');
