@@ -1447,7 +1447,7 @@ button.db-health-row-v28{cursor:pointer}button.db-health-row-v28:hover{border-co
 
 <style id="app-v29-data-protection-style">
 /* APP V29: 저장 전 영향 확인, 복원 가능한 휴지통, 업무DB 버전. */
-.impact-overlay-v29{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;padding:14px;background:rgba(15,28,46,.58)}
+.impact-overlay-v29{position:fixed;inset:0;z-index:3300;display:grid;place-items:center;padding:14px;background:rgba(15,28,46,.58)}
 .impact-card-v29{width:min(620px,100%);max-height:calc(100dvh - 28px);overflow:auto;border:1px solid rgba(255,255,255,.35);border-radius:17px;background:#fff;box-shadow:0 28px 90px rgba(14,31,53,.3)}
 .impact-head-v29{padding:15px 18px;background:linear-gradient(105deg,var(--v23-side-start,#294c39),var(--v23-hero-mid,#56856a));color:#fff}.impact-head-v29 h3{margin:0;font-size:17px}.impact-head-v29 p{margin:5px 0 0;color:rgba(255,255,255,.82);font-size:11px;line-height:1.45}
 .impact-body-v29{padding:16px 18px}.impact-grid-v29{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.impact-stat-v29{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:56px;padding:10px 12px;border:1px solid #e0e7ef;border-radius:11px;background:#f8fafc;color:#53657b}.impact-stat-v29 b{color:#263d5b;font-size:21px}.impact-stat-v29.protected{background:#eef7f1;border-color:#cfe4d5}.impact-note-v29{margin:12px 0 0;color:#697a8f;font-size:11px;line-height:1.55}
@@ -1835,7 +1835,7 @@ function taskFormHtml(t){const isEdit=!!t;const current=t||{category:state.categ
 <fieldset class="subbox span2"><legend>기본</legend><div class="formgrid">
 <div class="field"><label>구분</label><select id="tfCategory">${state.categories.map(c=>`<option ${current.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
 <div class="field"><label>상태</label><select id="tfStatus"><option value="planned">예정</option><option value="prep">준비중</option><option value="progress">진행중</option><option value="hold">보류</option><option value="done">완료</option></select></div>
-<div class="field"><label>업무 형태</label><div class="radios"><label><input type="radio" name="taskKind" value="single" ${!current.groupId?'checked':''}>단일업무</label><label><input type="radio" name="taskKind" value="linked" ${current.groupId?'checked':''}>연계되는 업무</label></div></div>
+<div class="field"><label>업무 형태</label><div class="radios"><label><input type="radio" name="taskKind" value="single" ${!current.groupId?'checked':''}>단일 업무</label><label><input type="radio" name="taskKind" value="linked" ${current.groupId?'checked':''}>연계되는 업무</label></div></div>
 <div class="field span2"><label><input type="checkbox" id="tfNew" ${!current.templateId?'checked':''}> 신규업무 직접 작성 (해제하면 업무 DB 검색)</label></div>
 <div class="field span2" id="tfSearchBox"><label>업무 DB 검색</label><input id="tfSearch" placeholder="업무명을 입력하면 즉시 검색"><div id="tfSearchResults" class="search-results hidden"></div></div>
 <div class="field span2"><label>업무명</label><input id="tfName" value="${esc(current.name||'')}" placeholder="업무명"></div>
@@ -3163,7 +3163,7 @@ function stepEditorHtmlV6(s,i){
       <div class="field"><label>상위 일정 따라가기</label><select data-v6dyn="${i}"><option value="true">예</option><option value="false">아니오</option></select></div>
       <div class="field"><label>시작 기준</label><select data-v6basis="${i}"><option value="actualEnd">상위 실제완료/종료일</option><option value="end">상위 종료일</option><option value="start">상위 시작일</option></select></div>
       <div class="db-step-schedule span2">
-        <b>시작일 계산</b>
+        <label>일정 설정 방식 <select data-v6schedule="${i}"><option value="relative" ${s.scheduleMode!=='manual'?'selected':''}>상위 업무 일정 기준</option><option value="manual" ${s.scheduleMode==='manual'?'selected':''}>추후 일정 직접 선택</option></select></label><b>상위 업무 기준일 계산 (직접 선택 시 등록 화면에서 날짜 입력)</b>
         <div class="inline" style="margin-top:7px"><span>상위 기준일 후</span><input type="number" min="0" data-v6startoff="${i}" value="${Number(s.startOffset??s.offset??0)}" style="width:78px"><span>일 후</span><select data-v6startmode="${i}"><option value="business">근무일</option><option value="calendar">달력일</option></select><span>휴일이면</span><select data-v6startshift="${i}"><option value="prev">전 근무일</option><option value="next">다음 근무일</option><option value="keep">그대로</option></select></div>
         <div class="hint">0일이면 상위 기준일과 같은 날 시작합니다. “바로 다음 근무일”은 1일 + 근무일로 설정하면 됩니다.</div>
       </div>
@@ -3259,7 +3259,7 @@ function openDbForm(id=null,seed=null){
   function rcycle(){const v=$('input[name=dfCycle]:checked').value;let h='';if(v==='weekly'){const days=t.weekdays?.length?t.weekdays:[Number(t.weekday??3)];h=`<div class="field"><label>반복 요일 (복수선택 가능)</label><div class="weekday-picks">${[['1','월'],['2','화'],['3','수'],['4','목'],['5','금'],['6','토'],['0','일']].map(([v,l])=>`<label><input type="checkbox" data-dfwd="${v}" ${days.map(Number).includes(Number(v))?'checked':''}>${l}</label>`).join('')}</div></div>`}else if(v==='quarterly')h=`<div class="inline"><label>기준 분기 <select id="dfQuarter"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label>실시월 <input id="dfMonths" placeholder="예: 3,6,9,12" value="${(t.cycleMonths||[]).join(',')}"></label></div>`;else if(v==='half')h=`<div class="inline"><label>구분 <select id="dfHalf"><option value="first">상반기</option><option value="second">하반기</option></select></label><label>실시월 <input id="dfMonths" placeholder="예: 6,12" value="${(t.cycleMonths||[]).join(',')}"></label></div>`;else if(v==='monthly'||v==='yearly')h=`<div class="inline"><label>실시월(비우면 ${v==='monthly'?'매월':'12월'}) <input id="dfMonths" placeholder="예: 1,4,7,10" value="${(t.cycleMonths||[]).join(',')}"></label></div>`;$('#dfCycleExtra').innerHTML=h;if($('#dfQuarter'))$('#dfQuarter').value=t.quarter||1;if($('#dfHalf'))$('#dfHalf').value=t.half||'first'}
   function bindStepControls(){
     steps.forEach((s,i)=>{
-      const map=[['dyn','dynamic',v=>v!=='false'],['basis','basis',v=>v],['startoff','startOffset',Number],['startmode','startMode',v=>v],['startshift','startHolidayShift',v=>v],['worktype','workType',v=>v],['limit','limitDays',Number],['limitmode','limitMode',v=>v],['limitshift','limitHolidayShift',v=>v],['cat','category',v=>v]];
+      const map=[['schedule','scheduleMode',v=>v],['dyn','dynamic',v=>v!=='false'],['basis','basis',v=>v],['startoff','startOffset',Number],['startmode','startMode',v=>v],['startshift','startHolidayShift',v=>v],['worktype','workType',v=>v],['limit','limitDays',Number],['limitmode','limitMode',v=>v],['limitshift','limitHolidayShift',v=>v],['cat','category',v=>v]];
       map.forEach(([attr,key,conv])=>{const el=$(`[data-v6${attr}="${i}"]`);if(el){if(['dyn','basis','startmode','startshift','worktype','limitmode','limitshift'].includes(attr))el.value=String(s[key]??({dynamic:true,basis:'actualEnd',startMode:'business',startHolidayShift:'next',workType:'single',limitMode:'calendar',limitHolidayShift:'next'}[key]));el.onchange=()=>s[key]=conv(el.value);if(el.type==='number')el.oninput=()=>s[key]=conv(el.value)}});
       const category=$(`[data-v6cat="${i}"]`);if(category)category.onchange=()=>{s.category=category.value;s.inheritRootCategory=false};
       const owner=$(`[data-v8stepowner="${i}"]`);if(owner)owner.onchange=()=>{s.owner=owner.value;s.inheritRootOwner=false};
@@ -4136,7 +4136,7 @@ function registerCardHtmlV10(d,index){
     <div class="db-register-head">
       <div><div class="db-register-title">${dbCategoryHtmlV7(row.category)} <span>${esc(row.name)}</span></div>
       <div class="db-register-meta">${row.kind==='root'?'업무 DB 1단계':'연계 DB '+(startStage+1)+'단계'} · 담당자 ${esc(ownerForDbRefV8(row.ref)||'미지정')}</div></div>
-      ${(root.linkedSteps||[]).length?'<span class="chain-label">🔗 연계업무</span>':'<span class="db-auto-badge">단일업무</span>'}
+      ${(root.linkedSteps||[]).length?'<span class="chain-label">🔗 연계업무</span>':'<span class="db-auto-badge">단일 업무</span>'}
     </div>
     <div class="db-register-grid">
       <div class="field"><label>${isProjectLibraryV175(root)?'프로젝트 시작일':'첫 업무 시작일'}</label><input type="date" data-v10start="${index}" value="${todayISO()}"></div>
@@ -4144,6 +4144,7 @@ function registerCardHtmlV10(d,index){
         <div class="db-register-range-help">같이 등록된 뒷 단계는 DB에 저장된 일정 규칙으로 연결됩니다. 첫 업무 날짜를 바꾸면 새 업무가 생기지 않고 기존 연계업무 날짜만 자동 재계산됩니다.</div>
       </div>
     </div>
+    ${isProjectLibraryV175(root)?(root.linkedSteps||[]).map((s,j)=>s.scheduleMode==='manual'?`<fieldset><legend>${esc(s.name||`${j+2}단계`)} · 날짜 직접 지정</legend><label>시작일 <input type="date" required data-manual-start="${index}|${j+1}" aria-label="${j+2}단계 시작일"></label><label>종료일 <input type="date" required data-manual-end="${index}|${j+1}" aria-label="${j+2}단계 종료일"></label></fieldset>`:'').join(''):''}
     <div class="db-stage-flow">${flow.join('')}</div>
   </div>`;
 }
@@ -4173,7 +4174,8 @@ function openDbRegisterModalV10(){
         const start=$(`[data-v10start="${i}"]`)?.value;
         const endStage=isProjectLibraryV175(desc[i].root)?desc[i].maxStage:Number($(`[data-v10endstage="${i}"]`)?.value??desc[i].startStage);
         if(!start)throw new Error('모든 선택 업무의 시작일을 지정하세요.');
-        const res=createManualDbChainV10(desc[i].root,desc[i].startStage,endStage,start);
+        const manualDates={};(desc[i].root.linkedSteps||[]).forEach((step,j)=>{if(step.scheduleMode==='manual')manualDates[j+1]={start:$(`[data-manual-start="${i}|${j+1}"]`)?.value,end:$(`[data-manual-end="${i}|${j+1}"]`)?.value}});
+        const res=createManualDbChainV10(desc[i].root,desc[i].startStage,endStage,start,manualDates);
         created+=res.count;
       }
       recalcLinks();await saveState({reason:'라이브러리에서 직접 수행업무/프로젝트 등록'});
@@ -4200,7 +4202,7 @@ function initialStageScheduleV10(root,stage,start){
   const end=Number(s.limitDays||0)>0||s.workType==='period'?deadline:start;
   return{start,end,deadline};
 }
-function createProjectFromLibraryV175(root,firstStart){
+function createProjectFromLibraryV175(root,firstStart,manualDates={}){
   const M=window.WMProjectModel;
   if(!M?.freshProject||!M?.reconcile)throw new Error('프로젝트 모델을 불러오지 못했습니다.');
   const owner=root.owner||state.owners?.[0]||'';
@@ -4226,7 +4228,8 @@ function createProjectFromLibraryV175(root,firstStart){
     }).filter(c=>c.text);
     step.resources=(src.attachments||[]).filter(f=>f?.driveFileId||f?.localFileId).map(a=>({id:M.id('resource'),type:a.type||'file',name:a.name||'자료',mimeType:a.mimeType||'application/octet-stream',size:Number(a.size)||0,driveFileId:a.driveFileId||undefined,localFileId:a.localFileId||undefined}));
     step.methodBlocks=clone(src.methodBlocks||[]);
-    previousEnd=end;return step;
+    if(src.scheduleMode==='manual'){const input=manualDates[i];if(!input?.start||!input?.end)throw new Error(`${i+1}단계의 시작일·종료일을 직접 선택해 주세요.`);step.scheduleMode='manual';step.start=input.start;step.endDate=input.end;M.stageEnd(step);}
+    previousEnd=step.endDate;return step;
   });
   p.end=previousEnd;
   const holidays=d=>{const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return d.getDay()===0||d.getDay()===6||(state.holidays||[]).some(h=>h.date===iso)};
@@ -4236,8 +4239,8 @@ function createProjectFromLibraryV175(root,firstStart){
   for(const task of state.tasks.filter(t=>t.projectId===validated.id))task.libraryTemplateIdV175=root.id;
   return{groupId:validated.id,projectId:validated.id,count:validated.stages.length,taskIds:validated.stages.map(s=>s.taskId)};
 }
-function createManualDbChainV10(root,startStage,endStage,firstStart){
-  if(isProjectLibraryV175(root))return createProjectFromLibraryV175(root,firstStart);
+function createManualDbChainV10(root,startStage,endStage,firstStart,manualDates={}){
+  if(isProjectLibraryV175(root))return createProjectFromLibraryV175(root,firstStart,manualDates);
 
   const groupId=uid('dbmgrp'),tasks=[];
   let prev=null;

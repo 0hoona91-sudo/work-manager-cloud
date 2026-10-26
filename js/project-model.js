@@ -61,6 +61,7 @@
       if(!end)throw new Error('완료 단계의 저장된 예정 종료일이 없습니다. 원본 기록을 확인해 주세요.');
       return end;
     }
+    if(step.scheduleMode==='manual'){const start=date(step.start),end=date(step.endDate);if(!start||!end||end<start)throw new Error('직접 지정한 시작일과 종료일을 확인해 주세요.');return end;}
     const start = date(step.start);
     let end = step.endType==='date' ? date(step.endDate) : step.endType==='after' ? dateAfter(start,step.afterDays,step.includeHolidays,holidayCheck) : start;
     if(!end)end=start;
@@ -100,7 +101,7 @@
   function initializeOffsets(project,holidayCheck,records){
     for(let i=1;i<project.stages.length;i++){
       const stage=project.stages[i];
-      if(records.locked.has(stage.id))continue;
+      if(records.locked.has(stage.id)||stage.scheduleMode==='manual')continue;
       const oldIndex=records.original?.stages.findIndex(s=>s.id===stage.id)??-1;
       // Derive legacy offsets from the saved pair before a draft edit/reorder.
       const source=oldIndex>0?records.original.stages[oldIndex]:stage;
@@ -120,7 +121,8 @@
     if(apply)for(let i=0;i<working.stages.length;i++){
       const stage=working.stages[i];
       if(records.locked.has(stage.id))continue;
-      if(i===0){stage.start=stage.start||working.start;}
+      if(stage.scheduleMode==='manual'){if(!date(stage.start)||!date(stage.endDate))throw new Error('직접 지정한 시작일과 종료일을 입력해 주세요.');stage.endType='date';}
+      else if(i===0){stage.start=stage.start||working.start;}
       else{
         const previous=working.stages[i-1];
         const baseline=stageEnd(previous,holidayCheck,records.tasks.get(previous.id))||previous.start||working.start;

@@ -130,3 +130,8 @@ body.app-v21 .modal.project-editor-modal,.modal.project-editor-modal{width:min(9
 body.app-v21[data-v7-theme="shinchan"] #modalRoot .task-form-modal-v16 .modal-head h3,
 body.app-v21[data-v7-theme="shinchan"] #modalRoot .project-editor-modal .modal-head h3{color:var(--accent-deep,#A93A32)!important;text-shadow:none!important}
 /* 헤더 마크만 검정/흰색으로 바뀌지 않게 프로젝트 달력은 기존 업무 폼과 같은 버튼을 사용. */
+
+/* Equal project action controls; preserve delegated handlers. */
+#workflowProjectListV17 .workflow-project-actions-v174{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+#workflowProjectListV17 .workflow-project-actions-v174>button{box-sizing:border-box;flex:0 0 160px;width:160px;min-height:40px;height:auto;padding:8px 12px;font-size:14px;line-height:22px;border-radius:8px;align-self:stretch;text-align:center}
+@media(max-width:480px){#workflowProjectListV17 .workflow-project-actions-v174>button{flex:1 1 100%;width:100%}}
