@@ -1,8 +1,8 @@
 {
   "environment": "Node 24, real temporary disk, MOCK FSA handles; not native Windows folder permission",
   "counts": {
-    "PASS": 8,
-    "FAIL": 1,
+    "PASS": 9,
+    "FAIL": 0,
     "NOT_RUN": 0
   },
   "results": [
@@ -44,8 +44,7 @@
     {
       "id": "LOCAL-B-08",
       "title": "schema11 JSON backup preview preserves completed work, references, unknown fields and cancel is read-only",
-      "status": "FAIL",
-      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   '현재 데이터: tasks/task-a: 재개 시각이 잘못되었습니다.',\n+   '현재 데이터: tasks/task-a: 완료 이력 원본이 잘못되었습니다.'\n+ ]\n- []\n\n    at Object.run (/workspace/work-manager-cloud/tests/local/run.cjs:14:507)\n    at async /workspace/work-manager-cloud/tests/local/run.cjs:16:55"
+      "status": "PASS"
     },
     {
       "id": "LOCAL-B-09",

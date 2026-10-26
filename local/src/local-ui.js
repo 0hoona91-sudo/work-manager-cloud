@@ -9,7 +9,7 @@ let previous=null,connected=false;
 function status(value){bar.dataset.phase=value.phase;bar.textContent=value.message+(value.revision?' · 저장판 '+value.revision:'')}
 function failure(error){status({phase:'recovery-required',message:'저장 실패/확인 필요: '+error.message+' · 입력을 유지하세요. 자동 재전송하지 않습니다.'});const notice=document.getElementById('localGateMessage');if(!connected)notice.textContent=error.message}
 window.addEventListener('unhandledrejection',event=>{if(connected)failure(event.reason||Error('저장 처리 오류'))});
-async function handleCache(value){return new Promise((resolve,reject)=>{const r=indexedDB.open('WMLocalDirectoryHandle_v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('handles');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result,tx=db.transaction('handles',value?'readwrite':'readonly'),req=value?tx.objectStore('handles').put(value,'selected'):tx.objectStore('handles').get('selected');let out;req.onsuccess=()=>out=req.result;tx.oncomplete=()=>{db.close();resolve(out)};tx.onerror=()=>{db.close();reject(tx.error)}}})}
+async function handleCache(value){return new Promise((resolve,reject)=>{const r=indexedDB.open('WMLocalDirectoryHandle_v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('handles');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result;try{const tx=db.transaction('handles',value?'readwrite':'readonly'),req=value?tx.objectStore('handles').put(value,'selected'):tx.objectStore('handles').get('selected');let out;req.onsuccess=()=>out=req.result;tx.oncomplete=()=>{db.close();resolve(out)};tx.onerror=()=>{db.close();reject(tx.error)}}catch(error){db.close();reject(error)}}})}
 function downloadJSON(value,name){download(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}),name)}
 async function finish(opened){connected=true;window.__localResolve(opened);window.addEventListener('wm-data-ready',()=>{gate.remove();document.querySelector('.app')?.removeAttribute('inert');bind();},{once:true})}
 async function connect(handle){
@@ -43,5 +43,7 @@ function bind(){
  document.querySelectorAll('.local-beta-badge').forEach(x=>x.textContent='로컬 12-B');document.querySelectorAll('.local-beta-sub').forEach(x=>x.textContent='hotfix1 기반 · PC 폴더 저장 · 원본 첨부 연결은 12-C');
 }
 window.WMLocalUI={bind,failure};
+// Final compatibility wrapper: old recurrence/project wrappers must not run before folder load.
+const connectedSaveState=saveState;saveState=function(...args){if(!window.__LOCAL_STATE_READY_V121__)return Promise.resolve({persistence:'not-connected'});return connectedSaveState.apply(this,args)};
 const toastBase=toast;toast=function(message,...args){if(connected&&!WMLocalStore.ready&&/저장했|저장되|삭제했|이동했|완료했|복원했/.test(String(message)))return toastBase('폴더 저장 미확정입니다. 아래 상태와 복구 기록을 확인하세요.');return toastBase(message,...args)};
 })();

@@ -1,0 +1,44 @@
+{
+  "phase": "12-B①",
+  "base": "a8eff0b8b47575bc7ad1db96fb0eda669d27ca96",
+  "localContracts": {
+    "PASS": 9,
+    "FAIL": 0,
+    "XFAIL": 0,
+    "XPASS": 0,
+    "NOT_RUN": 0,
+    "environment": "Node 24; real temporary disk behind MOCK FSA"
+  },
+  "browserConnection": {
+    "PASS": 1,
+    "FAIL": 0,
+    "NOT_RUN": 0,
+    "environment": "Chromium via loopback HTTP; in-memory MOCK FSA; not file:// or Windows native directory access",
+    "checked": [
+      "folder selection and connection",
+      "seed and loadState completed",
+      "wm-data-ready closed gate",
+      "unconnected save blocked",
+      "save created folder snapshot",
+      "failed write shown as recovery-required",
+      "no page errors"
+    ]
+  },
+  "bundle": {
+    "base": "hotfix1",
+    "bytes": 8601306,
+    "sha256": "231b1bb9cdff504c97aec1c7da196f26b22d77acb38a2c283a01ba1b5120c260",
+    "inlineScriptsSyntaxPass": 57,
+    "externalScriptTags": 0,
+    "externalStylesheetLinks": 0,
+    "currentStoreIncluded": true,
+    "currentUiIncluded": true
+  },
+  "unverified": [
+    "Windows file:// execution of new 12-B HTML",
+    "native FSA permission/reconnect/exclusive lock",
+    "complete task/project/recurrence UI regression",
+    "attachment originals and official holiday update (12-C)",
+    "full browser restart and crash recovery"
+  ]
+}
