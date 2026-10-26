@@ -11,7 +11,7 @@
   const journalContext=context;
   const journalize=request=>request;
   let recoveryExtraEdits=false;
-  const rawPersist=(request,reviewMode,journalUncertain=false)=>persistStateV6A({reason:'일반 업무 수정',operationId:request.operationId,operationType:request.type,taskCommand:request,reviewMode,journalUncertain});
+  const rawPersist=(request,reviewMode,journalUncertain=false)=>persistStateV6A({reason:'단일 업무 수정',operationId:request.operationId,operationType:request.type,taskCommand:request,reviewMode,journalUncertain});
   const journal=J.create({store:J.indexedStore(openDb),getContext:journalContext,now:()=>new Date().toISOString(),
     send:async(request,mode,{uncertain})=>{const receipt=await rawPersist({...request,context:request.context.split(':').slice(0,3).join(':')},mode,uncertain);if(receipt?.serverTask)recoveryExtraEdits=!C.equal(state.tasks.find(t=>t.id===receipt.serverTask.id),receipt.serverTask);return receipt;},
     onChange:()=>{if(journalContext()===journal.context)window.WMRecoveryUI.render(recoveryView());}});

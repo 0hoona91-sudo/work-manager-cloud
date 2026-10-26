@@ -126,7 +126,7 @@ function redrawBoardHeaderV174(completed){
   defs.forEach(([key,label])=>{
     const cell=document.createElement('th');cell.scope='col';
     if(key==='all'){
-      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.id='selectAllTasks';checkbox.title='현재 표시된 일반업무만 전체 선택';cell.appendChild(checkbox);
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.id='selectAllTasks';checkbox.title='현재 표시된 단일 업무만 전체 선택';cell.appendChild(checkbox);
     }else{
       const button=document.createElement('button');button.type='button';button.className='workflow-sort-button-v174';button.dataset.workflowSort=key;
       button.textContent=label;
@@ -393,7 +393,7 @@ function ensureSplit(){
   const table=page.querySelector(':scope > .tablewrap');
   if(!get('#workflowSplitV17')){
     const split=document.createElement('div');split.id='workflowSplitV17';split.className='workflow-split-v17';
-    split.innerHTML=`<section class="workflow-column-v17" aria-label="프로젝트 목록"><header><h3 id="workflowProjectsHeadingV173">프로젝트 목록</h3><span id="workflowProjectsSubheadingV173">프로젝트별 단계 관리</span></header><div id="workflowProjectListV17"></div></section><section class="workflow-column-v17 workflow-general-v17" aria-label="일반업무 목록"><header><h3 id="workflowGeneralHeadingV173">일반업무 목록</h3><span id="workflowGeneralSubheadingV173">직접 등록 · 라이브러리 등록 업무</span></header><div id="workflowGeneralMountV17"></div></section>`;
+    split.innerHTML=`<section class="workflow-column-v17" aria-label="프로젝트 목록"><header><h3 id="workflowProjectsHeadingV173">프로젝트 목록</h3><span id="workflowProjectsSubheadingV173">프로젝트별 단계 관리</span></header><div id="workflowProjectListV17"></div></section><section class="workflow-column-v17 workflow-general-v17" aria-label="단일 업무 목록"><header><h3 id="workflowGeneralHeadingV173">단일 업무 목록</h3><span id="workflowGeneralSubheadingV173">직접 등록 · 라이브러리 등록 업무</span></header><div id="workflowGeneralMountV17"></div></section>`;
     table?.insertAdjacentElement('beforebegin',split);
     get('#workflowGeneralMountV17',split)?.appendChild(table);
     get('#workflowProjectListV17',split)?.addEventListener('click',e=>{
@@ -449,8 +449,8 @@ function updateSplit(){
   split.hidden=false;
   get('#workflowProjectsHeadingV173').textContent=completed?'완료된 프로젝트':'프로젝트 목록';
   get('#workflowProjectsSubheadingV173').textContent=completed?'종료 버튼으로 확정한 프로젝트':'프로젝트별 단계 관리';
-  get('#workflowGeneralHeadingV173').textContent=completed?'완료된 일반업무':'일반업무 목록';
-  get('#workflowGeneralSubheadingV173').textContent=completed?'완료 처리된 일반업무 기록':'직접 등록 · 라이브러리 등록 업무';
+  get('#workflowGeneralHeadingV173').textContent=completed?'완료된 단일 업무':'단일 업무 목록';
+  get('#workflowGeneralSubheadingV173').textContent=completed?'완료 처리된 단일 업무 기록':'직접 등록 · 라이브러리 등록 업무';
   // Retain an orphaned stage in the general table instead of making it
   // disappear if its project definition was removed independently.
   const registeredProjects=new Set((state.projects||[]).map(p=>p.id));
@@ -474,7 +474,7 @@ function ensureCreateMenu(){
   const menu=document.createElement('div');
   menu.id='workflowCreateMenuV17';menu.className='workflow-create-menu-v17';
   menu.setAttribute('role','menu');menu.hidden=true;
-  menu.innerHTML='<button type="button" data-workflow-create="project" role="menuitem">▤ 프로젝트 등록</button><button type="button" data-workflow-create="normal" role="menuitem">＋ 일반 업무 등록</button>';
+  menu.innerHTML='<button type="button" data-workflow-create="project" role="menuitem">▤ 프로젝트 등록</button><button type="button" data-workflow-create="normal" role="menuitem">＋ 단일 업무 등록</button>';
   // A body-level fixed menu avoids clipping by search toolbar, sticky table headers
   // and the stacking context used by #taskListPage on desktop and mobile.
   document.body.appendChild(menu);
@@ -629,7 +629,7 @@ function ensureLibraryTypeFilterV176(){
   const projects=(state.templates||[]).filter(isProjectLibraryV176).length;
   const general=(state.templates||[]).length-projects;
   const counts={all:projects+general,general,project:projects};
-  holder.innerHTML=[['all','전체'],['general','일반업무'],['project','프로젝트']].map(([key,label])=>
+  holder.innerHTML=[['all','전체'],['general','단일 업무'],['project','프로젝트']].map(([key,label])=>
     `<button type="button" data-library-type-v176="${key}" class="${key===libraryTypeFilterV176?'active':''}" aria-pressed="${key===libraryTypeFilterV176}">${label} <span class="library-type-count-v176">${counts[key]}</span></button>`
   ).join('');
   getAll('[data-library-type-v176]',holder).forEach(button=>button.onclick=()=>{
@@ -647,7 +647,7 @@ function decorateLibraryTypesV176(){
     if(!template)return;
     const project=isProjectLibraryV176(template);
     const kind=project?'project':'general';
-    const label=project?'프로젝트':'일반업무';
+    const label=project?'프로젝트':'단일 업무';
     row.classList.add('library-row-type-v176',`library-row-${kind}-v176`);
     const title=row.cells[3];
     if(title&&!get('.library-type-chip-v176',title)){

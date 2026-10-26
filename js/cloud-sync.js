@@ -1253,7 +1253,7 @@ async function save(snapshot, metadata = {}) {
   if (metadata.projectSave && (typeof metadata.projectId!=='string'||!metadata.projectId)) throw Object.assign(new Error('프로젝트 식별자가 없어 저장을 중단했습니다.'),{code:'project/invalid-id',definiteFailure:true});
   if (projectSaveInFlight || metadata.projectSave && (saving || queuedState)) throw Object.assign(new Error('다른 저장이 진행 중입니다. 프로젝트 입력을 유지하고 완료 후 다시 확인해 주세요.'),{code:'project/save-busy',definiteFailure:true});
   if (metadata.projectSave && !localOnly && (!active || navigator.onLine === false)) throw Object.assign(new Error('프로젝트 저장은 온라인 서버 확인 후 가능합니다. 입력을 유지하고 연결 상태를 확인해 주세요.'),{code:'project/online-required'});
-  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
+  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("단일 업무 저장 확인이 필요합니다. 다른 저장으로 미확정 입력을 전송하지 않습니다.");
   if (recurrenceRecoveryRequired) throw new Error("반복 저장 복구 확인이 필요합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (backupImporting || backupRecoveryRequired) throw new Error("백업 저장 또는 복구 확인 중에는 다른 저장을 중단합니다. 새로고침 후 서버 상태를 확인해 주세요.");
   if (localOnly || !active) {
@@ -1274,7 +1274,7 @@ async function save(snapshot, metadata = {}) {
 async function saveTaskCommand(request, reviewMode, journalUncertain = false) {
   const C = window.WMSaveCommand, F = window.WMTaskSaveConflict;
   const change = request.changeSet.changes.find(c => c.collection === "tasks" && c.action === "update");
-  if (request.type !== "task.update" || !change || request.changeSet.taskIds.length !== 1) throw new Error("일반 업무 수정 명령만 지원합니다.");
+  if (request.type !== "task.update" || !change || request.changeSet.taskIds.length !== 1) throw new Error("단일 업무 수정 명령만 지원합니다.");
   const workspace = recurrenceWorkspace(), serverDb = db;
   if (request.context !== `cloud:${workspaceProfile?.workspace?.firebaseConfig?.projectId}:${currentUser?.uid}`) throw Object.assign(new Error("업무공간이 변경되었습니다."), {code:"conflict"});
   if (!active || backupImporting || backupRecoveryRequired || recurrenceRecoveryRequired || saving || queuedState) throw Object.assign(new Error("다른 저장 또는 복구가 진행 중입니다. 입력을 보존하고 다시 확인하세요."), {code:"conflict"});
@@ -1336,7 +1336,7 @@ async function saveTaskCommand(request, reviewMode, journalUncertain = false) {
             else if(c.type==="create")transaction.set(ref,{...c.after,revision:1,updatedAt:serverTimestamp()});
             else transaction.update(ref,{...patchFor(c),updatedAt:serverTimestamp()});
           }
-          transaction.set(doc(collection(serverDb,"changeLogs")),makeLog(writes,{reason:"일반 업무 충돌 검사 저장"}));
+          transaction.set(doc(collection(serverDb,"changeLogs")),makeLog(writes,{reason:"단일 업무 충돌 검사 저장"}));
         }
         return {confirmed:true,serverTask:comparison.merged,maps:mergedMaps,revision:Number(taskSnap.data()?.revision||0)+(writes.length?1:0),alreadyApplied:comparison.alreadyApplied};
       });
@@ -1835,7 +1835,7 @@ function backupContextVersion() {
 }
 
 function assertBackupReady() {
-  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("일반 업무 저장 확인 후 백업을 진행하세요.");
+  if (window.WMRecovery?.blocksWrites || commandSaveGuard) throw new Error("단일 업무 저장 확인 후 백업을 진행하세요.");
   if (!active || localOnly || !currentUser || !navigator.onLine) throw new Error("클라우드 백업 가져오기는 로그인·온라인 동기화 완료 후에만 가능합니다.");
   if (backupImporting || backupRecoveryRequired || saving || queuedState) throw new Error("저장/복구 확인이 진행 중입니다. 완료 후 미리보기를 다시 열어 주세요.");
   if (!recordMapsEqual(recordMaps, shadowMaps)) throw new Error("미리보기 기준에 원격 변경이 도착했습니다. 취소 후 화면 갱신을 기다려 다시 확인해 주세요.");

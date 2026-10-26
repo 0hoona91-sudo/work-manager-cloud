@@ -37,7 +37,7 @@
     const next=copy(state),index=next.tasks.findIndex(t=>t.id===command.taskId),current=next.tasks[index];
     if(command.type==='task.create'){
       const task=copy(command.task);if(next.tasks.some(t=>t.id===task.id))throw error('conflict','같은 업무 ID가 이미 있습니다.');
-      if(!ordinary(task)||task.status==='done'||task.actualComplete||task.completionHistory?.length)throw error('validation','독립적인 미완료 일반 업무만 등록할 수 있습니다.');
+      if(!ordinary(task)||task.status==='done'||task.actualComplete||task.completionHistory?.length)throw error('validation','독립적인 미완료 단일 업무만 등록할 수 있습니다.');
       validateTask(task);next.tasks.push(task);
     }else{
       if(!current||!equal(current,command.expected))throw error('conflict','업무가 수정 화면을 연 뒤 변경되었습니다. 입력을 보존하고 다시 확인해 주세요.');

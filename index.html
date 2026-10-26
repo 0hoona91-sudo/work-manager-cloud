@@ -3309,10 +3309,10 @@ function openDbForm(id=null,seed=null){
   rchecks();rblocks();rattachments();rcycle();rsteps();$$('input[name=dfCycle]').forEach(x=>x.onchange=rcycle);
   const modeHost=$('#modalRoot .db-form-modal .modal-body .formgrid');
   if(modeHost){
-    modeHost.insertAdjacentHTML('afterbegin',`<div class="span2 library-mode-v175" id="libKindV175" role="group" aria-label="라이브러리 유형"><button type="button" data-lib-kind="general" aria-pressed="false">일반업무</button><button type="button" data-lib-kind="project" aria-pressed="false">프로젝트</button></div>`);
+    modeHost.insertAdjacentHTML('afterbegin',`<div class="span2 library-mode-v175" id="libKindV175" role="group" aria-label="라이브러리 유형"><button type="button" data-lib-kind="general" aria-pressed="false">단일 업무</button><button type="button" data-lib-kind="project" aria-pressed="false">프로젝트</button></div>`);
     $$('[data-lib-kind]',modeHost).forEach(btn=>btn.onclick=()=>{
       if(btn.dataset.libKind===libraryKindV175)return;
-      if(libraryKindV175==='project'&&btn.dataset.libKind==='general'&&steps.length&&!confirm('일반업무로 변경하면 저장 시 프로젝트 단계 정보가 제거됩니다. 계속할까요?'))return;
+      if(libraryKindV175==='project'&&btn.dataset.libKind==='general'&&steps.length&&!confirm('단일 업무로 변경하면 저장 시 프로젝트 단계 정보가 제거됩니다. 계속할까요?'))return;
       libraryKindV175=btn.dataset.libKind;refreshLibraryKindV175();
     });
   }
@@ -6151,7 +6151,8 @@ function setupTaskEndUiV32(id=null){
 }
 function setupTaskWorkTypeV32(id=null){
   const dialog=$('#modalRoot .modal');if(!dialog)return;const task=id?state.tasks.find(item=>item.id===id):null,radios=$$('input[name=taskKind]',dialog);
-  const sync=()=>{const type=taskWorkTypeV32(task,$$('[data-sname]',dialog).map(input=>input.value));radios.forEach(input=>input.checked=input.value===type);return type};
+  if(!id){$('#tfLinkBox',dialog)?.remove();radios.forEach(input=>{input.checked=input.value==='single';input.disabled=true});}
+  const sync=()=>{const type=!id?'single':taskWorkTypeV32(task,$$('[data-sname]',dialog).map(input=>input.value));radios.forEach(input=>input.checked=input.value===type);return type};
   dialog.addEventListener('input',event=>{if(event.target.matches?.('[data-sname]'))sync()});dialog.addEventListener('click',event=>{if(event.target.closest?.('#tfAddStep,[data-rms]'))queueMicrotask(sync)});sync();
   const button=$('#saveTask',dialog),original=button?.onclick;if(button)button.onclick=function(event){sync();return original?.call(button,event)};
 }
@@ -11547,7 +11548,7 @@ requestAnimationFrame(()=>{
 
 
 <style id="local-v119-quick-task-duplicate-style">
-/* ========================= LOCAL DEV v1.11 TEST 10 — 빠른 업무 / 일반 업무복제 / 용어정리 ========================= */
+/* ========================= LOCAL DEV v1.11 TEST 10 — 빠른 업무 / 단일 업무복제 / 용어정리 ========================= */
 .home-hero-actions-v21 .home-quick-task-v119{
   min-height:40px!important;padding:9px 15px!important;background:#fff!important;
   color:#244e7c!important;border:0!important;font-weight:850!important;
@@ -11704,7 +11705,7 @@ function cloneManualTaskV119(source){
 
 async function duplicateTaskV119(id){
   const source=state.tasks.find(task=>task.id===id);if(!source)return;
-  if(!confirm(`"${source.name}" 업무를 같은 내용으로 복제할까요?\n복제본은 독립적인 일반 업무로 생성되고 완료상태·반복/연계 설정은 초기화됩니다.`))return;
+  if(!confirm(`"${source.name}" 업무를 같은 내용으로 복제할까요?\n복제본은 독립적인 단일 업무로 생성되고 완료상태·반복/연계 설정은 초기화됩니다.`))return;
   const copy=cloneManualTaskV119(source);
   state.tasks.push(copy);
   await saveState({reason:`업무 복제 · ${source.name}`});

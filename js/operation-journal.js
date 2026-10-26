@@ -20,7 +20,7 @@
   }
   async function pack(request,now){
     scope(request.context);const change=request.changeSet.changes.find(c=>c.collection==='tasks'&&c.action==='update');
-    if(request.type!=='task.update'||!change||request.changeSet.taskIds.length!==1)throw fail('일반 업무 수정만 복구 기록을 지원합니다.');
+    if(request.type!=='task.update'||!change||request.changeSet.taskIds.length!==1)throw fail('단일 업무 수정만 복구 기록을 지원합니다.');
     const base=Object.fromEntries([...C.editable,'id','status','actualComplete'].filter(k=>Object.hasOwn(change.before,k)).map(k=>[k,safe(change.before[k])]));
     // Unknown task properties, attachments, profile/settings and completion snapshots are never copied.
     const patch=Object.fromEntries(C.editable.filter(k=>!C.equal(change.before[k],change.after[k])).map(k=>[k,safe(change.after[k])]));
