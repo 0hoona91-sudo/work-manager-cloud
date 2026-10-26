@@ -29,6 +29,7 @@ html=html.replace(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi,(all,attrs,code)=
 for(const name of Object.keys(replacements))if(!counts[name])throw Error('Missing adapter boundary '+name);
 html=html.replace(/<script\b[^>]*src="\.\/([^"?]+)[^"]*"[^>]*><\/script>/g,(all,file)=>{
  let code=source(file);
+ if(file==='js/project-ui.js')code=code.replaceAll('error.serverConfirmed','error.folderConfirmed').replaceAll('서버에는 프로젝트가 저장됐으나 이 기기의 캐시 저장에 실패했습니다. 새로고침 후 서버 내용을 확인해 주세요.','PC 폴더의 프로젝트 저장은 확인됐지만 후속 확인 기록에 실패했습니다. journal을 보존하고 다시 연결해 복구 기록을 확인해 주세요.').replaceAll('서버 폐기는 확인됐으나 로컬 캐시 저장에 실패했습니다. 새로고침 후 서버를 확인해 주세요.','PC 폴더의 폐기 결과는 확인됐지만 후속 확인 기록에 실패했습니다. journal을 보존하고 다시 연결해 확인해 주세요.');
  if(file==='js/save-command.js')code=code.replaceAll('server-confirmed','folder-confirmed');
  if(file==='js/save-command-adapter.js')code=code.replaceAll('서버','PC 폴더');
  if(file==='js/backup-ui.js')code=code.replace('이 브라우저에 보관','PC 폴더 journal에 보관');

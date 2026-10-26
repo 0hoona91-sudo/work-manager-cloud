@@ -22,3 +22,13 @@
 Windows file://, 네이티브 FSA는 NOT_RUN. Cloud 관리자 정책 차단은 반복하지 않았다. main/Pages/Firebase/Drive는 변경하지 않았다.
 
 재개 위치: `/tmp/wm-schedule-common`은 공통 개발 브랜치 worktree, `/workspace/work-manager-cloud`는 로컬 브랜치. 공통 수정은 전자에, 로컬 저장 수정은 후자에 한다. 기존 커밋과 ZIP을 보존한다.
+
+## 사용자 확인 후 저장 오류 추가 검사
+
+사용자가 최신 ZIP을 Windows Edge의 file://에서 실행했음을 확인했다. 이 보고를 유효한 재현 보고로 유지한다. 운영 문구와 정확히 동일한 예외의 호출 위치는 아직 미확인이다.
+
+실제 재현한 별도 결함: snapshot 및 HEAD 쓰기/재읽기 성공 후 receipt 파일 쓰기 실패 시 프로젝트 UI가 state를 되돌려 디스크 1건/화면 0건이 됨. 폴더 저장 엔진에서 검증된 HEAD에 한해 `folderConfirmed`를 표시하고 로컬 번들 프로젝트 UI가 이를 처리하도록 변경했다. 화면에 저장된 프로젝트를 유지하고 미확정 journal/추가 저장 차단/재연결 안내를 보존한다. 클라우드 제품 코드는 바꾸지 않았다.
+
+집중 결과: Node 폴더 계약 9 PASS, Chromium 프로젝트 정상 lifecycle 1 PASS(생성/수정/취소/폐기/실패/실패 후 취소), receipt 실패 1 PASS. 총 11 PASS/0 FAIL. 수정 전 receipt 실패 검사는 FAIL(화면0/디스크1), 수정 후 화면1/디스크1·복구 차단 유지. Windows 실제 검증은 미실시.
+
+시험 ZIP `local/phase12b-project-save-test.zip`은 이 수정과 앞선 단일 업무 변경만 포함한다. 직접 일정 지정·라이브러리 날짜 선택·완료 일정 수정·버튼 규격 변경은 아직 포함하지 않는다. 전체 작업 완료판이 아니다.

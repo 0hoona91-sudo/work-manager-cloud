@@ -61,7 +61,7 @@ function create({id=()=>crypto.randomUUID(),now=()=>new Date().toISOString(),onS
    head=newHead;headText=stringify(newHead);payload=next;
    await write(dirs.journal,op+'.receipt.json',stringify({operationId:op,status:'saved',at:now()}),{fresh:true});
    status('saved','PC 파일 쓰기·재읽기 확인 완료');return {persistence:'folder-confirmed',revision:head.revision,operationId};
-  }catch(error){blocked=true;status('recovery-required','저장 미확정: '+error.message);error.recoveryRequired=true;throw error}
+  }catch(error){blocked=true;status('recovery-required','저장 미확정: '+error.message);error.recoveryRequired=true;error.folderConfirmed=head?.operationId===op&&head?.hash===digest;throw error}
  }
  return {
   async connect(handle,initial){
