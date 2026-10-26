@@ -32,6 +32,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
   await page.locator('#prj-category').selectOption({index:1});
   await page.locator('[data-stage-field="title"]').fill('합성 단계');
   await page.locator('[data-person]').first().check();
+  await page.locator('#prj-add-step').click();await page.locator('[data-stage-field="title"]').fill('직접 일정');await page.locator('[data-person]').first().check();await page.locator('#prj-schedule-mode').selectOption('manual');await page.locator('#prj-stageStart').fill('2026-11-15');await page.locator('#prj-stageStart').dispatchEvent('change');await page.locator('#prj-stageEnd').fill('2026-11-20');await page.locator('#prj-stageEnd').dispatchEvent('change');
   if(process.env.LOCAL_PROJECT_RECEIPT_LOSS==='1')await page.evaluate(()=>window.__mockFS.fail='receipt');
   await page.locator('#prjSave').click();
   await page.waitForTimeout(500);
@@ -42,6 +43,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
   }
   const result=await page.evaluate(()=>({mode:cloudSync.mode,projects:state.projects.length,tasks:state.tasks.length,folderProjects:WMLocalStore.snapshot.projects.length,modal:!!document.querySelector('#prjSave'),status:document.querySelector('#localStatus').textContent}));
   if(result.projects!==1||result.folderProjects!==1||result.modal||dialogs.length||errors.length)throw Error('project creation failed');
+  if(!await page.evaluate(()=>WMLocalStore.snapshot.projects[0].stages[1].scheduleMode==='manual'&&WMLocalStore.snapshot.projects[0].stages[1].start==='2026-11-15'))throw Error('manual dates lost in folder');
   await page.evaluate(()=>WMProjectUI.openEditor(state.projects[0].id));
   await page.locator('#prj-name').fill('수정한 프로젝트');await page.locator('#prjSave').click();
   await page.waitForFunction(()=>!document.querySelector('#prjSave'));

@@ -32,3 +32,15 @@ Windows file://, 네이티브 FSA는 NOT_RUN. Cloud 관리자 정책 차단은 �
 집중 결과: Node 폴더 계약 9 PASS, Chromium 프로젝트 정상 lifecycle 1 PASS(생성/수정/취소/폐기/실패/실패 후 취소), receipt 실패 1 PASS. 총 11 PASS/0 FAIL. 수정 전 receipt 실패 검사는 FAIL(화면0/디스크1), 수정 후 화면1/디스크1·복구 차단 유지. Windows 실제 검증은 미실시.
 
 시험 ZIP `local/phase12b-project-save-test.zip`은 이 수정과 앞선 단일 업무 변경만 포함한다. 직접 일정 지정·라이브러리 날짜 선택·완료 일정 수정·버튼 규격 변경은 아직 포함하지 않는다. 전체 작업 완료판이 아니다.
+
+## 프로젝트 일정 모드 및 UI 반영
+
+공통 소스 `3f5a443320075a6837f86a13303f54e64796be10` 반영. 상대 일정/직접 일정 모드, 라이브러리 추후 직접 선택 및 등록 시 날짜 입력, 390/1440px 버튼 규격 통일 구현. 단일 업무 변경 유지. 모바일 라이브러리 변경 확인창의 z-index 수정 포함.
+
+공통 기존 검사 최신 근거: 전체 최초 375 PASS/1 FAIL/64 NOT_RUN; 명칭 기대값 불일치 CONFLICT-24만 수정·재실행 PASS. 최신 판정 376 PASS/0 FAIL/64 NOT_RUN (전부 단일 실행 PASS라고 주장하지 않음). 신규 공통 시나리오 5 PASS. 상세는 공통 브랜치 docs/features/project-schedule/ 참조.
+
+로컬 집중 검사 12 PASS (Node 계약9, 연결1, 프로젝트 lifecycle1, receipt 실패1). 직접 단계의 폴더 snapshot 보존 포함. inline script57 문법 통과, 최신 어댑터 포함. 네이티브 Windows/file://는 미실시이며 Emulator64도 PASS로 올리지 않았다.
+
+시험 ZIP: local/phase12b-manual-schedule-test.zip (HTML, Windows 안내, build.json). 새 빈 폴더에서 검사. 완료 단계 일정 수정은 미구현: 기존 완료 task/단계와 snapshot 보호를 우회하지 않음. 후속 정정 이력·계산·표시·저장 계약을 함께 정의해야 함. 사용자 Windows 충돌 오류는 실제 재현 보고로 유지하고 해결 완료라고 판정하지 않는다. 기록된 별도 receipt 오류 수정과 혼동하지 않는다.
+
+구버전으로 되돌릴 때 manual 모드 단계를 기존 상대일수 계산으로 처리할 위험이 있으므로 기존 코드로 해당 시험 데이터를 수정하지 않는다. 실제 운영 배포/데이터 사용 없음.
