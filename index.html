@@ -4167,7 +4167,7 @@ function openDbRegisterModalV10(){
   });
   $('#v10RegisterDbTasks').onclick=async()=>{
     let created=0;
-    const beforeTasks=clone(state.tasks),beforeProjects=clone(state.projects||[]);
+    const before=window.WMProjectUI.captureSaveState();let submitted=null;const projectIds=[];
     const button=$('#v10RegisterDbTasks');if(button)button.disabled=true;
     try{
       for(let i=0;i<desc.length;i++){
@@ -4176,13 +4176,16 @@ function openDbRegisterModalV10(){
         if(!start)throw new Error('모든 선택 업무의 시작일을 지정하세요.');
         const manualDates={};(desc[i].root.linkedSteps||[]).forEach((step,j)=>{if(step.scheduleMode==='manual')manualDates[j+1]={start:$(`[data-manual-start="${i}|${j+1}"]`)?.value,end:$(`[data-manual-end="${i}|${j+1}"]`)?.value}});
         const res=createManualDbChainV10(desc[i].root,desc[i].startStage,endStage,start,manualDates);
-        created+=res.count;
+        created+=res.count;if(res.projectId)projectIds.push(res.projectId);
       }
-      recalcLinks();await saveState({reason:'라이브러리에서 직접 수행업무/프로젝트 등록'});
+      recalcLinks();submitted=window.WMProjectUI.captureSaveState();
+      const saved=await saveState({reason:'라이브러리에서 직접 수행업무/프로젝트 등록',...(projectIds.length?{projectSave:true,projectId:projectIds[0]}:{})});
+      if(projectIds.length&&window.cloudSync?.mode==='cloud'&&!['server-confirmed','no-change'].includes(saved?.persistence))throw new Error('프로젝트 등록의 서버 확정을 확인하지 못했습니다.');
       selectedDbRefsV10.clear();closeModal();renderDbTable();renderTaskTable();renderHome();
       toast(`업무/프로젝트 ${created}개 단계를 등록했습니다.`);
     }catch(error){
-      state.tasks=beforeTasks;state.projects=beforeProjects;
+      if(!error.serverConfirmed)window.WMProjectUI.restoreSubmission(before,submitted||window.WMProjectUI.captureSaveState());
+      if(error.serverConfirmed){closeModal();renderDbTable();renderTaskTable();renderHome();alert('서버 등록은 확인됐으나 캐시 저장에 실패했습니다. 서버 내용을 다시 확인해 주세요.');return;}
       console.error('라이브러리 등록 실패',error);
       alert(`수행업무를 등록하지 못했습니다.\n${error?.message||error}`);
     }finally{if(button?.isConnected)button.disabled=false;}

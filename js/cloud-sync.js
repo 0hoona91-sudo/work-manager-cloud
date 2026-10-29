@@ -1700,9 +1700,13 @@ async function commitTransaction(changes, nextMaps, metadata) {
     if (metadata.projectSave) for (const change of readChanges) {
       const snap = snapshots.get(`${change.collection}/${change.id}`);
       const remote = snap?.exists() ? withoutSyncFields(snap.data()) : null;
-      const fields=remote&&change.before?changedFields(remote,change.before):[];
+      // Both sides use business fields. Local model timestamps are overwritten by
+      // Firestore sync timestamps and must not manufacture a concurrent edit.
+      const before=change.before ? withoutSyncFields(change.before) : null;
+      const fields=remote&&before?[...new Set([...Object.keys(remote),...Object.keys(before)])]
+        .filter(field=>!window.WMSaveCommand.equal(remote[field],before[field])):[];
       const independentNote=change.guardOnly&&change.collection==='tasks'&&fields.length>0&&fields.every(field=>field==='notes');
-      if (!independentNote && (remote === null ? change.before !== null : !change.before || fields.length)) {
+      if (!independentNote && (remote === null ? before !== null : !before || fields.length)) {
         throw Object.assign(new Error('프로젝트 또는 단계 업무가 다른 기기에서 변경됐습니다. 입력을 유지하고 서버 내용을 다시 확인해 주세요.'),{code:'project/conflict',definiteFailure:true,collection:change.collection,id:change.id});
       }
     }

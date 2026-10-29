@@ -5,7 +5,7 @@ const http = require('node:http');
 const { chromium } = require('playwright-core');
 const { root, FIXED_NOW } = require('./helpers.cjs');
 
-async function withPage(viewport, EnvironmentUnavailable, run) {
+async function withPage(viewport, EnvironmentUnavailable, run, {expectedConsoleErrors=[]} = {}) {
   const executablePath = process.env.CHROMIUM_PATH || ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'].find(p => fs.existsSync(p));
   if (!executablePath || !fs.existsSync(executablePath)) throw new EnvironmentUnavailable('Chromium unavailable; set CHROMIUM_PATH to an installed executable.');
   const server = http.createServer((req, res) => {
@@ -51,7 +51,7 @@ async function withPage(viewport, EnvironmentUnavailable, run) {
     await run(page);
     assert.deepEqual(pageErrors, []);
     // SDK/module network failures are expected in this deliberately offline shell test.
-    assert.deepEqual(consoleErrors.filter(s => !/Failed to load resource:|앱 시작 실패.*Failed to fetch dynamically imported module/.test(s)), []);
+    assert.deepEqual(consoleErrors.filter(s => !/Failed to load resource:|앱 시작 실패.*Failed to fetch dynamically imported module/.test(s) && !expectedConsoleErrors.some(pattern=>pattern.test(s))), []);
     assert.ok(blocked.includes('www.gstatic.com'), 'Firebase SDK must be blocked');
     await ctx.close();
   } finally {

@@ -1,0 +1,7 @@
+FAIL    CLOUD-UI-01 Chromium production cloud save receipt survives recurrence wrapper and project lifecycle
+page.waitForFunction: Timeout 8000ms exceeded.
+    at /workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:44:16
+    at async withPage (/workspace/wm-cloud-stabilize/tests/browser.test.cjs:51:5)
+    at async main (/workspace/wm-cloud-stabilize/tests/run.cjs:60:16)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}

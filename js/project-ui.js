@@ -410,27 +410,47 @@ async function uploadPendingResources(){
     }
   }
 }
+// Undo only this submitted project's unchanged optimistic records. Never replace
+// whole collections: unrelated edits may arrive while the server is pending.
+function projectSaveScope(){return [window.cloudSync?.mode,window.cloudSync?.workspaceKey,window.cloudSync?.workspaceUser?.uid,window.cloudSync?.user?.uid].join(':');}
+function projectSaveSnapshot(){return {projects:M.clone(projectList()),tasks:M.clone(state.tasks),scope:projectSaveScope()};}
+function restoreProjectSubmission(before,submitted){
+  if(!before||!submitted||before.scope!==projectSaveScope())return;
+  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  for(const name of ['projects','tasks']){
+    const old=new Map(before[name].map(item=>[item.id,item]));
+    const sent=new Map(submitted[name].map(item=>[item.id,item]));
+    for(const id of new Set([...old.keys(),...sent.keys()])){
+      if(same(old.get(id),sent.get(id)))continue;
+      const index=state[name].findIndex(item=>item.id===id),current=state[name][index];
+      if(!same(current,sent.get(id)))continue;
+      if(old.has(id)){if(index<0)state[name].push(old.get(id));else state[name][index]=old.get(id);}
+      else if(index>=0)state[name].splice(index,1);
+    }
+  }
+}
 async function saveEditor(){
   if(saving||!editor)return;
   const button=$p('#prjSave');if(button){button.disabled=true;button.textContent='저장 중…';}
   saving=true;
-  let before=null;
+  let before=null,submitted=null;
   try{
     // 정확하지 않은 날짜나 빈 단계명으로 원본 업로드를 시작하지 않는다.
     M.applyRelativeDates(editor,holidayCheck,state);
     M.reconcile(state,M.normalizeProject(editor,holidayCheck,state),holidayCheck);
     await uploadPendingResources();
     const project=M.normalizeProject(editor,holidayCheck,state);
-    before={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
+    before=projectSaveSnapshot();
     const result=M.reconcile(state,project,holidayCheck);
     state.projects=result.projects;state.tasks=result.tasks;
+    submitted=projectSaveSnapshot();
     const saved=await saveState({reason:result.isNew?'프로젝트 생성':'프로젝트 단계/정보 수정',projectSave:true,projectId:project.id});
     if(window.cloudSync?.mode==='cloud'&&!['server-confirmed','no-change'].includes(saved?.persistence))throw Object.assign(new Error('서버 저장 확정을 확인하지 못했습니다. 새로고침 전에 서버 상태를 확인해 주세요.'),{code:'project/unconfirmed',recoveryRequired:true});
     dirty=false;editor=null;pendingFiles.clear();closeModal();
     renderProjectPage();renderTaskTable();renderHome();toast('프로젝트와 단계별 수행업무를 저장했습니다.');
   }catch(error){
     if(error.serverConfirmed){dirty=false;editor=null;pendingFiles.clear();closeModal();renderProjectPage();renderTaskTable();renderHome();alert('서버에는 프로젝트가 저장됐으나 이 기기의 캐시 저장에 실패했습니다. 새로고침 후 서버 내용을 확인해 주세요.');return;}
-    if(before){state.projects=before.projects;state.tasks=before.tasks;}
+    restoreProjectSubmission(before,submitted);
     console.error('프로젝트 저장 실패',error);
     alert(`프로젝트를 저장하지 못했습니다.\n${error?.message||error}`);
   }finally{saving=false;if(button&&button.isConnected){button.disabled=false;button.textContent='프로젝트 저장';}}
@@ -439,15 +459,16 @@ async function deleteProject(){
   if(saving||!editor)return;
   if(state.tasks.some(t=>t.projectId===editor.id&&M.hasCompletionHistory(t))){alert('완료 이력이 있는 프로젝트는 폐기할 수 없습니다. 원본 프로젝트를 유지해 주세요.');return;}
   if(!confirm(`'${editor.name}' 프로젝트와 연결된 모든 단계 업무를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`))return;
-  const prior={projects:M.clone(projectList()),tasks:M.clone(state.tasks)};
+  const prior=projectSaveSnapshot();let submitted=null;
   saving=true;
   try{
     const result=M.removeProject(state,editor.id);
     state.projects=result.projects;state.tasks=result.tasks;
+    submitted=projectSaveSnapshot();
     const saved=await saveState({reason:'프로젝트 폐기',projectSave:true,projectId:editor.id});
     if(window.cloudSync?.mode==='cloud'&&!['server-confirmed','no-change'].includes(saved?.persistence))throw Object.assign(new Error('프로젝트 폐기 결과를 서버에서 확인하지 못했습니다.'),{code:'project/unconfirmed',recoveryRequired:true});
     editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();toast('프로젝트를 삭제했습니다.');
-  }catch(error){if(error.serverConfirmed){editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();alert('서버 폐기는 확인됐으나 로컬 캐시 저장에 실패했습니다. 새로고침 후 서버를 확인해 주세요.');}else{state.projects=prior.projects;state.tasks=prior.tasks;alert(`프로젝트 삭제 실패: ${error?.message||error}`);}}
+  }catch(error){if(error.serverConfirmed){editor=null;dirty=false;closeModal();renderProjectPage();renderTaskTable();renderHome();alert('서버 폐기는 확인됐으나 로컬 캐시 저장에 실패했습니다. 새로고침 후 서버를 확인해 주세요.');}else{restoreProjectSubmission(prior,submitted);alert(`프로젝트 삭제 실패: ${error?.message||error}`);}}
   finally{saving=false;}
 }
 function completionHistoryHtml(task){
@@ -558,19 +579,41 @@ function projectTaskModal(task){
       alert(`진행자료를 저장하지 못했습니다.\n${error?.message||error}`);
     }finally{addResource.disabled=false;}
   };
-  $$p('[data-prj-complete]').forEach(input=>input.onchange=()=>{
+  async function persistStageChange(before,submitted,reason){
+    try{
+      const saved=await saveState({reason,projectSave:true,projectId:task.projectId});
+      if(window.cloudSync?.mode==='cloud'&&!['server-confirmed','no-change'].includes(saved?.persistence))throw new Error('단계 저장의 서버 확정을 확인하지 못했습니다.');
+      return true;
+    }catch(error){
+      if(!error.serverConfirmed)restoreProjectSubmission(before,submitted);
+      alert(error.serverConfirmed?'서버 저장은 확인됐으나 캐시 저장에 실패했습니다. 서버 내용을 다시 확인해 주세요.':`단계 저장 실패 · 입력과 서버 상태를 확인해 주세요.\n${error.message||error}`);
+      return false;
+    }
+  }
+  $$p('[data-prj-complete]').forEach(input=>input.onchange=async()=>{
+    const before=projectSaveSnapshot();
     if(!M.setCheck(task,input.dataset.prjComplete,input.checked,todayISO())){input.checked=Boolean(task.checklist.find(c=>c.id===input.dataset.prjComplete)?.done);return;}
-    input.closest('.prj-task-check')?.classList.toggle('checked',input.checked);
-    const status=$p('#prj-task-status');if(status)status.textContent=`${task.checklist.filter(c=>c.done).length}/${task.checklist.length}개 완료 · ${effectiveStatus(task)==='done'?'단계 완료':'진행 중'}`;
-    // 모달/체크 입력은 재생성하지 않아 빠른 다중 체크가 누락되지 않는다.
-    void saveState({reason:'프로젝트 단계 체크리스트 변경'}).catch(error=>{console.error(error);toast('체크리스트 저장 실패 · 다시 확인해 주세요.');});
+    const submitted=projectSaveSnapshot();
+    const status=$p('#prj-task-status');if(status)status.textContent='단계 변경 저장 중…';
+    const saved=await persistStageChange(before,submitted,'프로젝트 단계 체크리스트 변경');
+    const current=state.tasks.find(t=>t.id===task.id);
+    if(!saved&&current&&status?.isConnected){projectTaskModal(current);return;}
+    // Keep the live checkbox DOM during fast multi-check edits. A failed command
+    // restores only its own unchanged submission, then shows the preserved state.
+    if(current){
+      for(const box of $$p('[data-prj-complete]')){box.checked=Boolean(current.checklist.find(c=>c.id===box.dataset.prjComplete)?.done);box.closest('.prj-task-check')?.classList.toggle('checked',box.checked);}
+      if(status?.isConnected)status.textContent=saved?`${current.checklist.filter(c=>c.done).length}/${current.checklist.length}개 완료 · ${effectiveStatus(current)==='done'?'단계 완료':'진행 중'}`:'저장 실패 · 서버 확인 필요';
+    }
     renderTaskTable();renderHome();renderProjectPage();
   });
-  const manual=$p('#prjManualComplete');if(manual)manual.onclick=()=>{
-    if(M.isCompleted(task))return;
+  const manual=$p('#prjManualComplete');if(manual)manual.onclick=async()=>{
+    if(M.isCompleted(task)||manual.disabled)return;
+    const before=projectSaveSnapshot();
     task.status='done';task.actualComplete=todayISO();
-    void saveState({reason:'프로젝트 단계 수동 완료 변경'}).catch(error=>{console.error(error);toast('단계 상태 저장 실패');});
-    renderTaskTable();renderHome();renderProjectPage();projectTaskModal(task);
+    const submitted=projectSaveSnapshot();manual.disabled=true;manual.textContent='저장 중…';
+    await persistStageChange(before,submitted,'프로젝트 단계 수동 완료 변경');
+    renderTaskTable();renderHome();renderProjectPage();
+    const current=state.tasks.find(t=>t.id===task.id);if(current&&manual.isConnected)projectTaskModal(current);
   };
   return true;
 }
@@ -979,8 +1022,10 @@ function installRollingRecurrencesV181(){
         let saved;
         if(command||applied.added||applied.mapped||applied.reserved)saved=await baseSaveV181(...args);
         if(recurrenceContext().scope!==context.scope)throw new Error('저장 중 업무공간이 변경되었습니다. 결과를 확인해 주세요.');
-        status={phase:offline?'pending-online':saved?.recurrenceReconciled?'conflict-resolved':'saved',...applied};
-        return {...status};
+        status={phase:offline?'pending-online':saved?.recurrenceReconciled?'conflict-resolved':saved?.persistence==='pending-sync'?'pending-sync':'saved',...applied};
+        // Preserve the persistence receipt for project/backup callers; supplementation
+        // status alone cannot establish that the server committed this command.
+        return {...status,...saved};
       }catch(error){
         // Preserve concurrent user edits. A failed remote write may still have
         // partially committed, so do not silently retry this command.
@@ -1166,5 +1211,5 @@ function installNavAndHomeHolidayEnhancementsV182(){
 }
 installNavAndHomeHolidayEnhancementsV182();
 
-window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility,reopenTaskWithHistory};
+window.WMProjectUI={renderProjectPage,openEditor,projectTaskModal,syncProjectVisibility,reopenTaskWithHistory,captureSaveState:projectSaveSnapshot,restoreSubmission:restoreProjectSubmission};
 })();

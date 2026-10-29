@@ -1,0 +1,10 @@
+FAIL    CLOUD-UI-07 Chromium stage completion waits for server and uses project conflict guard
+AssertionError [ERR_ASSERTION]: completion modal remains until server confirms
+
+0 !== 1
+
+    at /workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:145:12
+    at async withPage (/workspace/wm-cloud-stabilize/tests/browser.test.cjs:51:5)
+    at async main (/workspace/wm-cloud-stabilize/tests/run.cjs:61:16)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}

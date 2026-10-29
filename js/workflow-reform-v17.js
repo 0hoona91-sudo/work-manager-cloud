@@ -326,6 +326,7 @@ function renderProjectCards(completed=false){
   }).join(''):`<p class="workflow-empty-v17">${completed?'종료 처리된 프로젝트가 없습니다.':'표시할 진행 프로젝트가 없습니다.'}</p>`;
 }
 async function closeProjectV174(id,button){
+  if(button?.disabled)return;
   const p=state.projects.find(item=>item.id===id);if(!p)return;
   if(!canCloseProjectV174(p)){
     alert('프로젝트의 모든 단계가 완료된 후에 종료할 수 있습니다. 미완료 체크리스트나 단계 상태를 먼저 확인해 주세요.');return;
@@ -335,15 +336,16 @@ async function closeProjectV174(id,button){
   p.workflowClosedAtV174=new Date().toISOString().slice(0,10);
   button.disabled=true;
   try{
-    await saveState({reason:`프로젝트 종료 · ${p.name}`});
+    const saved=await saveState({reason:`프로젝트 종료 · ${p.name}`,projectSave:true,projectId:id});
+    if(window.cloudSync?.mode==='cloud'&&!['server-confirmed','no-change'].includes(saved?.persistence))throw new Error('프로젝트 종료의 서버 확정을 확인하지 못했습니다.');
     reopenedProjects.delete(p.id);
     renderTaskTable();renderHome();
     if(typeof toast==='function')toast('프로젝트를 완료업무로 이동했습니다.');
   }catch(error){
-    p.workflowClosedAtV174=previous;
-    alert('프로젝트 종료를 저장하지 못했습니다. 연결 상태를 확인해 주세요.');
+    if(!error.serverConfirmed)p.workflowClosedAtV174=previous;
+    alert(error.serverConfirmed?'서버 종료는 확인됐으나 로컬 캐시 저장에 실패했습니다. 서버 내용을 다시 확인해 주세요.':`프로젝트 종료를 저장하지 못했습니다. 입력과 서버 상태를 확인해 주세요.\n${error.message||error}`);
     renderTaskTable();
-  }
+  }finally{if(button.isConnected)button.disabled=false;}
 }
 // When a finished project's checked item is re-opened, ask FIRST. The original
 // project-ui handler is retained to update the exact checklist and persist it.

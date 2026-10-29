@@ -1,0 +1,12 @@
+FAIL    CLOUD-UI-02 Chromium project close uses guarded cloud command and retains completed task records
+AssertionError [ERR_ASSERTION]: project close must use server conflict guard
++ actual - expected
+
++ undefined
+- true
+
+    at /workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:69:12
+    at async withPage (/workspace/wm-cloud-stabilize/tests/browser.test.cjs:51:5)
+    at async main (/workspace/wm-cloud-stabilize/tests/run.cjs:60:16)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}

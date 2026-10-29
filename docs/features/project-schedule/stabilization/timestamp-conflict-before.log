@@ -1,0 +1,9 @@
+SYNTHETIC-CONFLICT projects project-mvkdtk00-l7balchjk {"before":{"id":"project-mvkdtk00-l7balchjk","name":"합성 클라우드 프로젝트","category":"시설","manager":"담당자","start":"2026-10-23","end":"","stages":[{"id":"stage-mvkdtk00-xhug0uhra","taskId":"project-task-mvkdtk00-ugmrg4key","title":"첫 단계","participants":["담당자"],"start":"2026-10-23","endType":"same","endDate":"","afterDays":0,"includeHolidays":true,"holidayShift":"keep","checklist":[],"resources":[]}],"createdAt":"2026-10-23T03:00:00.000Z","updatedAt":"2026-10-23T03:00:00.000Z"},"remote":{"id":"project-mvkdtk00-l7balchjk","name":"합성 클라우드 프로젝트","category":"시설","manager":"담당자","start":"2026-10-23","end":"","stages":[{"id":"stage-mvkdtk00-xhug0uhra","taskId":"project-task-mvkdtk00-ugmrg4key","title":"첫 단계","participants":["담당자"],"start":"2026-10-23","endType":"same","endDate":"","afterDays":0,"includeHolidays":true,"holidayShift":"keep","checklist":[],"resources":[]}],"createdAt":"SYNTHETIC_TIME","updatedAt":"SYNTHETIC_TIME","revision":1}}
+FAIL    CLOUD-UI-01 Chromium production cloud save receipt survives recurrence wrapper and project lifecycle
+page.waitForFunction: Timeout 8000ms exceeded.
+    at saveProject (/workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:35:84)
+    at async /workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:52:5
+    at async withPage (/workspace/wm-cloud-stabilize/tests/browser.test.cjs:51:5)
+    at async main (/workspace/wm-cloud-stabilize/tests/run.cjs:60:16)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}

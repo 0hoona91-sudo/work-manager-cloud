@@ -1,0 +1,9 @@
+FAIL    CLOUD-PROJECT-MOCK-01 MOCK Firestore map key order is not a project edit but stage values still conflict
+Error: 프로젝트 또는 단계 업무가 다른 기기에서 변경됐습니다. 입력을 유지하고 서버 내용을 다시 확인해 주세요.
+    at evalmachine.<anonymous>:461:29
+    at async runTransaction (/workspace/wm-cloud-stabilize/tests/recurrence-cloud-harness.cjs:53:22)
+    at async runRulesAwareTransaction (evalmachine.<anonymous>:379:14)
+    at async commitOnlineChunks (evalmachine.<anonymous>:356:27)
+    at async flushQueue (evalmachine.<anonymous>:163:30)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}

@@ -1,0 +1,10 @@
+FAIL    CLOUD-UI-03 Chromium failed project edit preserves draft and concurrent unrelated changes without retry
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at /workspace/wm-cloud-stabilize/tests/cloud-feature-ui.test.cjs:84:12
+    at async withPage (/workspace/wm-cloud-stabilize/tests/browser.test.cjs:51:5)
+    at async main (/workspace/wm-cloud-stabilize/tests/run.cjs:60:16)
+
+Total 1: {"PASS":0,"FAIL":1,"XFAIL":0,"XPASS":0,"NOT_RUN":0}
